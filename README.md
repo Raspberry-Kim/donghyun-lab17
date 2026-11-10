@@ -1,13 +1,13 @@
-# 동현항 v0.02
+# 동현항 v0.03
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24106054.svg)](https://doi.org/10.5281/zenodo.24106054)
 
-동현랭으로 시작값과 규칙 수치를 정하는 **1인용 항해 · 교역 놀이**다. 선장 **포동이**의 탐험대가 1522년 리스본에서 떠나 **항구 스무 곳**을 오가며 싸게 사서 비싸게 판다. 바다에서는 하루하루 날짜가 흐르고 식량과 물이 줄어든다. 적 함대를 만나면 **8×8 육각 바다**에서 포격 · 백병전 · 일기토로 싸운다.
+동현랭으로 시작값과 규칙 수치를 정하는 **1인용 항해 · 교역 시뮬레이션 게임**이다. 선장 **포동이**의 탐험대가 1522년 리스본에서 떠나 **항구 스무 곳**을 오가며 무역을 한다. 바다에서는 하루하루 날짜가 흐르고 식량과 물이 줄어든다. 적 함대를 만나면 **8×8 육각 바다**에서 포격 · 백병전 · 일기토로 싸운다.
 동현 시리즈의 열일곱 번째 작은 실험이다. 1993년 게임 「대항해시대 II」의 큰 틀만 참고했고 지도 · 자료 · 규칙 · 그림 · 글 · 코드는 모두 새로 만들었다. 동현삼(열여섯 번째 실험)과 같은 엔진을 쓴다. 키보드로도, 마우스나 손가락으로도 논다.
 
 바로 하기: https://raspberry-kim.github.io/donghyun-lab17/
 
-기술은 HTML5 Canvas와 Vanilla JS뿐이다. 묶는 도구도 바깥 라이브러리도 쓰지 않는다. 규칙은 돌아가지만 저장은 아직 없다.
+기술은 HTML5 Canvas와 Vanilla JS뿐이다. 묶는 도구도 바깥 라이브러리도 쓰지 않는다. 탐험은 브라우저 칸 세 개와 `.dhsave` 파일에 저장하고 불러온다.
 
 ## 놀이 방법
 
@@ -33,12 +33,25 @@
 | `+` `−` | 지도를 키우고 줄인다 |
 | `Esc` | 해전에서 고른 배를 놓는다. 전체 화면에서는 전체 화면이 닫힌다 |
 | `Ctrl`/`⌘` + `Enter` | 동현랭 편집기에서 출전 |
+| **저장** · **불러오기** 단추(지도 아래) | 탐험을 브라우저 칸이나 `.dhsave` 파일에 남기고 되살린다. 아래 **저장과 불러오기**를 보라 |
 | **전체 화면** 단추(지도 아래) | 정보 띠 · 지도 · 조작 창을 화면에 꽉 채운다. 닫을 때는 오른쪽 위 **✕ 전체 화면 닫기**를 누르거나 `Esc`를 누른다 |
 
 - 화면은 위 정보 띠(날짜 · 자금 · 식량 · 물 · 선원 · 짐) · 가운데 지도(480×360) · 조작 창(설명 · 단추 · 기록)으로 나뉜다. 폭이 좁으면 조작 창이 지도 아래로 내려간다.
 - **전체 화면**에서는 화면 모양에 따라 배치가 셋으로 바뀐다. 넓은 화면은 평소처럼 지도 오른쪽에 조작 창을 두고, 낮은 가로 화면(눕힌 휴대폰)은 지도를 왼쪽에 꽉 채우고 정보 띠와 조작 창을 오른쪽에 모으며, 좁거나 세로로 긴 화면은 아래로 쌓는다. 지도는 커진 만큼 더 촘촘히 그린다(4배까지).
 - 동현랭 편집기는 전체 화면에 따라오지 않는다. 설정을 바꾸려면 **출전**을 먼저 누르고 전체 화면을 켠다. iPhone Safari처럼 전체 화면을 내주지 않는 브라우저에서는 창을 가득 채우는 방식으로 띄운다.
-- 설명 탭을 읽는 동안에는 판이 멈춘다. 게임패드 · 소리 · 저장은 없다.
+- 설명 탭을 읽는 동안에는 판이 멈춘다. 게임패드와 소리는 없다.
+- 조작 창의 단추를 누른 뒤에도 키보드는 계속 지도에 듣는다(단추를 누르면 초점이 지도로 돌아온다).
+
+## 저장과 불러오기
+
+- 지도 아래 **저장**을 누르면 메뉴가 뜬다. **브라우저 칸 1 · 2 · 3** 가운데 하나에 남기거나 **파일로 내려받기**로 `.dhsave` 파일 하나를 받는다. 찬 칸은 덮어쓸지 한 번 더 묻는다. **칸 지우기**로 칸을 비운다. 저절로 저장되지는 않는다.
+- **불러오기**에서 칸을 고르거나 **파일에서 불러오기**로 `.dhsave` 파일을 고르면 그 탐험이 되살아난다. 저장하지 않은 진행은 사라지니 한 번 더 묻는다.
+- 저장은 **항구에서도 바다 위에서도** 된다. 해전 중에만 저장하지 못한다(까닭을 알려 준다). 끝난 탐험도 저장된다. 불러오기는 언제든 되고, 해전 중이었으면 그 해전을 접는다.
+- 바다 위에서 저장한 탐험은 **멈춘 채로** 돌아온다. 뱃길과 갈 곳은 그대로 있으니 **계속**을 누르면 이어 간다.
+- 탐험과 함께 **저장될 때의 동현랭 설정 · 날짜 · 난수 상태 · 항구마다의 시세**가 따라온다. 그래서 불러온 뒤 같은 길을 가면 같은 일이 벌어진다. 편집기의 코드는 바뀌지 않는다. **출전**을 누르면 편집기의 코드로 새 탐험이 열린다.
+- 맞지 않는 파일(다른 게임의 저장 · 깨진 파일 · 자료와 어긋나는 값)은 까닭을 알리고 하던 탐험을 그대로 둔다.
+- 칸은 이 기기의 이 브라우저에만 남는다(사이트 데이터를 지우거나 사생활 보호 창을 닫으면 사라지고, Safari는 7일 동안 열지 않으면 지울 수 있다). 다른 기기로 옮기거나 오래 두려면 파일로 내려받는다.
+- 메뉴가 열린 동안 날짜는 멎는다. `↑` `↓`로 고르고 `Enter`로 누른다. `Esc`를 누르거나 메뉴 바깥을 누르면 닫힌다. 전체 화면에서는 오른쪽 위에 **저장** · **불러오기** 단추가 있다. 브라우저 전체 화면에서 `Esc`를 누르면 전체 화면이 먼저 닫히고 메뉴는 남는다.
 
 ## 동현항 출전 규약
 
@@ -163,7 +176,7 @@
 - AI는 선장이 10 넘게 세면 일기토를 걸고, 선원이 곱절이면 올라타고, 아니면 쏠 수 있는 자리로 가서 쏜다.
 - 물은 60일분까지만 실린다. 리스본에서 하카타까지(191칸 · 96일)를 쉬지 않고 가면 77일째에 선원을 모두 잃는다. 엘미나 → 소팔라 → 고아 → 말라카 → 하카타로 들르며 보급하면 한 명도 잃지 않는다(시험에 있다).
 - 스테이지 조건(설정 20 · 21)을 주면 자금을 모았을 때 이기고, 바다에서 보낸 날이 기한을 넘으면 진다. 조건이 없으면 끝없이 다닌다.
-- 저장과 불러오기는 아직 없다.
+- 해전 한가운데는 저장하지 않는다. 해전이 끝난 뒤에 저장한다.
 
 ## 엔진의 층
 
@@ -178,7 +191,7 @@ Engine ─┬─ Loop      requestAnimationFrame으로 그리고, 논리는 1/60
 MapScene (Scene을 이어받음) ─ Grid(Square|Hex) + Camera + TileMapRenderer
         게임 장면은 drawOver(g)에서 지도 위 그림만 그린다 (주·길·항구·배)
 
-Layout   DOM. setInfo(위 띠) · setDetail(설명) · setMenu(단추) · log(기록)
+Layout   DOM. setInfo(위 띠) · setDetail(설명) · setMenu(단추) · log(기록) · press(번호) · pressPrimary()
 ```
 
 엔진 파일은 모두 같은 꼴이다. 전역 `DH`에 붙고, node에서는 `require`로 같은 `DH`를 받는다.
@@ -195,6 +208,24 @@ Layout   DOM. setInfo(위 띠) · setDetail(설명) · setMenu(단추) · log(�
 | `clock` `rng` `bus` `tick` | 달력 · 난수 · 사건 버스 · 지금 틱 |
 | `on(type, fn)` | 사건 듣기. 끊는 함수를 돌려준다 |
 | `snapshot()` | 저장 묶음: 틱 · 달력 · 난수 상태 · 맨 위 장면의 `save()` |
+| `checkSnapshot(s)` | 저장 묶음의 달력과 난수가 이 엔진에 맞는지 본다. 맞지 않으면 까닭을 담아 던진다(아무것도 바꾸지 않는다) |
+| `restore(s)` | 달력과 난수를 되돌린다. 흐르는 날짜는 멈춘 채로 돌아온다. 장면과 판은 게임이 따로 되돌린다 |
+| `DH.Save.need · int · head` | 저장 묶음을 검사하는 작은 도구. `head(d, format, version, name)`는 어느 게임의 몇 번째 형식인지 본다 |
+
+### 저장 묶음
+
+```js
+{ format: 'donghyunhang-save', version: 1,   // 어느 게임의 몇 번째 형식인지
+  lab: '0.03', savedAt: '2026-11-10T03:19:00.000Z',
+  summary: { title: '리스본', date: '1522년 5월 1일', line: '자금 1,000 · 선원 28명' },   // 메뉴에 보이는 한 줄
+  settings: [[3, 5000], [10, 20]],           // 저장될 때 적용돼 있던 동현랭 설정 [번호, 값…]
+  engine, tick, clock, rng, scene,           // Engine.snapshot()
+  game: { gold, crew, food, water, x, y, port, lastPort, day, sinceLand, path, dest, heading, over, overWhy, ships: […], cargo, markets } }   // Voyage.toJSON()
+```
+
+- `game`에는 탐험이 흐르며 바뀌는 값만 적는다. 항구의 이름 · 자리 · 지도처럼 자료에 있는 것은 적지 않고 불러올 때 자료에서 다시 읽는다.
+- 불러올 때는 머리말 → 설정(`lang.applySettings`) → 달력과 난수(`engine.checkSnapshot`) → 탐험(`Voyage.restore`) 순서로 모두 검사한 뒤에야 바꾼다. 하나라도 맞지 않으면 `{ ok: false, why }`를 돌려주고 하던 탐험을 그대로 둔다.
+- 페이지는 장면의 `saveInfo()` · `saveGame()` · `loadGame(d)` 셋만 부른다. 브라우저 칸은 `localStorage`의 `donghyunhang:slot1`~`slot3`이고, 파일은 같은 JSON을 `.dhsave`라는 이름으로 내려받은 것이다.
 
 ### Loop: 60FPS와 틱
 
@@ -234,7 +265,9 @@ Layout   DOM. setInfo(위 띠) · setDetail(설명) · setMenu(단추) · log(�
 - 위: 정보 띠. 가운데: 캔버스(480×360, 4:3, 시리즈와 같다). 오른쪽: 조작 창.
 - 폭이 860px 아래면 조작 창이 캔버스 아래로 내려간다. 단추 높이는 44px 이상이다.
 - 자료에서 온 글은 `textContent`로만 넣는다.
-- 전체 화면은 엔진이 아니라 페이지(`src/app.js` · `src/style.css`)가 맡는다. 페이지가 배치와 지도 폭을 정하고 `engine.fit(폭)`을 부른다.
+- `new DH.Layout(host, { hotkeys: true })`로 만들면 조작 단추에 번호(1~9)가 자리대로 붙는다(흐린 단추도 센다). 장면은 `press(n)`으로 그 번호의 단추를, `pressPrimary()`로 노란 단추를 누른다. 단추에 `key`를 주면 그 글자를 적고 번호는 건너뛴다. 손가락 화면에서는 번호를 숨긴다. 동현삼이 켜고 동현항은 켜지 않았다.
+- 마우스나 손가락으로 단추를 누르면 초점을 캔버스로 옮긴다. 단추를 누른 뒤에도 키보드가 계속 지도에 듣는다. `Tab`으로 가서 키보드로 누른 단추는 초점을 지키고, 그 단추가 사라질 때만 캔버스로 옮긴다.
+- 전체 화면과 저장 메뉴는 엔진이 아니라 페이지(`src/app.js` · `src/style.css`)가 맡는다. 페이지가 배치와 지도 폭을 정하고 `engine.fit(폭)`을 부른다.
 
 ## 게임이 얹는 법
 
@@ -275,6 +308,7 @@ const lang = new DH.DonghyunLangAdapter({ name: '동현항', commands: {
 lang.parse(scriptText)                       // 실행하고 읽기만 한다 → { ok, empty, settings, values, errors, output }
 lang.applyDonghyunLang(scriptText, state)    // 오류가 하나도 없을 때만 state(globalState)에 덮어쓴다 → 같은 보고서 + applied
 lang.compose([[3, 5000], [10, 20]])          // 그 설정을 출력하는 동현랭 코드를 짓는다 (예제 · 시험)
+lang.applySettings([[3, 5000]], state, ctx)  // 설정 목록을 동현랭을 돌리지 않고 덮어쓴다. 검사는 같다 (저장한 판을 불러올 때)
 lang.describe(state)                         // 설정 번호 표 (번호 · 이름 · 범위 · 기본값)
 ```
 
@@ -340,25 +374,25 @@ donghyun-lab17/
   index.html           묶은 한 파일(글꼴 · 아이콘 · 자료 포함). node build.cjs로 src/에서 만든다
   build.cjs            src/를 한 장으로 묶는다. 설명 탭의 글은 이 README.md에서 가져온다
   src/
-    index.html · style.css · app.js · series.html     페이지 뼈대 · 모양 · 편집기와 출전 · 전체 화면 · 시리즈 띠
+    index.html · style.css · app.js · series.html     페이지 뼈대 · 모양 · 편집기와 출전 · 전체 화면 · 저장 메뉴 · 시리즈 띠
     engine/            공통 엔진 (동현삼과 같은 파일)
       dh-core.js         EventBus · RNG · DataError · Checker · Data(읽기·RLE·머리 검사)
       dh-loop.js         Loop: 그리기는 rAF, 논리는 1/60초 고정 틱
       dh-clock.js        Clock: 턴제(월)와 흐르는 날짜(일)를 한 클래스로
       dh-grid.js         SquareGrid · HexGrid · findPath(A*) · moveRange(이동 범위) · Graph(인접 목록)
       dh-tilemap.js      Camera · TileMapRenderer
-      dh-layout.js/.css  Layout: 위 정보 띠 · 가운데 캔버스 · 오른쪽(좁으면 아래) 조작 창
-      dh-engine.js       Scene · MapScene · Engine
+      dh-layout.js/.css  Layout: 위 정보 띠 · 가운데 캔버스 · 오른쪽(좁으면 아래) 조작 창 · 단추 번호(숫자 키)
+      dh-engine.js       Scene · MapScene · Engine · Save(저장 묶음 검사)
       dh-lang.js         DonghyunLangAdapter: 동현랭 코드 실행 → 정수 읽기 → 검사 → globalState에 덮어쓰기
     lang/donghyun.js   동현랭 실행기 (donghyun-lang v1.55의 것 그대로. 고치지 않는다)
     hang/              동현항 쪽
       donghyun_hang_data.json
       hang-parser.js       자료 읽기와 검사
-      hang-rules.js        항해 · 보급 · 교역소 · 여관 · 도크 · 적 함대와의 만남 (화면을 모른다)
+      hang-rules.js        항해 · 보급 · 교역소 · 여관 · 도크 · 적 함대와의 만남 · 탐험 적기와 되살리기 (화면을 모른다)
       hang-battle.js       8×8 육각 해전 규칙: 포격 · 백병전 · 일기토 (화면을 모른다)
       hang-lang.js         globalState(기본값)와 동현랭 설정 번호 18개 · 예제 열
       hang-battle-scene.js 해전 장면: 배 고르기 · 이동 범위 · 포격 · 올라타기 · 결과 카드
-      hang-scene.js        지도 장면: 항구 메뉴 · 뱃길 · 키 잡기 · 날짜 흐름
+      hang-scene.js        지도 장면: 항구 메뉴 · 뱃길 · 키 잡기 · 날짜 흐름 · 저장과 불러오기
   tools/make_data.py   JSON을 만드는 생성기 (표 + Natural Earth 육지 자료)
   qa/                  core-tests.cjs (node) · ui.cjs (Playwright)
 ```
@@ -370,9 +404,9 @@ donghyun-lab17/
 
 ```
 python3 tools/make_data.py     # JSON을 다시 만든다 (Pillow가 있어야 한다)
-node qa/core-tests.cjs         # 핵심 시험 37개 (엔진 · 파서 · 동현랭 어댑터 · 항해 · 교역 · 해전)
+node qa/core-tests.cjs         # 핵심 시험 42개 (엔진 · 파서 · 동현랭 어댑터 · 항해 · 교역 · 해전 · 저장과 불러오기)
 node build.cjs                 # index.html 한 장
-node qa/ui.cjs                 # 화면 시험 19개 (Playwright · 데스크톱과 휴대폰 390px · 전체 화면)
+node qa/ui.cjs                 # 화면 시험 26개 (Playwright · 데스크톱과 휴대폰 390px · 전체 화면 · 저장과 불러오기 · 단추 뒤의 키보드)
 ```
 
 ## 자료 출처

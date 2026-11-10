@@ -2,7 +2,9 @@
  *   항구   조작 창이 교역소 · 여관 · 도크 · 보급 · 출항으로 바뀐다. 지도에서 갈 항구나 바다를 찍고 출항한다.
  *   바다   방향키로 키를 잡거나 지도의 바다를 찍으면 그리로 간다. 항구를 찍으면 시세가 보이고 '○○로 항해' 단추가 뜬다.
  *          배가 움직이는 동안에만 날이 간다(하루 = 한 걸음). 정박 칸에 닿으면 그 항구에 든다.
- *   만남   적 함대를 만나면 해전 화면(hang-battle-scene.js)으로 넘어가고, 끝나면 결과를 반영해 이 지도로 돌아온다. */
+ *   만남   적 함대를 만나면 해전 화면(hang-battle-scene.js)으로 넘어가고, 끝나면 결과를 반영해 이 지도로 돌아온다.
+ * 저장: saveGame()이 설정 목록 · 날짜 · 난수 · 탐험을 한 묶음으로 내고, loadGame()이 검사한 뒤 되살린다. 해전 중에는 저장하지 않는다.
+ *   불러온 탐험은 멈춘 채로 돌아온다(잡아 둔 뱃길과 키는 그대로여서 '계속'을 누르면 이어 간다). */
 (function (root) {
   'use strict';
   const DH = root.DH = root.DH || {};
@@ -12,6 +14,8 @@
   const KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }, WIND = { left: '서', right: '동', up: '북', down: '남' };
   const VIEW = [{ id: 'follow', label: '배 따라가기' }, { id: 'zin', label: '확대' }, { id: 'zout', label: '축소' }];
   const TABS = { market: '교역소', inn: '여관', dock: '도크', supply: '보급' }, NEED = { market: 'market', inn: 'lodge', dock: 'shipyard' };
+  const SAVE = { format: 'donghyunhang-save', version: 1, name: '동현항', slot: 'donghyunhang:slot', file: 'donghyunhang', word: '탐험' };
+  const NO = why => ({ ok: false, why });
 
   class HangSeaScene extends DH.MapScene {
     constructor(engine, world, layout) {
@@ -19,6 +23,7 @@
       this.state = DH.Hang.newState();                            // globalState: 기본값. 동현랭 설정이 오면 새로 지어 덮어쓴다
       this.selected = null; this.spot = null; this.tab = null; this.route = null; this.follow = true; this.leg = 0;
       this.voyage = this.newVoyage(); this.from = [this.voyage.x, this.voyage.y];
+      this.settings = [];                                          // 지금 탐험에 적용된 동현랭 설정 [[번호, 값…]] (저장할 때 함께 적는다)
     }
     newVoyage() {
       if (this.state.start.seed != null) this.engine.rng.state = this.state.start.seed >>> 0;      // 씨앗을 정했으면 판마다 같은 수가 나온다
@@ -29,7 +34,7 @@
     applyDonghyunLang(scriptText) {
       const st = DH.Hang.newState(), rep = DH.Hang.applyDonghyunLang(scriptText, st, { world: this.world });
       if (!rep.ok) return rep;
-      this.state = st;
+      this.state = st; this.settings = rep.settings.map(x => [x.n, ...x.values]);
       while (this.engine.scene && this.engine.scene !== this) this.engine.popScene();          // 해전 중이었으면 접는다
       this.layout.log(rep.empty ? '동현랭 설정이 없다. 기본값으로 새 탐험을 연다' : `동현랭 설정 ${rep.settings.length}개를 적용했다: ${rep.applied.join(' · ')}`);
       this.restart();
@@ -250,7 +255,41 @@
       g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = INK; g.font = `800 20px ${FONT}`; g.fillText(this.overTitle(), W / 2, y + 40);
       g.font = `500 12px ${FONT}`; g.fillStyle = '#6e6356'; g.fillText(`바다에서 ${v.day}일 · 자금 ${fmt(v.gold)} · ‘다시 하기’를 누른다`, W / 2, y + 68);
     }
-    save() { const v = this.voyage; return { at: this.at, day: v.day, gold: v.gold, crew: v.crew, port: v.port, dest: v.dest, selected: this.selected }; }
+    // ───────── 저장과 불러오기 ─────────
+    save() { return { selected: this.selected, spot: this.spot, tab: this.tab, follow: this.follow, leg: this.leg, cam: { x: this.cam.x, y: this.cam.y, zoom: this.cam.zoom } }; }
+    /** 지금 저장할 수 있는지. 해전 중에는 안 된다. {ok:true} 또는 {ok:false, why} */
+    saveInfo() { return this.engine.scene !== this ? NO('해전이 끝난 뒤에 저장할 수 있다.') : { ok: true }; }
+    /** 저장 묶음: 머리말 · 한 줄 요약 · 적용된 설정 목록 · 날짜 · 난수 · 탐험. JSON으로 그대로 적을 수 있다. */
+    saveGame() {
+      const v = this.voyage;
+      return { format: SAVE.format, version: SAVE.version, summary: { title: v.here ? v.here.name : '바다', date: this.engine.clock.label, line: `자금 ${fmt(v.gold)} · 선원 ${v.crew}명` },
+        settings: this.settings.map(x => [...x]), ...this.engine.snapshot(), game: v.toJSON() };
+    }
+    /** 저장 묶음으로 탐험을 되살린다. 하나라도 맞지 않으면 하던 탐험을 그대로 둔다. 해전 중이었으면 해전을 접는다.
+     *  @returns {{ok:true, text, applied:string[]} | {ok:false, why}} */
+    loadGame(d) {
+      const e = this.engine, w = this.world; let st, voyage, rep;
+      try {
+        DH.Save.head(d, SAVE.format, SAVE.version, SAVE.name);
+        st = DH.Hang.newState(); rep = DH.Hang.lang.applySettings(d.settings, st, { world: w });
+        DH.Save.need(rep.ok, '저장된 설정이 맞지 않는다. ' + rep.errors.join(' '));
+        e.checkSnapshot(d);
+        DH.Save.need(d.clock.actors.length === 0, '날짜 정보가 맞지 않는다.');
+        voyage = DH.Hang.Voyage.restore(w, d.game, { rng: e.rng, state: st });
+      } catch (err) { return NO(err.message); }
+      while (e.scene && e.scene !== this) e.popScene();
+      this.state = st; this.settings = d.settings.map(x => [...x]); this.voyage = voyage; e.restore(d);      // 난수는 판을 지은 뒤에 되돌린다(씨앗 설정이 덮지 않게)
+      const v = voyage, s = d.scene || {}, c = s.cam, num = x => typeof x === 'number' && isFinite(x);
+      this.from = [v.x, v.y]; this._told = !!v.over; this.selected = null; this.spot = null; this.tab = null; this.route = null;
+      this.follow = s.follow !== false; this.leg = Number.isInteger(s.leg) && s.leg >= 0 ? s.leg : 0;
+      if (typeof s.selected === 'string' && w.ports.has(s.selected)) this.pick(s.selected);
+      else if (v.port && typeof s.tab === 'string' && Object.hasOwn(TABS, s.tab) && (!NEED[s.tab] || v.has(NEED[s.tab]))) this.tab = s.tab;
+      else if (Array.isArray(s.spot) && s.spot.length === 2 && Number.isInteger(s.spot[0]) && Number.isInteger(s.spot[1]) && w.map.isSea(s.spot[0], s.spot[1])) this.spot = [s.spot[0], s.spot[1]];
+      if (c && num(c.x) && num(c.y) && num(c.zoom)) { this.cam.zoom = Math.min(this.cam.maxZoom, Math.max(this.cam.minZoom, c.zoom)); this.cam.x = c.x; this.cam.y = c.y; this.cam.clampTo(this.grid); } else this.centerOnFleet();
+      const text = `저장한 탐험을 불러왔다 · ${v.here ? v.here.name : '바다'} · ${e.clock.label}` + (v.moving ? ' · ‘계속’을 누르면 이어 간다' : '');
+      this.layout.log(text); this.refresh();
+      return { ok: true, text, applied: rep.applied };
+    }
   }
 
   /** 자료를 읽어 동현항을 띄운다. host: 화면을 지을 자리. opt.script는 동현랭 설정이다. */
@@ -263,8 +302,8 @@
     if (opt.script) scene.applyDonghyunLang(opt.script);                      // 동현랭 설정을 주면 그 값으로 연다
     if (opt.autostart !== false) engine.start();
     return { engine, layout, scene, world, get voyage() { return scene.voyage; }, lang: DH.Hang.lang, examples: DH.Hang.examples(world), convention: DH.Hang.lang.describe(DH.Hang.newState()),
-      get state() { return scene.state; }, applyDonghyunLang: text => scene.applyDonghyunLang(text) };
+      get state() { return scene.state; }, applyDonghyunLang: text => scene.applyDonghyunLang(text), save: SAVE };
   }
 
-  DH.Hang = Object.assign(DH.Hang || {}, { HangSeaScene, boot });
+  DH.Hang = Object.assign(DH.Hang || {}, { HangSeaScene, boot, SAVE });
 })(typeof globalThis !== 'undefined' ? globalThis : this);

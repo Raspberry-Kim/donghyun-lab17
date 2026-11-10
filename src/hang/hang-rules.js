@@ -8,7 +8,8 @@
  *          날이 갈 때마다 값은 그 항구의 처음 값 쪽으로 차이의 10%씩, 재고는 5씩 되돌아온다.
  *   여관   선원을 5명씩 모은다(한 명에 금 10).   도크   선체를 고친다(1마다 금 2) · 배를 산다(세 척까지).
  *   보급   식량 10일분을 산다(한 사람 하루치 금 0.1) · 물은 값 없이 채운다. 식량은 120일분, 물은 60일분까지 싣는다.
- *   만남   항구를 떠나 3일이 지나면 날마다 5% 확률로 적 함대를 만난다 → 해전(hang-battle.js) → settleBattle()로 결과를 반영한다. */
+ *   만남   항구를 떠나 3일이 지나면 날마다 5% 확률로 적 함대를 만난다 → 해전(hang-battle.js) → settleBattle()로 결과를 반영한다.
+ * 저장: toJSON()이 탐험에서 바뀌는 것만 적고, Voyage.restore()가 자료에 비춰 검사한 뒤 되살린다. */
 (function (root) {
   'use strict';
   const DH = root.DH = root.DH || {};
@@ -257,6 +258,37 @@
       let drop = this.cargoUsed - keep, cut = 0; if (drop <= 0) return 0;
       for (const [good, h] of [...this.cargo].reverse()) { const d = Math.min(drop, h.qty); h.qty -= d; drop -= d; cut += d; if (h.qty <= 0) this.cargo.delete(good); if (drop <= 0) break; }
       return cut;
+    }
+
+    // ───────── 저장과 불러오기 ─────────
+    /** 탐험에서 바뀌는 것만 적는다(항구 · 배 종류 · 적 함대는 자료와 설정에 있다). 설정(globalState)과 난수는 장면이 따로 적는다. */
+    toJSON() {
+      const { gold, crew, food, water, x, y, port, lastPort, day, sinceLand, dest, heading, over, overWhy } = this;
+      return { gold, crew, food, water, x, y, port, lastPort, day, sinceLand, path: this.path.map(p => [p[0], p[1]]), dest, heading, over, overWhy,
+        ships: this.ships.map(sh => ({ id: sh.id, type: sh.type, name: sh.name, hull: sh.hull })),
+        cargo: [...this.cargo].map(([good, h]) => [good, h.qty, h.paid]),                       // 실은 순서를 지킨다(버릴 때 뒤에서부터 버린다)
+        markets: [...this.markets].map(([pid, m]) => [pid, [...m.values()].map(e => [e.good, e.price, e.stock])]) };
+    }
+    /** toJSON()이 적은 것으로 탐험을 되살린다. 자료와 맞지 않으면 까닭을 담아 던진다(아무것도 바꾸지 않는다).
+     *  @param world 자료 @param d toJSON()의 결과 @param {{rng?:DH.RNG, state?:object}} o */
+    static restore(world, d, o = {}) {
+      const need = (ok, why) => { if (!ok) throw new Error(why); }, I = (v, min = 0, max = 1e12) => Number.isInteger(v) && v >= min && v <= max;
+      const w = world, port = id => id === null || (typeof id === 'string' && w.ports.has(id)), cell = p => Array.isArray(p) && p.length === 2 && I(p[0], 0, w.map.cols - 1) && I(p[1], 0, w.map.rows - 1) && w.map.isSea(p[0], p[1]);
+      need(d && typeof d === 'object' && Array.isArray(d.ships) && Array.isArray(d.cargo) && Array.isArray(d.markets) && Array.isArray(d.path), '탐험 정보가 없다.');
+      need(I(d.gold) && I(d.crew, 0, 1e6) && I(d.food) && I(d.water) && I(d.day, 0, 1e7) && I(d.sinceLand, 0, 1e7), '탐험대 정보가 맞지 않는다.');
+      need([null, 'won', 'lost'].includes(d.over) && [null, 'gold', 'time', 'crew'].includes(d.overWhy) && (d.over === null) === (d.overWhy === null) && (d.over !== null || d.crew > 0), '진행 정보가 맞지 않는다.');
+      need(cell([d.x, d.y]) && port(d.port) && port(d.lastPort) && port(d.dest) && (d.heading === null || Object.hasOwn(DIRS, d.heading)) && d.path.length <= 4000 && d.path.every(cell), '배의 자리가 지도와 맞지 않는다.');
+      if (d.port) { const a = w.ports.get(d.port).anchor; need(a[0] === d.x && a[1] === d.y && !d.path.length && d.heading === null && d.dest === null, '배의 자리가 지도와 맞지 않는다.'); }
+      need(d.ships.length >= 1 && d.ships.length <= 12 && new Set(d.ships.map(sh => sh && sh.id)).size === d.ships.length && d.ships.every(sh => sh && typeof sh.id === 'string' && sh.id.length <= 12 && typeof sh.name === 'string' && sh.name.length <= 24 && w.shipTypes.has(sh.type) && I(sh.hull, 0, w.shipTypes.get(sh.type).hull)), '배 정보가 자료와 맞지 않는다.');
+      need(new Set(d.cargo.map(h => h && h[0])).size === d.cargo.length && d.cargo.every(h => Array.isArray(h) && h.length === 3 && w.goods.has(h[0]) && I(h[1], 1, 1e6) && I(h[2], 0, 1e9)), '짐 정보가 자료와 맞지 않는다.');
+      need(d.markets.length === w.ports.size && new Set(d.markets.map(m => m && m[0])).size === d.markets.length && d.markets.every(m => { const p = Array.isArray(m) && m.length === 2 && w.ports.get(m[0]), list = p && m[1];
+        return p && Array.isArray(list) && list.length === p.market.length && list.every((e, i) => Array.isArray(e) && e.length === 3 && e[0] === p.market[i].good && I(e[1], 1, 1e9) && I(e[2], 0, 1e9)); }), '시세 정보가 자료와 맞지 않는다.');
+      const v = new Voyage(world, o);
+      Object.assign(v, { gold: d.gold, crew: d.crew, food: d.food, water: d.water, x: d.x, y: d.y, port: d.port, lastPort: d.lastPort, day: d.day, sinceLand: d.sinceLand, path: d.path.map(p => [p[0], p[1]]), dest: d.dest, heading: d.heading, over: d.over, overWhy: d.overWhy });
+      v.ships = d.ships.map(sh => ({ id: sh.id, type: sh.type, name: sh.name, hull: sh.hull }));
+      v.cargo = new Map(d.cargo.map(([good, qty, paid]) => [good, { qty, paid }]));
+      for (const [pid, list] of d.markets) for (const [good, price, stock] of list) Object.assign(v.markets.get(pid).get(good), { price, stock });
+      return v;
     }
   }
 

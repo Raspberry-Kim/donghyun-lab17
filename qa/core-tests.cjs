@@ -1,7 +1,7 @@
 // 동현항 핵심 시험(공통 엔진 · 자료 · 규칙 · 동현랭). 브라우저 없이 node로 돈다: node qa/core-tests.cjs
 const assert = require('assert'), fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
-for (const f of ['src/engine/dh-core.js', 'src/engine/dh-loop.js', 'src/engine/dh-clock.js', 'src/engine/dh-grid.js', 'src/engine/dh-tilemap.js', 'src/engine/dh-layout.js', 'src/engine/dh-engine.js', 'src/engine/dh-lang.js', 'src/hang/hang-parser.js', 'src/hang/hang-rules.js', 'src/hang/hang-battle.js', 'src/hang/hang-lang.js']) require(path.join(root, f));
+for (const f of ['src/engine/dh-core.js', 'src/engine/dh-loop.js', 'src/engine/dh-clock.js', 'src/engine/dh-grid.js', 'src/engine/dh-tilemap.js', 'src/engine/dh-layout.js', 'src/engine/dh-engine.js', 'src/engine/dh-lang.js', 'src/hang/hang-parser.js', 'src/hang/hang-rules.js', 'src/hang/hang-battle.js', 'src/hang/hang-lang.js', 'src/hang/hang-battle-scene.js', 'src/hang/hang-scene.js']) require(path.join(root, f));
 const DH = globalThis.DH;
 const hangJ = () => JSON.parse(fs.readFileSync(path.join(root, 'src/hang/donghyun_hang_data.json'), 'utf8'));
 let n = 0; const ok = (name, fn) => { fn(); n++; console.log('ok ' + name); };
@@ -333,5 +333,84 @@ ok('동현항 예제: 이름 앞에 번호 01~10 · 예제마다 새 탐험이 �
   assert.strictEqual(jump, `뭉치 동현${'ㅠ'.repeat(13)}? 신중동역 ${A.expression(back)}`); assert.ok(lp[back - 1].includes(`${back}번 문장`) && lp.some(l => l.includes(`${back}번 문장으로 돌아간다`)));
   const L = run(by('loop').code); assert.strictEqual(L.r.output.trim().split('\n').length, 36, '정수 서른여섯 개(설정 열두 개 × 세 정수)'); assert.deepStrictEqual(L.st.cargo.map(c => c[1]), Array(12).fill(10));
   v = voyage('loop'); assert.deepStrictEqual([v.cargo.size, v.cargoUsed, v.cargoCap], [12, 120, 120]); assert.deepStrictEqual([...v.cargo.keys()], [...L.w.goods.keys()], '교역품 열두 가지가 자료의 차례대로 실린다');
+});
+
+/* ---------- 장면을 화면 없이 돌린다(저장 · 불러오기). 조작 창은 가짜로 받아 적는다 ---------- */
+function mk(seed = 1, script) {
+  const L = { logs: [], items: [], fn: null, log(t) { L.logs.push(t); }, setInfo() {}, setDetail() {}, setMenu(items, fn) { L.items = items; L.fn = fn; }, press() { return false; }, pressPrimary() { return false; } };
+  const world = DH.Hang.parse(hangJ()), engine = new DH.Engine({ width: 480, height: 360, seed, clock: { unit: 'day', start: world.meta.start, ticksPerUnit: 20 } });
+  const scene = new DH.Hang.HangSeaScene(engine, world, L); engine.setScene(scene);
+  if (script !== undefined) assert.ok(scene.applyDonghyunLang(script).ok);
+  /** 틱을 흘린다. 해전이 열리면 선원들에게 맡기고 결과 카드를 넘긴다 */
+  const run = ticks => { for (let i = 0; i < ticks; i++) { const t = engine.scene; if (t !== scene) { if (t.mode === 'result') t.command('back'); else if (t.myTurn && !t.auto) t.command('auto'); } engine.step(1); } };
+  const sailTo = pid => { scene.pick(pid); scene.command('sail'); };
+  return { world, layout: L, engine, scene, run, sailTo };
+}
+const pack = k => JSON.parse(JSON.stringify(k.scene.saveGame()));          // 파일이나 브라우저 칸을 거친 것처럼 글자로 바꿨다가 되읽는다
+const SET = [[3, 5000], [12, 10], [14, 40], [21, 300], [8, 1, 20], [30, 1, 70]];
+const J = x => JSON.parse(JSON.stringify(x));
+
+ok('동현항 저장: 탐험을 적었다가 되살리면 똑같다(뱃길 · 짐의 순서 · 스무 항구의 시세) · 자료에 있는 것은 적지 않는다', () => {
+  const k = mk(7), s = k.scene; s.command('tab:market'); s.command('buy:olive'); s.command('buy:olive'); s.command('buy:wine'); k.sailTo('genoa'); k.run(30);
+  const v = s.voyage, j = J(v); assert.ok(!v.port && v.moving && j.path.length > 0 && j.dest === 'genoa', '바다 한가운데');
+  const h = DH.Hang.Voyage.restore(k.world, j, { rng: new DH.RNG(1), state: s.state });
+  assert.deepStrictEqual(J(h), j); assert.deepStrictEqual([h.moving, h.cargoUsed, h.cargoCap, h.maxCrew, h.foodDays, h.speed], [true, v.cargoUsed, v.cargoCap, v.maxCrew, v.foodDays, v.speed]);
+  assert.deepStrictEqual(Object.keys(j), ['gold', 'crew', 'food', 'water', 'x', 'y', 'port', 'lastPort', 'day', 'sinceLand', 'path', 'dest', 'heading', 'over', 'overWhy', 'ships', 'cargo', 'markets']);
+  assert.deepStrictEqual([j.markets.length, j.cargo.map(c => c[0]), Object.keys(j.ships[0])], [20, [...v.cargo.keys()], ['id', 'type', 'name', 'hull']]);
+  const lis = j.markets.find(m => m[0] === 'lisbon')[1], base = k.world.ports.get('lisbon').market; assert.ok(lis.some((e, i) => e[1] !== base[i].price) && lis.some((e, i) => e[2] !== base[i].stock), '사고팔아 움직인 값과 재고가 적힌다(날마다 제자리로 돌아가는 중이다)');
+  assert.deepStrictEqual([...h.markets.get('lisbon').values()].map(e => [e.good, e.price, e.stock]), lis);
+});
+ok('동현항 저장: 바다 한가운데서 저장해 불러오면 멈춘 채 열리고, 계속하면 같은 항해가 이어진다(난수 · 날짜 · 해전 포함)', () => {
+  const a = mk(11, DH.Hang.lang.compose(SET)); a.sailTo('calicut'); a.run(130);
+  const d = pack(a); assert.deepStrictEqual([d.format, d.version, d.settings, d.clock.unit, d.clock.actors, d.summary.title, d.summary.date], ['donghyunhang-save', 1, SET, 'day', [], '바다', a.engine.clock.label]);
+  assert.ok(d.clock.acc > 0 && d.game.port === null && d.game.path.length > 0 && /^자금 [\d,]+ · 선원 \d+명$/.test(d.summary.line), '하루의 중간에 저장했다');
+  a.run(3000); const battles = a.layout.logs.filter(t => /^해전이 끝났다/.test(t)).length; assert.ok(battles >= 1, '그 뒤에 해전이 있었다');
+  const b = mk(99); b.scene.command('tab:market'); b.scene.command('buy:wine'); b.sailTo('london'); b.run(70);                 // 다른 탐험을 하던 화면
+  const r = b.scene.loadGame(d); assert.ok(r.ok, r.why); assert.ok(/저장한 탐험을 불러왔다 · 바다 · .* · ‘계속’을 누르면 이어 간다/.test(r.text));
+  assert.deepStrictEqual([b.engine.clock.running, b.engine.clock.label, b.engine.rng.state, b.scene.mode, J(b.scene.voyage)], [false, d.clock.label ?? b.engine.clock.label, d.rng, 'sea', d.game]);
+  b.run(40); assert.deepStrictEqual(J(b.scene.voyage), d.game, '멈춰 있는 동안에는 날이 가지 않는다');
+  b.scene.command('pause'); assert.strictEqual(b.engine.clock.running, true); b.run(3000);
+  assert.deepStrictEqual(J(b.scene.voyage), J(a.scene.voyage), '같은 틱 뒤의 탐험이 같다'); assert.deepStrictEqual([b.engine.clock.label, b.engine.rng.state, b.scene.voyage.day], [a.engine.clock.label, a.engine.rng.state, a.scene.voyage.day]);
+  assert.strictEqual(b.layout.logs.filter(t => /^해전이 끝났다/.test(t)).length, battles);
+});
+ok('동현항 저장: 적용된 동현랭 설정이 함께 저장된다 · 불러오면 편집기와 상관없이 그 설정으로 이어진다', () => {
+  const a = mk(3, DH.Hang.lang.compose(SET)); a.scene.command('tab:market'); a.scene.command('sell:wine');
+  const d = pack(a), b = mk(3, DH.Hang.lang.compose([[12, 50]])); assert.strictEqual(b.scene.state.rules.price.feePct, 50); assert.ok(b.scene.loadGame(d).ok);
+  assert.deepStrictEqual(b.scene.state, a.scene.state); assert.deepStrictEqual(b.scene.settings, SET);
+  const v = b.scene.voyage; assert.deepStrictEqual([v.rules.price.feePct, v.rules.encounter.percent, v.stage.days, v.gold], [10, 40, 300, a.scene.voyage.gold]); assert.strictEqual([...v.rivals.values()][0].captain.war, 70, '적 선장 무력 설정도 되살아난다');
+  const e = mk(3), d0 = pack(e); assert.deepStrictEqual(d0.settings, []); assert.ok(b.scene.loadGame(d0).ok); assert.deepStrictEqual(b.scene.state, DH.Hang.newState(), '설정 없이 저장한 탐험은 기본값으로 돌아온다');
+  const direct = DH.Hang.newState(), viaScript = DH.Hang.newState(); DH.Hang.lang.applySettings(SET, direct, { world: a.world }); DH.Hang.applyDonghyunLang(DH.Hang.lang.compose(SET), viaScript, { world: a.world });
+  assert.deepStrictEqual(direct, viaScript, '설정 목록으로 지은 값 = 동현랭 코드로 지은 값');
+});
+ok('동현항 저장: 맞지 않는 묶음은 까닭을 말하고 하던 탐험을 그대로 둔다', () => {
+  const k = mk(7), s = k.scene; s.command('tab:market'); s.command('buy:wine'); const good = pack(k); k.sailTo('seville'); k.run(25); const sea = pack(k);
+  const v = s.voyage, before = JSON.stringify(v), clock = JSON.stringify(k.engine.clock), rng = k.engine.rng.state, st = s.state;
+  const cases = [
+    [null, /동현항 저장 파일이 아니다/], [{ format: 'donghyunsam-save', version: 1 }, /동현항 저장 파일이 아니다/], [d => { d.version = 3; }, /지원하지 않는 저장 형식 버전이다\(3\)/],
+    [d => { d.settings = 'x'; }, /저장된 설정이 맞지 않는다/], [d => { d.settings = [[14, 101]]; }, /저장된 설정이 맞지 않는다.*만날 확률/], [d => { d.settings = [[8, 1, 9999]]; }, /저장된 설정이 맞지 않는다/],
+    [d => { d.clock.unit = 'month'; }, /날짜 정보가 맞지 않는다/], [d => { d.clock.day = 0; }, /날짜 정보/], [d => { d.clock.actors = ['x']; }, /날짜 정보/], [d => { d.clock.speed = 0; }, /날짜 정보/], [d => { d.rng = 'a'; }, /난수 정보가 맞지 않는다/],
+    [d => { delete d.game; }, /탐험 정보가 없다/], [d => { d.game.gold = -1; }, /탐험대 정보가 맞지 않는다/], [d => { d.game.crew = 2.5; }, /탐험대 정보/], [d => { d.game.over = 'won'; }, /진행 정보가 맞지 않는다/], [d => { d.game.crew = 0; }, /진행 정보/],
+    [d => { d.game.port = 'atlantis'; }, /배의 자리가 지도와 맞지 않는다/], [d => { d.game.x += 1; }, /배의 자리/], [d => { d.game.heading = 'up'; }, /배의 자리/], [d => { d.game.path = [[0, 0], 'x']; }, /배의 자리/],
+    [d => { d.game.ships = []; }, /배 정보가 자료와 맞지 않는다/], [d => { d.game.ships[0].type = 'yamato'; }, /배 정보/], [d => { d.game.ships[0].hull = 99999; }, /배 정보/],
+    [d => { d.game.cargo.push(['wine', 5, 10]); }, /짐 정보가 자료와 맞지 않는다/], [d => { d.game.cargo[0][1] = 0; }, /짐 정보/], [d => { d.game.cargo[0][0] = 'tea'; }, /짐 정보/],
+    [d => { d.game.markets.pop(); }, /시세 정보가 자료와 맞지 않는다/], [d => { d.game.markets[0][1][0][1] = 0; }, /시세 정보/], [d => { d.game.markets[0][1].reverse(); }, /시세 정보/]];
+  for (const [c, re] of cases) {
+    const d = typeof c === 'function' ? J(good) : c; if (typeof c === 'function') c(d);
+    const r = s.loadGame(d); assert.ok(!r.ok && re.test(r.why), `${re} ← ${r.why}`);
+    assert.ok(s.voyage === v && s.state === st && JSON.stringify(v) === before && JSON.stringify(k.engine.clock) === clock && k.engine.rng.state === rng, '하던 탐험이 바뀌었다 ' + re);
+  }
+  const d2 = J(sea); d2.game.x = 0; d2.game.y = 0; assert.ok(/배의 자리/.test(s.loadGame(d2).why), '뭍 위의 배는 받지 않는다');
+  assert.ok(s.loadGame(good).ok, '멀쩡한 묶음은 그 뒤에도 불러진다'); assert.deepStrictEqual([s.voyage.port, s.mode, k.engine.clock.running], ['lisbon', 'port', false]);
+});
+ok('동현항 저장: 해전 중에는 저장하지 못한다 · 불러오기는 해전 중에도 된다(해전을 접는다) · 끝난 탐험도 저장된다 · 화면 정보가 이상하면 버린다', () => {
+  const k = mk(5, DH.Hang.lang.compose([[14, 100]])), s = k.scene; assert.deepStrictEqual(s.saveInfo(), { ok: true }); const d = pack(k);
+  k.sailTo('calicut'); for (let i = 0; i < 4000 && k.engine.scene === s; i++) k.engine.step(1);
+  assert.ok(k.engine.scene instanceof DH.Hang.HangBattleScene); assert.deepStrictEqual(s.saveInfo(), { ok: false, why: '해전이 끝난 뒤에 저장할 수 있다.' });
+  const r = s.loadGame(d); assert.ok(r.ok && !/계속/.test(r.text)); assert.ok(k.engine.scene === s && s.mode === 'port' && s.voyage.port === 'lisbon' && s.voyage.day === 0, '해전을 접고 저장한 날로 돌아온다');
+  const w = mk(2, DH.Hang.lang.compose([[20, 500]])); w.scene.command('tab:market'); w.scene.command('sell:wine'); assert.deepStrictEqual([w.scene.mode, w.scene.voyage.over, w.scene.saveInfo().ok], ['over', 'won', true]);
+  const x = mk(9); assert.ok(x.scene.loadGame(pack(w)).ok); assert.deepStrictEqual([x.scene.mode, x.scene.voyage.overWhy, x.layout.items[0].id], ['over', 'gold', 'again']);
+  const t = mk(4); t.scene.command('tab:dock'); const dt = pack(t); assert.deepStrictEqual(Object.keys(dt.scene), ['selected', 'spot', 'tab', 'follow', 'leg', 'cam']); assert.strictEqual(dt.scene.tab, 'dock');
+  assert.ok(x.scene.loadGame(dt).ok); assert.strictEqual(x.scene.tab, 'dock', '보던 창구가 그대로 열린다');
+  dt.scene = { selected: 'atlantis', tab: 'casino', spot: [0, 0], leg: -3, cam: { x: 'a' } }; assert.ok(x.scene.loadGame(dt).ok); assert.deepStrictEqual([x.scene.selected, x.scene.tab, x.scene.spot, x.scene.leg], [null, null, null, 0]);
 });
 console.log(`핵심 시험 ${n}개 통과`);
