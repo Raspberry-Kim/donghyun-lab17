@@ -3,6 +3,8 @@
  *   바다   방향키로 키를 잡거나 지도의 바다를 찍으면 그리로 간다. 항구를 찍으면 시세가 보이고 '○○로 항해' 단추가 뜬다.
  *          배가 움직이는 동안에만 날이 간다(하루 = 한 걸음). 정박 칸에 닿으면 그 항구에 든다.
  *   만남   적 함대를 만나면 해전 화면(hang-battle-scene.js)으로 넘어가고, 끝나면 결과를 반영해 이 지도로 돌아온다.
+ * 키보드(지도를 한 번 누른 뒤): 바다에서 방향키는 키 · 항구에서 방향키는 그쪽 항구 고르기 · Space 바다에서 멈춤·계속(그 밖에는 가까운 항구부터 차례로) ·
+ *   Q E 가까운 항구 차례로(앞 · 뒤) · 숫자 키 조작 창의 단추 · Enter 노란 단추 · Esc 그만두기 · Shift+방향키(또는 W A S D) 지도 옮기기 · + − 확대와 축소.
  * 저장: saveGame()이 설정 목록 · 날짜 · 난수 · 탐험을 한 묶음으로 내고, loadGame()이 검사한 뒤 되살린다. 해전 중에는 저장하지 않는다.
  *   불러온 탐험은 멈춘 채로 돌아온다(잡아 둔 뱃길과 키는 그대로여서 '계속'을 누르면 이어 간다). */
 (function (root) {
@@ -12,7 +14,9 @@
   const TILE = 4, INK = '#26211c', ACCENT = '#f2b705';
   const fmt = n => Number(n).toLocaleString('ko-KR');
   const KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }, WIND = { left: '서', right: '동', up: '북', down: '남' };
-  const VIEW = [{ id: 'follow', label: '배 따라가기' }, { id: 'zin', label: '확대' }, { id: 'zout', label: '축소' }];
+  const VIEW = [{ id: 'follow', label: '배 따라가기' }, { id: 'zin', label: '확대', key: '+' }, { id: 'zout', label: '축소', key: '−' }];
+  const ARROW = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }, PAN = { KeyA: 'ArrowLeft', KeyD: 'ArrowRight', KeyW: 'ArrowUp', KeyS: 'ArrowDown' };
+  const digit = code => { const m = /^(?:Digit|Numpad)([1-9])$/.exec(code); return m ? Number(m[1]) : 0; };
   const TABS = { market: '교역소', inn: '여관', dock: '도크', supply: '보급' }, NEED = { market: 'market', inn: 'lodge', dock: 'shipyard' };
   const SAVE = { format: 'donghyunhang-save', version: 1, name: '동현항', slot: 'donghyunhang:slot', file: 'donghyunhang', word: '탐험' };
   const NO = why => ({ ok: false, why });
@@ -120,17 +124,56 @@
       if (sea && this.mode === 'sea') return this.sail(this.spot);                // 바다에서는 찍은 곳으로 바로 간다
       this.refresh();
     }
+    /** 키보드. 바다에서는 방향키가 키이고, 항구에서는 방향키로 그쪽 항구를 고른다. 숫자 키와 Enter는 조작 창의 단추를 누른다. */
     onKey(code, ev) {
-      const v = this.voyage, c = this.engine.clock, dir = KEYS[code];
-      if (dir && this.mode === 'sea') {                                           // 바다에서는 방향키가 키다(항구에서는 지도를 옮긴다)
-        if (ev) ev.preventDefault();
+      if (ev && (ev.ctrlKey || ev.metaKey || ev.altKey)) return;
+      const v = this.voyage, c = this.engine.clock, dir = KEYS[code], shift = !!(ev && ev.shiftKey), n = digit(code), used = () => { if (ev) ev.preventDefault(); };
+      if ((dir && shift) || PAN[code]) return super.onKey(PAN[code] || code, ev);              // 지도 옮기기(배 따라가기가 풀린다)
+      if (dir && this.mode === 'sea') {                                           // 바다에서는 방향키가 키다
+        used();
         if (v.heading === dir && c.running) return;
         const r = v.steer(dir); this.layout.log(r.ok ? r.text : r.why);
         if (r.ok) { this.spot = null; this.follow = true; this.from = [v.x, v.y]; c.running = true; }
         return this.refresh();
       }
-      if (code === 'Space' && this.mode === 'sea' && v.moving) { if (ev) ev.preventDefault(); return this.command('pause'); }
-      super.onKey(code, ev);
+      if (dir) { used(); return this.step(ARROW[code]); }                         // 항구에서는 그쪽으로 가장 가까운 항구를 고른다
+      if (code === 'Escape') { if (this.tab) this.tab = null; else { this.selected = null; this.route = null; this.spot = null; } return this.refresh(); }
+      if (ev && ev.repeat) return;                                                // 누르고 있어도 단추는 한 번만 눌린다
+      if (n) { used(); this.layout.press(n); }
+      else if (code === 'Enter' || code === 'NumpadEnter') { used(); this.layout.pressPrimary(); }
+      else if (code === 'Space') { used(); if (this.mode === 'sea' && v.moving) this.command('pause'); else this.nextPort(shift ? -1 : 1); }
+      else if (code === 'KeyQ' || code === 'KeyE') { used(); this.nextPort(code === 'KeyE' ? 1 : -1); }
+      else super.onKey(code, ev);                                                 // + − 확대 · 축소
+    }
+    /** 항구의 세계 좌표(기준 x에 가장 가까운 바퀴) */
+    portPx(p, ref) { const q = this.grid.center(p.x, p.y); return { x: ref == null ? q.x : this.grid.nearX(q.x, ref), y: q.y }; }
+    /** 방향키 한 번(항구에서). 고른 항구에서, 없으면 배 자리에서 d 방향의 56° 안쪽에 있는 가장 가까운 항구로 간다. 없으면 그쪽 절반에서 찾는다. */
+    step(d) {
+      if (this.mode === 'over') return;
+      const w = this.world, g = this.grid, from = w.ports.get(this.selected), P = from ? g.center(from.x, from.y) : g.center(this.voyage.x, this.voyage.y);
+      let best = null, bs = Infinity, wide = null, ws = Infinity;
+      for (const q of w.ports.values()) {
+        if (q === from || (!from && q.id === this.voyage.port)) continue;
+        const Q = this.portPx(q, P.x), vx = Q.x - P.x, vy = Q.y - P.y, along = vx * d[0] + vy * d[1], side = Math.abs(vx * d[1] - vy * d[0]), sc = along + side * 2;
+        if (along <= 0.01) continue;
+        if (side <= along * 1.5) { if (sc < bs) { bs = sc; best = q.id; } } else if (sc < ws) { ws = sc; wide = q.id; }
+      }
+      const next = best ?? wide; if (next == null) return;
+      this.pick(next); this.reveal(next); this.refresh();
+    }
+    /** Space · Q · E: 배에서 가까운 항구부터 차례로 고른다(지금 든 항구는 뺀다). */
+    nextPort(dir = 1) {
+      if (this.mode === 'over') return;
+      const v = this.voyage, S = this.grid.center(v.x, v.y);
+      const list = [...this.world.ports.values()].filter(p => p.id !== v.port).map(p => { const Q = this.portPx(p, S.x); return { id: p.id, d: Math.hypot(Q.x - S.x, Q.y - S.y) }; }).sort((a, b) => a.d - b.d || (a.id < b.id ? -1 : 1));
+      if (!list.length) return;
+      const i = list.findIndex(e => e.id === this.selected), k = i < 0 ? (dir > 0 ? 0 : list.length - 1) : (i + dir + list.length) % list.length;
+      this.pick(list[k].id); this.reveal(list[k].id); this.refresh();
+    }
+    /** 그 항구가 화면 가장자리 밖에 있으면 화면 가운데로 데려온다(배 따라가기가 풀린다). */
+    reveal(pid) {
+      const e = this.engine, m = 28, mid = this.cam.x + this.cam.viewW / this.cam.zoom / 2, P = this.portPx(this.world.ports.get(pid), mid), q = this.cam.toScreen(P.x, P.y);
+      if (q.x < m || q.x > e.width - m || q.y < m || q.y > e.height - m) { this.cam.centerOn(P.x, P.y); this.cam.clampTo(this.grid); this.follow = false; }
     }
     say(r) { this.layout.log(r.ok ? r.text : r.why); }
     command(id) {
@@ -296,7 +339,7 @@
   async function boot(host, src, opt = {}) {
     const world = DH.Hang.parse(await DH.Data.load(src));
     const W = 480, H = 360;
-    const layout = new DH.Layout(host, { title: '동현항', width: W, height: H });
+    const layout = new DH.Layout(host, { title: '동현항', width: W, height: H, hotkeys: true });      // 조작 단추에 번호가 붙는다(숫자 키)
     const engine = new DH.Engine({ canvas: layout.canvas, width: W, height: H, seed: opt.seed ?? 1, background: '#a9cbe0', clock: { unit: 'day', start: world.meta.start, ticksPerUnit: 20 } });
     const scene = new HangSeaScene(engine, world, layout); engine.setScene(scene);
     if (opt.script) scene.applyDonghyunLang(opt.script);                      // 동현랭 설정을 주면 그 값으로 연다

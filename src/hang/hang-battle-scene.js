@@ -1,7 +1,9 @@
 /* 동현항 · 해전 장면 — hang-battle.js의 해전을 캔버스에 그리고 손으로 싸운다. 바다 장면 위에 얹는다(engine.pushScene).
  *   우리 배를 찍는다 → 갈 수 있는 칸이 노랗게 → 칸을 찍어 옮긴다 → 붉은 테의 적(사거리 안)을 찍으면 포를 쏜다.
  *   적과 맞닿아 있으면 조작 창에 '올라타기'(기함끼리는 '일기토') 단추가 뜬다.
- *   조작 창: 대기 · 차례 넘기기 · 맡기기(남은 싸움을 AI에게) · 달아나기(한 번 더 묻는다).
+ *   조작 창: 대기 · 차례 넘기기 · 맡기기(남은 싸움을 AI에게) · 달아나기(한 번 더 묻는다) · 올라타기(맞닿은 적이 있을 때 뒤에 붙는다).
+ * 키보드: 방향키 칸 커서 · Enter 커서가 놓인 칸 찍기(손으로 찍는 것과 같다) · Space 아직 일을 마치지 않은 다음 우리 배 ·
+ *   숫자 키 조작 창의 단추 · Esc 고른 배 놓기. 결과 카드와 달아나기를 되묻는 창에서는 Enter가 노란 단추를 누른다.
  * 끝나면 결과 카드를 보이고, 바다로 돌아가면서 onDone(result)를 부른다. 결과는 바다 쪽(Voyage.settleBattle)이 반영한다. */
 (function (root) {
   'use strict';
@@ -11,6 +13,8 @@
   const WATER = '#a9cbe0', INK = '#26211c', ACCENT = '#f2b705', RED = '#c0321f', STEP = 18, FX = 54;
   const LOOK = { me: { hull: '#6b4a2f', sail: '#fbf7ef' }, foe: { hull: '#3c3226', sail: '#c8402f' } };
   const SIDE = { me: '우리', foe: '적' };
+  const ARROW = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+  const digit = code => { const m = /^(?:Digit|Numpad)([1-9])$/.exec(code); return m ? Number(m[1]) : 0; };
 
   /** 배 한 척(직접 그린 도형). (x,y)가 가운데, k가 배율. flag면 돛대 끝에 노란 깃발을 단다. */
   function drawShip(g, x, y, k, look = LOOK.me, flag = false) {
@@ -27,6 +31,7 @@
     constructor(engine, layout, battle, o) {
       super(engine); this.layout = layout; this.b = battle; this.me = 'me'; this.onDone = o.onDone;
       this.sel = null; this.reach = new Map(); this.look = null; this.fx = []; this.wait = 30; this.idle = 0; this.auto = false; this.ask = false; this.mode = 'fight'; this.res = null;
+      this.cur = null; this.curX = 0;                // 키보드 커서 칸과, 위아래로 갈 때 지키는 가로 자리. 키를 쓰기 전에는 보이지 않는다
     }
     enter() {
       const b = this.b, F = b.fleets;
@@ -35,7 +40,45 @@
       this.refresh();
     }
     onDrag() {} onWheel() {}                       // 바다는 한 화면에 다 들어온다
-    onKey(code) { if (code === 'Escape') { this.sel = null; this.ask = false; this.refresh(); } }
+    onKey(code, ev) {
+      if (ev && (ev.ctrlKey || ev.metaKey || ev.altKey)) return;
+      const d = ARROW[code], n = digit(code), used = () => { if (ev) ev.preventDefault(); };
+      if (code === 'Escape') { this.select(null); this.ask = false; return this.refresh(); }
+      if (d) { used(); return this.moveCursor(d); }
+      if (ev && ev.repeat) return;                                 // 누르고 있어도 한 번만 누른 것으로 친다
+      if (n) { used(); this.layout.press(n); }
+      else if (code === 'Enter' || code === 'NumpadEnter') {
+        used();
+        if (this.mode === 'result') { if (this.engine.tick - this.doneAt > 30) this.command('back'); }
+        else if (this.ask) this.layout.pressPrimary();
+        else if (!this.cur) this.nextUnit(1);                      // 커서가 아직 없으면 우리 배부터 잡는다
+        else if (this.myTurn) this.tapCell(this.cur);
+      }
+      else if (code === 'Space') { used(); this.nextUnit(ev && ev.shiftKey ? -1 : 1); }
+    }
+    /** 커서를 한 칸 옮긴다. 위아래는 엇갈린 줄에서 가로 자리가 가장 가까운 칸으로 간다. */
+    moveCursor(d) {
+      if (!this.myTurn) return;
+      const g = this.grid, b = this.b;
+      if (!this.cur) { const u = this.sel || b.alive(this.me).find(x => !x.done) || b.alive(this.me)[0]; this.cur = u ? { c: u.c, r: u.r } : { c: g.cols >> 1, r: g.rows >> 1 }; this.curX = g.center(this.cur.c, this.cur.r).x; return this.peek(); }
+      let { c, r } = this.cur;
+      if (d[0]) { c = Math.min(g.cols - 1, Math.max(0, c + d[0])); this.curX = g.center(c, r).x; }
+      else {
+        const nr = r + d[1]; if (nr < 0 || nr >= g.rows) return;
+        const opts = (r & 1 ? [c, c + 1] : [c - 1, c]).filter(x => x >= 0 && x < g.cols);
+        c = opts.sort((a, z) => Math.abs(g.center(a, nr).x - this.curX) - Math.abs(g.center(z, nr).x - this.curX))[0]; r = nr;
+      }
+      this.cur = { c, r }; this.peek();
+    }
+    /** 커서가 놓인 칸의 사정을 조작 창에 보인다(고른 배가 없을 때). */
+    peek() { if (!this.sel && this.mode === 'fight') this.look = this.cur; this.refresh(); }
+    /** Space: 아직 일을 마치지 않은 우리 배를 차례로 고르고 커서를 그리로 옮긴다. */
+    nextUnit(dir = 1) {
+      if (!this.myTurn) return;
+      const list = this.b.alive(this.me).filter(u => !u.done); if (!list.length) return;
+      const i = list.indexOf(this.sel), u = list[i < 0 ? (dir > 0 ? 0 : list.length - 1) : (i + dir + list.length) % list.length];
+      this.ask = false; this.select(u); this.cur = { c: u.c, r: u.r }; this.curX = this.grid.center(u.c, u.r).x; this.refresh();
+    }
     get myTurn() { return this.mode === 'fight' && !this.auto && !this.b.ended && this.b.side === this.me; }
     unit(id) { return this.b.units.find(u => u.id === id); }
 
@@ -82,7 +125,12 @@
       const b = this.b;
       if (this.mode === 'result') { if (this.engine.tick - this.doneAt > 30) this.command('back'); return; }      // 싸우던 손이 그대로 카드를 넘기지 않게 반 초 둔다
       if (!this.myTurn) return;
-      const cell = this.cellAt(x, y); this.ask = false;
+      this.cur = null;                                             // 손으로 찍으면 키보드 커서는 숨는다
+      this.tapCell(this.cellAt(x, y));
+    }
+    /** 칸 하나를 찍는다(손가락 · 마우스 · 키보드 Enter가 같이 쓴다). */
+    tapCell(cell) {
+      const b = this.b; this.ask = false;
       if (!cell) { this.select(null); return this.refresh(); }
       const u = b.unitAt(cell.c, cell.r), s = this.sel, k = cell.c + ',' + cell.r;
       if (s && u && u.side !== this.me && b.fireTargets(s).includes(u)) { this.show(b.fire(s, u)); this.select(null); }
@@ -140,9 +188,9 @@
       const off = !this.myTurn, pick = id => this.command(id);
       if (this.mode === 'result') L.setMenu([{ id: 'back', label: '바다로 돌아가기', primary: true }], pick);
       else if (this.ask) L.setMenu([{ id: 'yes', label: '정말 달아난다', hint: '짐의 절반을 버리고 빠져나간다' }, { id: 'no', label: '돌아가기', primary: true }], pick);
-      else L.setMenu([...(s && !off ? b.boardTargets(s).map(t => ({ id: 'board:' + t.id, label: s.flag && t.flag ? `${DH.josa(F.foe.captain.name, '과', '와')} 일기토` : `${t.name}에 올라타기` })) : []),
-        { id: 'wait', label: '대기', disabled: off || !s, hint: '고른 배가 그 턴 일을 마친다' }, { id: 'end', label: '차례 넘기기', primary: true, disabled: off },
-        { id: 'auto', label: '맡기기', disabled: off, hint: '남은 싸움을 AI가 대신 싸운다' }, { id: 'flee', label: '달아나기', disabled: off, hint: '짐의 절반을 버리고 빠져나간다' }], pick);
+      else L.setMenu([{ id: 'wait', label: '대기', disabled: off || !s, hint: '고른 배가 그 턴 일을 마친다' }, { id: 'end', label: '차례 넘기기', primary: true, disabled: off },      // 1~4는 늘 같은 자리, 올라타기는 5부터
+        { id: 'auto', label: '맡기기', disabled: off, hint: '남은 싸움을 AI가 대신 싸운다' }, { id: 'flee', label: '달아나기', disabled: off, hint: '짐의 절반을 버리고 빠져나간다' },
+        ...(s && !off ? b.boardTargets(s).map(t => ({ id: 'board:' + t.id, label: s.flag && t.flag ? `${DH.josa(F.foe.captain.name, '과', '와')} 일기토` : `${t.name}에 올라타기` })) : [])], pick);
     }
 
     render(g) {
@@ -186,6 +234,8 @@
         g.globalAlpha = 1;
       }
       if (s && this.myTurn) for (const x of b.fireTargets(s)) { const p = grid.center(x.c, x.r), pulse = 1 + 0.06 * Math.sin(t / 6); g.beginPath(); g.arc(p.x, p.y, S * 0.84 * pulse, 0, Math.PI * 2); g.strokeStyle = RED; g.lineWidth = 3; g.stroke(); }
+      // 키보드 커서
+      if (this.cur && this.mode === 'fight') { g.beginPath(); grid.trace(g, this.cur.c, this.cur.r); g.lineJoin = 'round'; g.strokeStyle = '#fff'; g.lineWidth = 4.6; g.stroke(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke(); }
       // 떠오르는 피해 숫자
       for (const f of this.fx) if (f.kind === 'hit') {
         const q = (t - f.t0) / FX, y = f.y - 22 - q * 16; g.globalAlpha = Math.min(1, 2.2 * (1 - q)); g.font = `800 13px ${FONT}`;
