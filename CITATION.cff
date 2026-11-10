@@ -1,0 +1,56 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "Donghyunhang (동현항): a single-player sailing and trading laboratory on a world map with hex sea battles, with starting values and rule numbers set through the esoteric language Donghyun-lang"
+type: software
+version: "0.01"
+date-released: "2026-11-10"
+authors:
+  - family-names: Kim
+    given-names: Dong Hyun
+    orcid: "https://orcid.org/0000-0001-9883-0229"
+    affiliation: "Inha University College of Medicine"
+license: MIT
+repository-code: "https://github.com/Raspberry-Kim/donghyun-lab17"
+url: "https://raspberry-kim.github.io/donghyun-lab17/"
+abstract: >-
+  Donghyunhang is a browser-based, noncommercial toy that follows only the
+  broad frame of Uncharted Waters II (Daikoukai Jidai II; Koei, 1993): a
+  captain leads a fleet across a 16th-century world map, buying low and
+  selling high among twenty ports. At sea the calendar advances one day per
+  step while food and water run down; in port the player uses a market, a
+  lodge, a shipyard and a supply menu. Meeting one of three rival fleets
+  opens an 8x8 hex sea battle with cannon fire, boarding and a captains'
+  duel. The captain is Podongi, the maker's Maltese dog. Starting values,
+  rule numbers, the victory condition and time limit are set through a
+  program written in the esoteric programming language Donghyun-lang, whose
+  integer output is read as pairs of setting number and value by a shared
+  adapter. The game runs on a small common engine (fixed 60-tick loop,
+  calendar, square and hex grids with A* path finding, tile map renderer,
+  scene stack) written in HTML5 Canvas and vanilla JavaScript and shared
+  with Donghyunsam. The world map is derived from Natural Earth 110m land
+  data (public domain) at one degree per tile, with four narrow straits
+  opened by hand; prices, ships, rival fleets and all rule numbers are test
+  values chosen for this work and were not checked against the original
+  game. No graphic, sound, text, number or code of the original game is used
+  or extracted. Uncharted Waters is a series of Koei Tecmo Games; this work
+  is unaffiliated. Input is keyboard, mouse or touch; there is no save yet.
+  The MIT license applies to the Donghyunhang code and documentation; the
+  page fonts are under the SIL Open Font License. See LICENSE and
+  CREDITS.md.
+keywords:
+  - sailing and trading game
+  - Uncharted Waters
+  - hex grid
+  - esoteric programming language
+  - JavaScript
+references:
+  - type: software
+    title: "Donghyun-lang (동현랭): a Korean esoteric programming language with a browser playground"
+    authors:
+      - family-names: Kim
+        given-names: Dong Hyun
+        orcid: "https://orcid.org/0000-0001-9883-0229"
+        affiliation: "Inha University College of Medicine"
+    version: "1.55"
+    license: MIT
+    repository-code: "https://github.com/Raspberry-Kim/donghyun-lang"
