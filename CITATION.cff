@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 title: "Donghyunhang (동현항): a single-player sailing and trading laboratory on a world map with hex sea battles, with starting values and rule numbers set through the esoteric language Donghyun-lang"
 type: software
-version: "0.01"
+version: "0.02"
 doi: "10.5281/zenodo.24106054"
 date-released: "2026-11-10"
 authors:
@@ -34,7 +34,8 @@ abstract: >-
   values chosen for this work and were not checked against the original
   game. No graphic, sound, text, number or code of the original game is used
   or extracted. Uncharted Waters is a series of Koei Tecmo Games; this work
-  is unaffiliated. Input is keyboard, mouse or touch; there is no save yet.
+  is unaffiliated. Input is keyboard, mouse or touch, with a fullscreen mode; there is no save
+  yet.
   The MIT license applies to the Donghyunhang code and documentation; the
   page fonts are under the SIL Open Font License. See LICENSE and
   CREDITS.md.

@@ -295,7 +295,7 @@ ok('동현항 스테이지: 자금을 모으면 이긴다 · 기한(바다에서
   v = mk([[14, 0]]); v.gold = 9999999; v.sailTo('elmina'); while (!v.port && !v.over) v.stepDay(); assert.deepStrictEqual([v.port, v.over], ['elmina', null]);
   v = mk([[20, 1500], [21, 30]]); v.leave(); v.settleBattle({ winner: 'me', fled: null, loot: 900, me: { ships: [{ ref: 's1', hull: 60, crew: 28, out: null }] } }); assert.deepStrictEqual([v.gold, v.over, v.overWhy], [1900, 'won', 'gold'], '해전에서 얻은 금으로도 이긴다');
 });
-ok('동현항 설정: 틀린 번호와 값은 까닭을 말하고 globalState를 그대로 둔다 · 시작 짐이 적재량을 넘으면 막는다 · 예제 넷이 모두 읽힌다', () => {
+ok('동현항 설정: 틀린 번호와 값은 까닭을 말하고 globalState를 그대로 둔다 · 시작 짐이 적재량을 넘으면 막는다 · 예제 열이 모두 읽힌다', () => {
   const w = hw(), st = H.newState(), same = JSON.stringify(st), L = H.lang;
   const E = (list, re) => { const r = H.applyDonghyunLang(L.compose(list, '', { world: w }), st, { world: w }); assert.strictEqual(r.ok, false); assert.ok(re.test(r.errors[0]), r.errors[0]); assert.strictEqual(JSON.stringify(st), same); };
   E([[3, 500], [8, 13, 10]], /설정 8\(시작 짐\): 교역품은 12가지뿐이다/); E([[6, 41]], /설정 6\(시작 선원\): 선원 41명은 배의 10~40명 밖이다/); E([[6, 9]], /10~40명 밖/); E([[4, 121]], /시작 식량\(일\) 값 121은 쓸 수 없다\. 0~120만 된다/);
@@ -303,9 +303,35 @@ ok('동현항 설정: 틀린 번호와 값은 까닭을 말하고 globalState를
   E([[23, 7]], /배 이동력 값 7은 쓸 수 없다\. 1~6만 된다/); E([[14, 101]], /0~100만 된다/);
   const r = H.applyDonghyunLang(put(1, 1), st, { world: w }); assert.ok(/1번째 정수 1은 동현항 설정 번호가 아니다/.test(r.errors[0]), r.errors[0]);
   assert.ok(H.applyDonghyunLang(L.compose([[8, 1, 60], [8, 2, 60]], '', { world: w }), H.newState(), { world: w }).ok, '적재량에 꼭 맞으면 된다');
-  const ex = H.examples(w); assert.deepStrictEqual(ex.map(e => e.id), ['none', 'rich', 'stage', 'war']);
+  const ex = H.examples(w); assert.deepStrictEqual(ex.map(e => e.id), ['none', 'rich', 'stage', 'war', 'poor', 'calm', 'hunger', 'guns', 'scale', 'loop']);
   for (const e of ex) { const s2 = H.newState(), q = H.applyDonghyunLang(e.code, s2, { world: w }); assert.ok(q.ok, e.name + q.errors.join()); assert.strictEqual(q.empty, e.id === 'none'); assert.ok(e.code.startsWith('나는 동현이냐?') && e.code.endsWith('동현이구나')); new H.Voyage(hw(), { state: s2 }); }
   assert.strictEqual(L.describe(H.newState()).length, 18); assert.ok(L.describe(H.newState()).every(x => x.now !== undefined && x.now !== null && x.range), '표의 모든 줄에 범위와 기본값이 있다');
   assert.ok(H.lang instanceof A, '공통 어댑터 클래스를 쓴다');
+});
+ok('동현항 예제: 이름 앞에 번호 01~10 · 예제마다 새 탐험이 열린다 · 09 변수(배율 1~4) · 10 반복문(열두 교역품 · 적재량에 꼭 찬다)', () => {
+  const ex = H.examples(hw()), by = id => ex.find(e => e.id === id), run = code => { const st = H.newState(), w = hw(), r = H.applyDonghyunLang(code, st, { world: w }); return { st, r, w }; };
+  const voyage = id => { const { st, r, w } = run(by(id).code); assert.ok(r.ok, id + r.errors.join()); return new H.Voyage(w, { rng: new DH.RNG(3), state: st }); }, hold = v => [...v.cargo].map(([k, h]) => k + ' ' + h.qty).join(' · ');
+  ex.forEach((e, i) => { assert.ok(e.name.startsWith(String(i + 1).padStart(2, '0') + ' · '), e.name); assert.ok(e.code.split('\n')[1].startsWith('ㅋㅋ '), e.id + ': 둘째 줄이 설명이다');
+    for (const l of e.code.split('\n')) if (l.startsWith('ㅋㅋ')) assert.ok(!l.includes('~'), e.id + ': 주석에 ~가 있으면 문장이 갈린다');
+    const v = voyage(e.id); assert.ok(v.cargoUsed <= v.cargoCap && v.port === 'lisbon'); });
+  const applied = id => run(by(id).code).r.applied;
+  assert.deepStrictEqual(applied('poor'), ['시작 자금 300', '시작 식량(일) 30', '시작 물(일) 30', '시작 짐 포도주 0', '시작 짐 올리브유 0', '교역 단위 5']);
+  assert.deepStrictEqual(applied('calm'), ['시작 자금 20,000', '적 함대를 만날 확률(%/일) 0', '교역 단위 40', '시세 변동 폭(%) 1', '교역소 수수료(%) 0']);
+  assert.deepStrictEqual(applied('hunger'), ['시작 식량(일) 10', '시작 물(일) 10', '굶을 때 하루 선원 손실(%) 30', '적 함대를 만날 확률(%/일) 0']);
+  assert.deepStrictEqual(applied('guns'), ['적 함대를 만날 확률(%/일) 60', '포 사거리 6', '배 이동력 1', '해전 기한(턴) 40', '적 선장 무력 외눈 선장 50', '적 선장 무력 폭풍 제독 50']);
+  let v = voyage('poor'); assert.deepStrictEqual([v.gold, v.cargoUsed, v.foodDays, v.waterDays], [300, 0, 30, 30]);
+  v = voyage('hunger'); assert.deepStrictEqual([v.foodDays, v.waterDays], [10, 10]);
+  // 09 변수: 대입 한 줄만 바꾸면 세 값이 함께 바뀐다
+  const sc = by('scale').code.split('\n'), at = sc.findIndex(l => l.startsWith('동현아 ')), scale = k => run(sc.map((l, i) => i === at ? '동현아 ' + A.expression(k) : l).join('\n'));
+  assert.strictEqual(sc.filter(l => l.startsWith('동현아 ')).length, 1); assert.strictEqual(sc[at], '동현아 ' + A.expression(4));
+  v = voyage('scale'); assert.deepStrictEqual([v.gold, v.crew, hold(v)], [4000, 40, 'olive 20 · wine 80'], '올리브유 20은 자료 그대로 남는다');
+  for (const k of [1, 2, 3, 4]) { const { st, r } = scale(k); assert.ok(r.ok, k + ': ' + r.errors.join()); assert.deepStrictEqual([st.start.gold, st.start.crew, st.cargo], [k * 1000, k * 10, [['wine', k * 20]]]); }
+  assert.ok(/시작 선원 값 0은 쓸 수 없다/.test(scale(0).r.errors.join())); assert.ok(/선원 50명은 배의 10~40명 밖이다/.test(scale(5).r.errors.join()));
+  // 10 반복문: 되돌아가는 문장 번호가 주석에 적힌 번호와 같다
+  const lp = by('loop').code.split('\n'), jump = lp.find(l => l.startsWith('뭉치 ')), back = lp.findIndex(l => l.includes('되돌아오는 자리')) + 1;
+  assert.ok(back > 0 && lp.slice(0, back).every(l => !l.includes('~')), '되돌아오는 자리까지는 한 줄이 한 문장이다');
+  assert.strictEqual(jump, `뭉치 동현${'ㅠ'.repeat(13)}? 신중동역 ${A.expression(back)}`); assert.ok(lp[back - 1].includes(`${back}번 문장`) && lp.some(l => l.includes(`${back}번 문장으로 돌아간다`)));
+  const L = run(by('loop').code); assert.strictEqual(L.r.output.trim().split('\n').length, 36, '정수 서른여섯 개(설정 열두 개 × 세 정수)'); assert.deepStrictEqual(L.st.cargo.map(c => c[1]), Array(12).fill(10));
+  v = voyage('loop'); assert.deepStrictEqual([v.cargo.size, v.cargoUsed, v.cargoCap], [12, 120, 120]); assert.deepStrictEqual([...v.cargo.keys()], [...L.w.goods.keys()], '교역품 열두 가지가 자료의 차례대로 실린다');
 });
 console.log(`핵심 시험 ${n}개 통과`);
