@@ -47,6 +47,7 @@ p{margin:0}
 .edition>span{font:700 11px var(--body);color:#5a4410;background:#f7e2a4;padding:2px 8px;border-radius:999px}
 [data-theme=dark] .edition>span{background:#4a3b17;color:#f6d77b}
 .icon-btn{width:36px;height:36px;min-height:36px;padding:0;display:grid;place-items:center;border:0;background:transparent;color:var(--muted)}
+.icon-btn .snd-off{display:none}.icon-btn.muted .snd-off{display:inline}.icon-btn.muted .snd-on{display:none}
 main{padding:0 40px}
 /* 시리즈 줄 */
 .series-strip{--series-ink:#42372d;--series-muted:#7c6d5d;--series-line:#d9cbb5;--series-paper:#fbf7ef;display:flex;align-items:center;gap:20px;padding:16px 0 18px;margin:0 0 24px;border-bottom:1px solid var(--series-line);color:var(--series-ink)}
@@ -316,7 +317,7 @@ html.pseudo-full-on,html.pseudo-full-on body{overflow:hidden;overscroll-behavior
 <body>
 <header class="header">
   <a class="brand" href="#" aria-label="동현항 첫 화면으로"><span class="brand-main"><img class="brand-icon" src="data:image/png;base64,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" alt="" width="96" height="96">동현<span>항</span><sup>TM</sup></span><i class="brand-divider"></i><span class="brand-sub">VOYAGE &amp; TRADE<small>코드로 떠나는 항해</small></span></a><a class="doi-badge" href="https://doi.org/10.5281/zenodo.24106054" target="_blank" rel="noopener" aria-label="동현항 Zenodo DOI 10.5281/zenodo.24106054" title="Zenodo DOI (모든 버전)"><b>DOI</b><span>10.5281/zenodo.24106054</span></a>
-  <div class="edition">v0.04<button id="theme" class="icon-btn" aria-label="밝은 화면과 어두운 화면 전환" title="화면 전환" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button></div>
+  <div class="edition">v0.05<button id="sound" class="icon-btn" aria-label="효과음 켜기·끄기" title="효과음 (M)" aria-pressed="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="snd-on" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="snd-off" d="m16 9 6 6m0-6-6 6"/></svg></button><button id="theme" class="icon-btn" aria-label="밝은 화면과 어두운 화면 전환" title="화면 전환" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button></div>
 </header>
 <main>
 <!-- SERIES-NAV-START -->
@@ -324,10 +325,10 @@ html.pseudo-full-on,html.pseudo-full-on body{overflow:hidden;overscroll-behavior
 <!-- SERIES-NAV-END -->
   <section class="intro">
     <div><div class="eyebrow">VOYAGE &amp; TRADE × ESOTERIC LANGUAGE</div><h1>항해 실험실: <span class="title-brand">동현<span>항</span><sup>TM</sup></span></h1><p><strong>동현랭</strong>으로 시작값과 규칙 수치를 정하는 1인용 항해 · 교역 시뮬레이션 게임이다. 선장 <strong>포동이</strong>의 탐험대가 1522년 리스본에서 떠나 <strong>항구 스무 곳</strong>을 오가며 무역을 한다. 바다에서는 하루하루 날짜가 흐르고 식량과 물이 줄어든다. 적 함대를 만나면 <strong>8×8 육각 바다</strong>에서 포격 · 백병전 · 일기토로 싸운다.</p></div>
-    <div class="model-stamp"><strong>20 <span>항구</span></strong><strong>12 <span>교역품</span></strong><small>1인용 · 항구 20 · 교역품 12 · 적 함대 3 · 키보드·마우스</small><div class="input-marks" role="group" aria-label="입력 표식 · 쓸 수 있는 것: 키보드 · 마우스(손가락) · 전체 화면"><span class="mark on kb" tabindex="0" data-tip="키보드 가능 · 숫자 키로 조작 창의 단추를 누르고 Enter는 노란 단추다. 항구에서는 방향키나 Space로 갈 항구를 고르고, 바다에서는 방향키로 키를 잡고 Space로 멈춘다. 해전에서는 방향키로 칸을 고르고 Enter로 찍는다. 지도를 한 번 눌러야 키가 듣는다." aria-label="키보드 가능"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path class="dots" d="M6 10h.01M9.5 10h.01M13 10h.01M16.5 10h.01M6 13h.01M9.5 13h.01M13 13h.01M16.5 13h.01"/><path d="M8 16h8"/></svg></span><span class="mark on ms" tabindex="0" data-tip="마우스·손가락 가능 · 지도에서 항구나 바다를 누르면 뱃길이 잡히고, 조작 창의 단추로 사고팔고 출항한다. 끌면 지도가 움직이고 바퀴로 확대·축소한다." aria-label="마우스·손가락 가능"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="5"/><path d="M12 7v3"/></svg></span><span class="mark off gp" tabindex="0" data-tip="게임패드 없음 · 이 실험실은 게임패드를 읽지 않는다." aria-label="게임패드 없음"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6.5" width="20" height="11" rx="4.5"/><path d="M7 9.6v4.8M4.6 12h4.8"/><circle cx="16.6" cy="9.6" r=".85"/><circle cx="14.4" cy="12" r=".85"/><circle cx="18.8" cy="12" r=".85"/><circle cx="16.6" cy="14.4" r=".85"/><path class="dots" d="M11.3 13.4h.01M12.9 13.4h.01"/></svg></span><span class="mark on fs" tabindex="0" data-tip="전체 화면 가능 · 지도 아래 <b>전체 화면</b> 단추를 누르면 지도와 조작 창이 화면에 꽉 찬다. 닫기는 오른쪽 위 ✕ 단추나 Esc." aria-label="전체 화면 가능"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><text class="full" x="12" y="14.6" text-anchor="middle">FULL</text></svg></span></div></div>
+    <div class="model-stamp"><strong>20 <span>항구</span></strong><strong>12 <span>교역품</span></strong><small>1인용 · 항구 20 · 교역품 12 · 적 함대 3 · 키보드·마우스</small><div class="input-marks" role="group" aria-label="입력 표식 · 쓸 수 있는 것: 키보드 · 마우스(손가락) · 전체 화면"><span class="mark on kb" tabindex="0" data-tip="키보드 가능 · 숫자 키로 조작 창의 단추를 누르고 Enter는 노란 단추다. 항구에서는 방향키나 Space로 갈 항구를 고르고, 바다에서는 방향키로 키를 잡고 Space로 멈춘다. 해전에서는 방향키로 칸을 고르고 Enter로 찍는다. M은 효과음 켜기·끄기다. 지도를 한 번 눌러야 키가 듣는다." aria-label="키보드 가능"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path class="dots" d="M6 10h.01M9.5 10h.01M13 10h.01M16.5 10h.01M6 13h.01M9.5 13h.01M13 13h.01M16.5 13h.01"/><path d="M8 16h8"/></svg></span><span class="mark on ms" tabindex="0" data-tip="마우스·손가락 가능 · 지도에서 항구나 바다를 누르면 뱃길이 잡히고, 조작 창의 단추로 사고팔고 출항한다. 끌면 지도가 움직이고 바퀴로 확대·축소한다." aria-label="마우스·손가락 가능"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="5"/><path d="M12 7v3"/></svg></span><span class="mark off gp" tabindex="0" data-tip="게임패드 없음 · 이 실험실은 게임패드를 읽지 않는다." aria-label="게임패드 없음"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6.5" width="20" height="11" rx="4.5"/><path d="M7 9.6v4.8M4.6 12h4.8"/><circle cx="16.6" cy="9.6" r=".85"/><circle cx="14.4" cy="12" r=".85"/><circle cx="18.8" cy="12" r=".85"/><circle cx="16.6" cy="14.4" r=".85"/><path class="dots" d="M11.3 13.4h.01M12.9 13.4h.01"/></svg></span><span class="mark on fs" tabindex="0" data-tip="전체 화면 가능 · 지도 아래 <b>전체 화면</b> 단추를 누르면 지도와 조작 창이 화면에 꽉 찬다. 닫기는 오른쪽 위 ✕ 단추나 Esc." aria-label="전체 화면 가능"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><text class="full" x="12" y="14.6" text-anchor="middle">FULL</text></svg></span></div></div>
   </section>
   <nav class="tabs" aria-label="동현항 메뉴"><button class="active" data-tab="play" aria-current="page">세계 지도</button><button data-tab="protocol">동현항 출전 규약</button><button data-tab="rules">규칙</button><button data-tab="engine">엔진과 자료</button><button data-tab="about">모델과 출처</button><span>시작값과 규칙은 동현랭으로, 조작은 키보드나 마우스 · 손가락으로</span></nav>
-  <div class="getting-started"><p><strong>처음이라면?</strong> 리스본 항구에서 기본값으로 이미 열려 있다. 교역소에서 물건을 사고, 지도에서 다른 항구를 누른 뒤 출항해 보자. 예제 <b>02 · 넉넉한 출항</b>을 고르고 <b>출전</b>을 누르면 그 설정으로 새 판이 열린다. 시작값과 규칙 수치는 모두 <b>동현랭</b>이 출력한 정수로만 바꾼다.</p><a href="https://raspberry-kim.github.io/donghyun-lang/" target="_blank" rel="noopener">동현랭 배우기 · 실행기 ↗</a></div>
+  <div class="getting-started"><p><strong>처음이라면?</strong> <b>출전</b>을 눌러야 탐험이 시작된다. 그대로 누르면 기본값(리스본 항구)으로, 예제 <b>02 · 넉넉한 출항</b>을 고르고 누르면 그 설정으로 열린다. 교역소에서 물건을 사고, 지도에서 다른 항구를 누른 뒤 출항해 보자. 시작값과 규칙 수치는 모두 <b>동현랭</b>이 출력한 정수로만 바꾼다.</p><a href="https://raspberry-kim.github.io/donghyun-lang/" target="_blank" rel="noopener">동현랭 배우기 · 실행기 ↗</a></div>
 
   <section id="tab-play" class="tab-panel">
     <div class="play-grid" id="play-grid">
@@ -348,7 +349,7 @@ html.pseudo-full-on,html.pseudo-full-on body{overflow:hidden;overscroll-behavior
             <div class="code-meta ed-status"><span id="line-count"></span><span>정수 출력 → 설정 번호 · 값 · ⌘/Ctrl ↵ 출전</span></div>
           </div>
           <p id="example-note"></p>
-          <p id="result" aria-live="polite">판은 기본값으로 열려 있다. 예제를 고르고 출전을 누르면 그 설정으로 새 판이 열린다.</p>
+          <p id="result" aria-live="polite">아직 시작하지 않았다. 예제를 고른 뒤 출전을 눌러 보자. 아무것도 고르지 않고 누르면 기본값으로 열린다.</p>
           <div class="file-row"><button id="save">.dh 저장</button><label class="file-label">.dh 열기<input id="open" type="file" accept=".dh,.txt,text/plain" hidden></label></div>
           <details class="lang-rule"><summary>설정 번호 표</summary><div class="table-wrap"><table><thead><tr><th>번호</th><th>설정</th><th>값</th><th>기본값</th></tr></thead><tbody id="lang-rows"></tbody></table></div></details>
         </section>
@@ -358,7 +359,7 @@ html.pseudo-full-on,html.pseudo-full-on body{overflow:hidden;overscroll-behavior
   </section>
 
   <section id="tab-protocol" class="tab-panel document" hidden>
-    <div class="doc-heading"><div class="eyebrow">SORTIE I/O · v0.04</div><h2>시작값과 규칙 수치는 동현랭으로, 조작은 키보드나 마우스 · 손가락으로.</h2></div>
+    <div class="doc-heading"><div class="eyebrow">SORTIE I/O · v0.05</div><h2>시작값과 규칙 수치는 동현랭으로, 조작은 키보드나 마우스 · 손가락으로.</h2></div>
 <p>동현랭에는 '자금'이나 '선원' 같은 낱말이 없다. 값은 모두 정수이고, 밖으로 나가는 것은 출력뿐이다. 그래서 동현랭 코드가 출력한 정수를 <b>설정 번호 · 값</b> 순서로 읽는다. 어느 번호가 무엇인지는 동현항이 정한다.</p>
 <pre class="code-example">나는 동현이냐?
 ㅋㅋ 3번 시작 자금 = 5,000
@@ -376,12 +377,12 @@ html.pseudo-full-on,html.pseudo-full-on body{overflow:hidden;overscroll-behavior
   </section>
 
   <section id="tab-rules" class="tab-panel document" hidden>
-    <div class="doc-heading"><div class="eyebrow">HOW TO PLAY</div><h2>하루에 한 걸음, 싸게 사서 멀리 가서 판다.</h2><p class="input-note">머리글 오른쪽에 붙은 네 아이콘(키보드·마우스·게임패드·전체 화면 FULL)은 입력 표식이다. 이 실험실은 <b>키보드 · 마우스(손가락) · 전체 화면이 켜져 있다</b>. 조작 창의 단추는 마우스나 손가락으로 누르거나 단추에 적힌 숫자 키로 누른다. 바다에서는 방향키로 키를 잡는다. 아이콘에 마우스를 올리거나 손을 대면 풍선 도움말이 뜬다.</p><p class="input-note"><b>전체 화면</b>: 지도 아래 <b>전체 화면</b> 단추를 누르면 정보 띠 · 지도 · 조작 창이 화면에 꽉 찬다. 동현랭 편집기는 따라오지 않으니 출전은 미리 해 둔다. 닫을 때는 오른쪽 위 <b>✕ 전체 화면 닫기</b>를 누른다(Esc도 된다). 요소 전체 화면을 못 쓰는 기기(iPhone)에서는 창을 가득 채우는 방식으로 연다.</p></div>
+    <div class="doc-heading"><div class="eyebrow">HOW TO PLAY</div><h2>하루에 한 걸음, 싸게 사서 멀리 가서 판다.</h2><p class="input-note">머리글 오른쪽에 붙은 네 아이콘(키보드·마우스·게임패드·전체 화면 FULL)은 입력 표식이다. 이 실험실은 <b>키보드 · 마우스(손가락) · 전체 화면이 켜져 있다</b>. 조작 창의 단추는 마우스나 손가락으로 누르거나 단추에 적힌 숫자 키로 누른다. 바다에서는 방향키로 키를 잡는다. 아이콘에 마우스를 올리거나 손을 대면 풍선 도움말이 뜬다.</p><p class="input-note"><b>전체 화면</b>: 지도 아래 <b>전체 화면</b> 단추를 누르면 정보 띠 · 지도 · 조작 창이 화면에 꽉 찬다. 동현랭 편집기는 따라오지 않으니 출전은 미리 해 둔다. 닫을 때는 오른쪽 위 <b>✕ 전체 화면 닫기</b>를 누른다(Esc도 된다). 요소 전체 화면을 못 쓰는 기기(iPhone)에서는 창을 가득 채우는 방식으로 연다.</p><p class="input-note"><b>소리</b>: 머리글의 스피커 단추나 <b>M</b> 키로 효과음을 켜고 끈다. 고른 값은 이 브라우저가 기억한다.</p></div>
 <h3>놀이 방법</h3>
-<ul><li>페이지를 열면 기본값으로 판이 열려 있다. 포동이 탐험대(캐러벨 꼬리바람호 한 척 · 선원 28명 · 금 1,000)가 1522년 5월 1일 <b>리스본</b> 항구에 있다.</li><li>항구에서는 조작 창의 <b>교역소 · 여관 · 도크 · 보급</b>에서 채비를 한다. 항구에 있는 동안에는 날이 가지 않는다.</li><li>지도에서 <b>갈 항구나 바다를 찍고 출항</b>을 누르면 뱃길을 따라간다. 항구를 찍으면 그 항구의 시세가 보인다.</li><li>바다에서는 <b>20틱에 하루</b>씩 날짜가 흐르고, 하루에 식량과 물이 선원 수만큼 든다. 떨어지면 선원을 잃고, 선원이 0이 되면 탐험이 끝난다.</li><li>뱃길의 끝이 항구면 그 항구에 든다. 산 물건을 값이 높은 항구에서 팔아 자금을 불린다.</li><li>항구를 떠나 3일이 지나면 날마다 5% 확률로 <b>적 함대</b>를 만난다. 만나면 지도 위에 8×8 육각 바다가 얹힌다. 우리 배를 찍으면 갈 수 있는 칸이 보이고, 사거리 안의 적(붉은 테)을 찍으면 쏜다. 맞닿으면 올라탈 수 있다.</li><li>기본값에는 이기는 조건이 없어 끝없이 다닌다. 동현랭으로 <b>모을 자금</b>(20번)과 <b>기한</b>(21번)을 정하면 자금을 모았을 때 이기고, 바다에서 보낸 날이 기한을 넘으면 진다.</li><li>오른쪽 동현랭 코드의 <b>출전</b>을 누르면 코드가 출력한 정수대로 시작값과 규칙 수치가 정해지고 새 판이 열린다. 코드에 오류가 있으면 하던 판을 그대로 둔다.</li></ul>
+<ul><li>페이지를 열면 지도 위에 <b>시작 카드</b>가 떠 있고 판은 멈춰 있다. 오른쪽 동현랭 코드(예제)를 고르고 <b>출전</b>을 누르면 탐험이 열린다. 조작 창의 <b>출전</b> 단추나 <code>Enter</code>도 같다. 저장해 둔 탐험은 <b>불러오기</b>로 바로 이어 한다.</li><li>기본값으로 열면 포동이 탐험대(캐러벨 꼬리바람호 한 척 · 선원 28명 · 금 1,000)가 1522년 5월 1일 <b>리스본</b> 항구에 있다.</li><li>항구에서는 조작 창의 <b>교역소 · 여관 · 도크 · 보급</b>에서 채비를 한다. 항구에 있는 동안에는 날이 가지 않는다.</li><li>지도에서 <b>갈 항구나 바다를 찍고 출항</b>을 누르면 뱃길을 따라간다. 항구를 찍으면 그 항구의 시세가 보인다.</li><li>바다에서는 <b>20틱에 하루</b>씩 날짜가 흐르고, 하루에 식량과 물이 선원 수만큼 든다. 떨어지면 선원을 잃고, 선원이 0이 되면 탐험이 끝난다.</li><li>뱃길의 끝이 항구면 그 항구에 든다. 산 물건을 값이 높은 항구에서 팔아 자금을 불린다.</li><li>항구를 떠나 3일이 지나면 날마다 5% 확률로 <b>적 함대</b>를 만난다. 만나면 지도 위에 8×8 육각 바다가 얹힌다. 우리 배를 찍으면 갈 수 있는 칸이 보이고, 사거리 안의 적(붉은 테)을 찍으면 쏜다. 맞닿으면 올라탈 수 있다.</li><li>기본값에는 이기는 조건이 없어 끝없이 다닌다. 동현랭으로 <b>모을 자금</b>(20번)과 <b>기한</b>(21번)을 정하면 자금을 모았을 때 이기고, 바다에서 보낸 날이 기한을 넘으면 진다.</li><li>오른쪽 동현랭 코드의 <b>출전</b>을 누르면 코드가 출력한 정수대로 시작값과 규칙 수치가 정해지고 새 판이 열린다. 코드에 오류가 있으면 하던 판을 그대로 둔다.</li><li>지도의 바다는 뭍에서 멀수록 짙어지는 세 단(얕은 물 · 연안 · 대양)이고, 뭍은 위도대로 열대 · 온대 · 한대의 세 가지 색이다. 바다에 닿은 땅은 조금 짙게 칠해 해안선이 선다.</li></ul>
 <h3>조작</h3>
-<div class="table-wrap"><table><thead><tr><th>입력</th><th>하는 일</th></tr></thead><tbody><tr><td>지도 찍기</td><td>항구를 찍으면 시세와 뱃길이 보인다. 바다를 찍으면 갈 곳이 된다(바다에 떠 있을 때는 찍은 곳으로 바로 간다)</td></tr><tr><td>지도 끌기</td><td>지도를 옮긴다(배 따라가기가 풀린다)</td></tr><tr><td>마우스 바퀴 · 확대 · 축소 단추</td><td>지도를 키우고 줄인다. <b>배 따라가기</b> 단추는 화면을 다시 배에 맞춘다</td></tr><tr><td>조작 창 단추</td><td>항구 메뉴(사기 · 팔기 · 선원 모으기 · 고치기 · 배 사기 · 보급 · 출항) · 바다의 입항 · 멈춤/계속 · 빠르기 ×1 · ×2 · ×4 · 해전의 대기 · 차례 넘기기 · 맡기기 · 달아나기. 못 누르는 단추에는 까닭이 적힌다</td></tr><tr><td>키보드</td><td>지도를 한 번 찍은 뒤에 듣는다. 아래 <b>키보드</b> 표를 보라</td></tr><tr><td><code>Ctrl</code>/<code>⌘</code> + <code>Enter</code></td><td>동현랭 편집기에서 출전</td></tr><tr><td><b>저장</b> · <b>불러오기</b> 단추(지도 아래)</td><td>탐험을 브라우저 칸이나 <code>.dhsave</code> 파일에 남기고 되살린다. 아래 <b>저장과 불러오기</b>를 보라</td></tr><tr><td><b>전체 화면</b> 단추(지도 아래)</td><td>정보 띠 · 지도 · 조작 창을 화면에 꽉 채운다. 닫을 때는 오른쪽 위 <b>✕ 전체 화면 닫기</b>를 누르거나 <code>Esc</code>를 누른다</td></tr></tbody></table></div>
-<ul><li>화면은 위 정보 띠(날짜 · 자금 · 식량 · 물 · 선원 · 짐) · 가운데 지도(480×360) · 조작 창(설명 · 단추 · 기록)으로 나뉜다. 폭이 좁으면 조작 창이 지도 아래로 내려간다.</li><li><b>전체 화면</b>에서는 화면 모양에 따라 배치가 셋으로 바뀐다. 넓은 화면은 평소처럼 지도 오른쪽에 조작 창을 두고, 낮은 가로 화면(눕힌 휴대폰)은 지도를 왼쪽에 꽉 채우고 정보 띠와 조작 창을 오른쪽에 모으며, 좁거나 세로로 긴 화면은 아래로 쌓는다. 지도는 커진 만큼 더 촘촘히 그린다(4배까지).</li><li>동현랭 편집기는 전체 화면에 따라오지 않는다. 설정을 바꾸려면 <b>출전</b>을 먼저 누르고 전체 화면을 켠다. iPhone Safari처럼 전체 화면을 내주지 않는 브라우저에서는 창을 가득 채우는 방식으로 띄운다.</li><li>설명 탭을 읽는 동안에는 판이 멈춘다. 게임패드와 소리는 없다.</li><li>조작 창의 단추를 누른 뒤에도 키보드는 계속 지도에 듣는다(단추를 누르면 초점이 지도로 돌아온다).</li></ul>
+<div class="table-wrap"><table><thead><tr><th>입력</th><th>하는 일</th></tr></thead><tbody><tr><td>지도 찍기</td><td>항구를 찍으면 시세와 뱃길이 보인다. 바다를 찍으면 갈 곳이 된다(바다에 떠 있을 때는 찍은 곳으로 바로 간다)</td></tr><tr><td>지도 끌기</td><td>지도를 옮긴다(배 따라가기가 풀린다)</td></tr><tr><td>마우스 바퀴 · 확대 · 축소 단추</td><td>지도를 키우고 줄인다. <b>배 따라가기</b> 단추는 화면을 다시 배에 맞춘다</td></tr><tr><td>조작 창 단추</td><td>항구 메뉴(사기 · 팔기 · 선원 모으기 · 고치기 · 배 사기 · 보급 · 출항) · 바다의 입항 · 멈춤/계속 · 빠르기 ×1 · ×2 · ×4 · 해전의 대기 · 차례 넘기기 · 맡기기 · 달아나기. 못 누르는 단추에는 까닭이 적힌다</td></tr><tr><td>키보드</td><td>지도를 한 번 찍은 뒤에 듣는다. 아래 <b>키보드</b> 표를 보라</td></tr><tr><td><code>Ctrl</code>/<code>⌘</code> + <code>Enter</code></td><td>동현랭 편집기에서 출전</td></tr><tr><td><code>M</code></td><td>효과음 켜기 · 끄기(편집기에 글을 쓰는 동안에는 듣지 않는다)</td></tr><tr><td><b>저장</b> · <b>불러오기</b> 단추(지도 아래)</td><td>탐험을 브라우저 칸이나 <code>.dhsave</code> 파일에 남기고 되살린다. 아래 <b>저장과 불러오기</b>를 보라</td></tr><tr><td><b>전체 화면</b> 단추(지도 아래)</td><td>정보 띠 · 지도 · 조작 창을 화면에 꽉 채운다. 닫을 때는 오른쪽 위 <b>✕ 전체 화면 닫기</b>를 누르거나 <code>Esc</code>를 누른다</td></tr></tbody></table></div>
+<ul><li>화면은 위 정보 띠(날짜 · 자금 · 식량 · 물 · 선원 · 짐) · 가운데 지도(480×360) · 조작 창(설명 · 단추 · 기록)으로 나뉜다. 폭이 좁으면 조작 창이 지도 아래로 내려간다.</li><li><b>전체 화면</b>에서는 화면 모양에 따라 배치가 셋으로 바뀐다. 넓은 화면은 평소처럼 지도 오른쪽에 조작 창을 두고, 낮은 가로 화면(눕힌 휴대폰)은 지도를 왼쪽에 꽉 채우고 정보 띠와 조작 창을 오른쪽에 모으며, 좁거나 세로로 긴 화면은 아래로 쌓는다. 지도는 커진 만큼 더 촘촘히 그린다(4배까지).</li><li>동현랭 편집기는 전체 화면에 따라오지 않는다. 설정을 바꾸려면 <b>출전</b>을 먼저 누르고 전체 화면을 켠다. iPhone Safari처럼 전체 화면을 내주지 않는 브라우저에서는 창을 가득 채우는 방식으로 띄운다.</li><li>설명 탭을 읽는 동안에는 판이 멈춘다. 게임패드는 없다.</li><li><b>효과음</b>이 있다. 머리글의 스피커 단추나 <code>M</code> 키로 켜고 끈다(이 브라우저가 기억한다). 소리 파일 없이 Web Audio로 그 자리에서 만든다(동현큐 · 동현닥과 같은 소리 묶음 <code>src/sfx.js</code>). 항구를 고를 때 · 사고팔 때의 동전 · 출항 · 키 잡기 · 입항 · 적 함대와 만날 때의 경보 · 포격 · 올라타기와 일기토 · 침몰 · 이기고 질 때 소리가 난다. 못 하는 일에는 짧게 막히는 소리가 난다.</li><li>조작 창의 단추를 누른 뒤에도 키보드는 계속 지도에 듣는다(단추를 누르면 초점이 지도로 돌아온다).</li></ul>
 <h4>키보드</h4>
 <p>키보드만으로 처음부터 끝까지 할 수 있다. 키는 지도를 한 번 찍은 뒤에 듣는다. 조작 창의 단추에는 누를 숫자가 적혀 있다(손가락 화면에서는 숨긴다). 단추가 아홉 개를 넘으면 열 번째부터는 번호가 없다(교역소의 짐이 많을 때). 그때 돌아가기는 <code>Esc</code>로 한다.</p>
 <p>지도에서:</p>
@@ -423,10 +424,10 @@ MapScene (Scene을 이어받음) ─ Grid(Square|Hex) + Camera + TileMapRenderer
 Layout   DOM. setInfo(위 띠) · setDetail(설명) · setMenu(단추) · log(기록) · press(번호) · pressPrimary()</pre>
 <p>엔진 파일은 모두 같은 꼴이다. 전역 <code>DH</code>에 붙고, node에서는 <code>require</code>로 같은 <code>DH</code>를 받는다. 규칙 파일(<code>*-rules.js</code>, <code>*-battle.js</code>, <code>*-lang.js</code>)은 화면을 모른다. node에서 그대로 돌려 시험한다.</p>
 <h4>Engine</h4>
-<div class="table-wrap"><table><thead><tr><th>쓰는 것</th><th>뜻</th></tr></thead><tbody><tr><td><code>new DH.Engine({canvas, width, height, seed, clock})</code></td><td>캔버스 없이 만들면 논리만 돈다(node 시험)</td></tr><tr><td><code>setScene / pushScene / popScene</code></td><td>장면 바꾸기 · 얹기 · 내리기</td></tr><tr><td><code>start() / stop() / step(n)</code></td><td>루프 켜기 · 끄기 · 틱 n번(시험용)</td></tr><tr><td><code>fit(cssWidth)</code></td><td>캔버스가 화면에서 커졌을 때 부른다. 그 폭에 맞게 그리는 배율을 올리고(4배까지) 한 번 다시 그린다. 값 없이 부르면 화면 배율로 되돌린다</td></tr><tr><td><code>clock</code> <code>rng</code> <code>bus</code> <code>tick</code></td><td>달력 · 난수 · 사건 버스 · 지금 틱</td></tr><tr><td><code>on(type, fn)</code></td><td>사건 듣기. 끊는 함수를 돌려준다</td></tr><tr><td><code>snapshot()</code></td><td>저장 묶음: 틱 · 달력 · 난수 상태 · 맨 위 장면의 <code>save()</code></td></tr><tr><td><code>checkSnapshot(s)</code></td><td>저장 묶음의 달력과 난수가 이 엔진에 맞는지 본다. 맞지 않으면 까닭을 담아 던진다(아무것도 바꾸지 않는다)</td></tr><tr><td><code>restore(s)</code></td><td>달력과 난수를 되돌린다. 흐르는 날짜는 멈춘 채로 돌아온다. 장면과 판은 게임이 따로 되돌린다</td></tr><tr><td><code>DH.Save.need · int · head</code></td><td>저장 묶음을 검사하는 작은 도구. <code>head(d, format, version, name)</code>는 어느 게임의 몇 번째 형식인지 본다</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>쓰는 것</th><th>뜻</th></tr></thead><tbody><tr><td><code>new DH.Engine({canvas, width, height, seed, clock})</code></td><td>캔버스 없이 만들면 논리만 돈다(node 시험)</td></tr><tr><td><code>setScene / pushScene / popScene</code></td><td>장면 바꾸기 · 얹기 · 내리기</td></tr><tr><td><code>start() / stop() / step(n)</code></td><td>루프 켜기 · 끄기 · 틱 n번(시험용)</td></tr><tr><td><code>fit(cssWidth)</code></td><td>캔버스가 화면에서 커졌을 때 부른다. 그 폭에 맞게 그리는 배율을 올리고(4배까지) 한 번 다시 그린다. 값 없이 부르면 화면 배율로 되돌린다</td></tr><tr><td><code>clock</code> <code>rng</code> <code>bus</code> <code>tick</code></td><td>달력 · 난수 · 사건 버스 · 지금 틱</td></tr><tr><td><code>on(type, fn)</code></td><td>사건 듣기. 끊는 함수를 돌려준다</td></tr><tr><td><code>scene.sfx(k, delay)</code></td><td>장면이 효과음을 청한다. 엔진은 소리를 내지 않고 <code>'sfx'</code> 사건(<code>{k, delay}</code>)만 알린다. 페이지가 받아 튼다. node 시험에서는 아무 일도 없다</td></tr><tr><td><code>snapshot()</code></td><td>저장 묶음: 틱 · 달력 · 난수 상태 · 맨 위 장면의 <code>save()</code></td></tr><tr><td><code>checkSnapshot(s)</code></td><td>저장 묶음의 달력과 난수가 이 엔진에 맞는지 본다. 맞지 않으면 까닭을 담아 던진다(아무것도 바꾸지 않는다)</td></tr><tr><td><code>restore(s)</code></td><td>달력과 난수를 되돌린다. 흐르는 날짜는 멈춘 채로 돌아온다. 장면과 판은 게임이 따로 되돌린다</td></tr><tr><td><code>DH.Save.need · int · head</code></td><td>저장 묶음을 검사하는 작은 도구. <code>head(d, format, version, name)</code>는 어느 게임의 몇 번째 형식인지 본다</td></tr></tbody></table></div>
 <h4>저장 묶음</h4>
 <pre class="code-example">{ format: 'donghyunhang-save', version: 1,   // 어느 게임의 몇 번째 형식인지
-  lab: '0.04', savedAt: '2026-11-10T03:19:00.000Z',
+  lab: '0.05', savedAt: '2026-11-10T03:19:00.000Z',
   summary: { title: '리스본', date: '1522년 5월 1일', line: '자금 1,000 · 선원 28명' },   // 메뉴에 보이는 한 줄
   settings: [[3, 5000], [10, 20]],           // 저장될 때 적용돼 있던 동현랭 설정 [번호, 값…]
   engine, tick, clock, rng, scene,           // Engine.snapshot()
@@ -442,7 +443,7 @@ Layout   DOM. setInfo(위 띠) · setDetail(설명) · setMenu(단추) · log(�
 <p>렌더러와 길 찾기는 어느 격자인지 묻지 않는다.</p>
 <ul><li><code>SquareGrid(cols, rows, size, {wrapX, diagonal})</code> — <code>wrapX</code>는 동서로 이어진 세계 지도(동현항).</li><li><code>HexGrid(cols, rows, size)</code> — 뾰족한 쪽이 위, 홀수 줄을 반 칸 민다(odd-r). 동현삼의 지도와 두 게임의 전장이 이것이다.</li><li><code>findPath(grid, from, to, passable)</code> — A*. 사각 격자에서 대각으로 갈 때, 모서리를 낀 두 칸이 모두 막혔으면 가지 않는다(<code>squeezed</code>). 이 규칙이 없으면 배가 파나마 지협이나 말레이 반도를 뚫는다. 칸 수가 같은 길 가운데서는 덜 꺾이는 길을 고른다(<code>stepCost</code>).</li><li><code>moveRange(grid, from, budget, cost)</code> — 이동력 안에서 닿는 칸 모두와 든 값. <code>cost(c, r)</code>가 칸마다 드는 이동력을 돌려준다(못 가는 칸은 <code>Infinity</code>). 전투의 이동 범위가 이것이다.</li><li><code>Graph(adj)</code> — 주 사이 인접. <code>neighbors · has · oneWay · components · path</code>.</li></ul>
 <h4>TileMapRenderer와 Camera</h4>
-<ul><li>화면에 걸친 칸만 그린다. 같은 색끼리 한 경로로 모아 칠하고, 사각 격자는 한 줄에서 이어진 같은 타일을 긴 네모 하나로 합친다.</li><li><code>Camera</code>: <code>pan · zoomAt · centerOn · clampTo · toWorld · toScreen</code>. 동서로 이어진 지도는 x를 한 바퀴 안으로 접는다.</li></ul>
+<ul><li>화면에 걸친 칸만 그린다. 같은 색끼리 한 경로로 모아 칠하고, 사각 격자는 한 줄에서 이어진 같은 타일을 긴 네모 하나로 합친다.</li><li><code>Camera</code>: <code>pan · zoomAt · centerOn · clampTo · toWorld · toScreen</code>. 동서로 이어진 지도는 x를 한 바퀴 안으로 접는다.</li><li><code>DH.shoreDistance(grid, isLand)</code>: 칸마다 가장 가까운 뭍까지의 걸음 수. 두 게임이 바다를 뭍에서 멀수록 짙은 세 단(얕은 물 · 연안 · 대양)으로 칠할 때 쓴다. <code>DH.mixColor(a, b, t)</code>: 두 색을 섞는다(해안선 · 동현삼의 세력 색).</li></ul>
 <h4>Layout: 화면 나누기</h4>
 <ul><li>위: 정보 띠. 가운데: 캔버스(480×360, 4:3, 시리즈와 같다). 오른쪽: 조작 창.</li><li>폭이 860px 아래면 조작 창이 캔버스 아래로 내려간다. 단추 높이는 44px 이상이다.</li><li>자료에서 온 글은 <code>textContent</code>로만 넣는다.</li><li><code>new DH.Layout(host, { hotkeys: true })</code>로 만들면 조작 단추에 번호(1~9)가 자리대로 붙는다(흐린 단추도 센다). 장면은 <code>press(n)</code>으로 그 번호의 단추를, <code>pressPrimary()</code>로 노란 단추를 누른다. 단추에 <code>key</code>를 주면 그 글자를 적고 번호는 건너뛴다. 손가락 화면에서는 번호를 숨긴다. 동현삼과 동현항이 켠다.</li><li>마우스나 손가락으로 단추를 누르면 초점을 캔버스로 옮긴다. 단추를 누른 뒤에도 키보드가 계속 지도에 듣는다. <code>Tab</code>으로 가서 키보드로 누른 단추는 초점을 지키고, 그 단추가 사라질 때만 캔버스로 옮긴다.</li><li>전체 화면과 저장 메뉴는 엔진이 아니라 페이지(<code>src/app.js</code> · <code>src/style.css</code>)가 맡는다. 페이지가 배치와 지도 폭을 정하고 <code>engine.fit(폭)</code>을 부른다.</li></ul>
 <h3>게임이 얹는 법</h3>
@@ -507,7 +508,8 @@ lang.describe(state)                         // 설정 번호 표 (번호 · 이
   index.html           묶은 한 파일(글꼴 · 아이콘 · 자료 포함). node build.cjs로 src/에서 만든다
   build.cjs            src/를 한 장으로 묶는다. 설명 탭의 글은 이 README.md에서 가져온다
   src/
-    index.html · style.css · app.js · series.html     페이지 뼈대 · 모양 · 편집기와 출전 · 전체 화면 · 저장 메뉴 · 시리즈 띠
+    index.html · style.css · app.js · series.html     페이지 뼈대 · 모양 · 편집기와 출전 · 시작 카드 · 전체 화면 · 저장 메뉴 · 효과음 단추 · 시리즈 띠
+    sfx.js             합성 효과음(Web Audio). 동현큐의 것에 동전 · 북 소리를 더했다. 동현삼과 같은 파일
     engine/            공통 엔진 (동현삼과 같은 파일)
       dh-core.js         EventBus · RNG · DataError · Checker · Data(읽기·RLE·머리 검사)
       dh-loop.js         Loop: 그리기는 rAF, 논리는 1/60초 고정 틱
@@ -538,7 +540,7 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
 
   <section id="tab-about" class="tab-panel document" hidden>
     <div class="doc-heading"><div class="eyebrow">WHAT IS NEW, WHAT IS BORROWED</div><h2>큰 틀만 참고하고, 지도·자료·규칙·그림·글·코드는 새로 만들었다.</h2><p>동현항은 1993년 Koei(光栄)의 「대항해시대 II」(PC-9801로 처음 발매)의 큰 틀(16세기 바다에서 선장이 되어 함대를 이끌고 항구를 오가며 교역하는 구성)을 참고한 팬 실험이다.</p></div>
-    <div class="science-block"><span class="index">01</span><div><h3>원작의 그림·소리·글·수치는 담지 않았다.</h3><p>원작의 그래픽, 음악·효과음, 글, 자료 수치는 하나도 쓰지 않는다. 세계 지도는 Natural Earth의 공공 영역 육지 자료에서 뽑아 경위도 1° 칸으로 옮겼고, 항구의 시세와 배의 수치는 동현항이 정한 시험 값이다. 원작 파일은 이 저장소에 없고, 원작 파일에서 그림이나 자료를 꺼내 쓰지도 않았다. 소리는 없다.</p></div></div>
+    <div class="science-block"><span class="index">01</span><div><h3>원작의 그림·소리·글·수치는 담지 않았다.</h3><p>원작의 그래픽, 음악·효과음, 글, 자료 수치는 하나도 쓰지 않는다. 세계 지도는 Natural Earth의 공공 영역 육지 자료에서 뽑아 경위도 1° 칸으로 옮겼고, 항구의 시세와 배의 수치는 동현항이 정한 시험 값이다. 원작 파일은 이 저장소에 없고, 원작 파일에서 그림이나 자료를 꺼내 쓰지도 않았다. 효과음은 소리 파일 없이 브라우저(Web Audio)에서 그 자리에서 만든다.</p></div></div>
     <div class="science-block"><span class="index">02</span><div><h3>동현항에 있는 것과 없는 것.</h3><p>시작값과 규칙 수치를 동현랭으로 정한다. 항구 메뉴는 교역소 · 여관 · 도크 · 보급 · 출항 다섯이고, 해전은 8×8 육각 바다에서 포격 · 백병전 · 일기토로 치른다. 주인공 고르기 · 이야기 · 탐험과 발견은 없다. 탐험은 브라우저 칸 세 개와 <code>.dhsave</code> 파일에 저장하고 불러올 수 있다. 항해 · 교역 · 해전의 규칙과 수치는 동현항이 정한 것이고, 원작의 규칙·수치와 맞춰 보지 않았다.</p></div></div>
     <div class="science-block"><span class="index">03</span><div><h3>선장은 실험실 식구다.</h3><p>선장은 만든 사람의 강아지 포동이(말티즈)이고 배는 꼬리바람호다. 적 함대 셋(붉은 돛 해적단 · 검은 암초 해적단 · 폭풍 사략 함대)과 그 선장들은 지어낸 것이다. 항구 스무 곳은 1522년에 이미 교역하던 실제 항구다. 포동이의 모습과 이름에 대한 권리는 코드 라이선스와 별개로 만든 사람에게 있다.</p></div></div>
     <div class="science-block"><span class="index">04</span><div><h3>상표와 관계</h3><p>「대항해시대 II」를 비롯한 원작 시리즈의 이름과 권리는 코에이 테크모 게임스(Koei Tecmo Games)에 있다. 동현항은 이들과 관계가 없고, 승인이나 후원을 받지 않았다.</p></div></div>
@@ -550,7 +552,7 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
     <aside class="maker-note"><span class="eyebrow">만든 사람</span><a class="sponsor-btn" href="https://github.com/sponsors/Raspberry-Kim" target="_blank" rel="noopener" aria-label="GitHub Sponsors로 동현랭 후원하기" title="GitHub Sponsors로 후원하기"><svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M7.655 14.916v-.001h-.002l-.006-.003-.018-.01a22.066 22.066 0 0 1-3.744-2.584C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.044 5.231-3.886 6.818a22.094 22.094 0 0 1-3.433 2.414 7.152 7.152 0 0 1-.31.17l-.018.01-.008.004a.75.75 0 0 1-.69 0Z"></path></svg>후원</a><p>인하대학교 의과대학 김동현 교수는 백신학·감염학을 연구한다. 명랑하고 따뜻한 개발을 지향한다.</p></aside>
   </section>
 </main>
-<footer><span>동현항 v0.04 · 인하대학교 의과대학 교수 김동현</span><span>1인용 · 항구 20 · 교역품 12 · 적 함대 3</span><span><a href="https://raspberry-kim.github.io/donghyun-lang/" target="_blank" rel="noopener">동현랭</a> · <a href="https://github.com/Raspberry-Kim/donghyun-lang" target="_blank" rel="noopener">동현랭 GitHub</a> · <a href="https://github.com/Raspberry-Kim/donghyun-lab17" target="_blank" rel="noopener">동현항 GitHub</a> · <a href="https://raspberry-kim.github.io/donghyun-lab1/" target="_blank" rel="noopener">동현초</a> · <a href="https://raspberry-kim.github.io/donghyun-lab2/" target="_blank" rel="noopener">동현파</a> · <a href="https://raspberry-kim.github.io/donghyun-lab3/" target="_blank" rel="noopener">동현빌</a> · <a href="https://raspberry-kim.github.io/donghyun-lab4/" target="_blank" rel="noopener">동현전</a> · <a href="https://raspberry-kim.github.io/donghyun-lab5/" target="_blank" rel="noopener">동현콥</a> · <a href="https://raspberry-kim.github.io/donghyun-lab6/" target="_blank" rel="noopener">동현텐</a> · <a href="https://raspberry-kim.github.io/donghyun-lab7/" target="_blank" rel="noopener">동현워</a> · <a href="https://raspberry-kim.github.io/donghyun-lab8/" target="_blank" rel="noopener">동현둠</a> · <a href="https://raspberry-kim.github.io/donghyun-lab9/" target="_blank" rel="noopener">동현크</a> · <a href="https://raspberry-kim.github.io/donghyun-lab10/" target="_blank" rel="noopener">동현몬</a> · <a href="https://raspberry-kim.github.io/donghyun-lab11/" target="_blank" rel="noopener">동현주</a> · <a href="https://raspberry-kim.github.io/donghyun-lab12/" target="_blank" rel="noopener">동현심</a> · <a href="https://raspberry-kim.github.io/donghyun-lab13/" target="_blank" rel="noopener">동현램</a> · <a href="https://raspberry-kim.github.io/donghyun-lab14/" target="_blank" rel="noopener">동현큐</a> · <a href="https://raspberry-kim.github.io/donghyun-lab15/" target="_blank" rel="noopener">동현닥</a> · <a href="https://raspberry-kim.github.io/donghyun-lab16/" target="_blank" rel="noopener">동현삼</a></span></footer>
+<footer><span>동현항 v0.05 · 인하대학교 의과대학 교수 김동현</span><span>1인용 · 항구 20 · 교역품 12 · 적 함대 3</span><span><a href="https://raspberry-kim.github.io/donghyun-lang/" target="_blank" rel="noopener">동현랭</a> · <a href="https://github.com/Raspberry-Kim/donghyun-lang" target="_blank" rel="noopener">동현랭 GitHub</a> · <a href="https://github.com/Raspberry-Kim/donghyun-lab17" target="_blank" rel="noopener">동현항 GitHub</a> · <a href="https://raspberry-kim.github.io/donghyun-lab1/" target="_blank" rel="noopener">동현초</a> · <a href="https://raspberry-kim.github.io/donghyun-lab2/" target="_blank" rel="noopener">동현파</a> · <a href="https://raspberry-kim.github.io/donghyun-lab3/" target="_blank" rel="noopener">동현빌</a> · <a href="https://raspberry-kim.github.io/donghyun-lab4/" target="_blank" rel="noopener">동현전</a> · <a href="https://raspberry-kim.github.io/donghyun-lab5/" target="_blank" rel="noopener">동현콥</a> · <a href="https://raspberry-kim.github.io/donghyun-lab6/" target="_blank" rel="noopener">동현텐</a> · <a href="https://raspberry-kim.github.io/donghyun-lab7/" target="_blank" rel="noopener">동현워</a> · <a href="https://raspberry-kim.github.io/donghyun-lab8/" target="_blank" rel="noopener">동현둠</a> · <a href="https://raspberry-kim.github.io/donghyun-lab9/" target="_blank" rel="noopener">동현크</a> · <a href="https://raspberry-kim.github.io/donghyun-lab10/" target="_blank" rel="noopener">동현몬</a> · <a href="https://raspberry-kim.github.io/donghyun-lab11/" target="_blank" rel="noopener">동현주</a> · <a href="https://raspberry-kim.github.io/donghyun-lab12/" target="_blank" rel="noopener">동현심</a> · <a href="https://raspberry-kim.github.io/donghyun-lab13/" target="_blank" rel="noopener">동현램</a> · <a href="https://raspberry-kim.github.io/donghyun-lab14/" target="_blank" rel="noopener">동현큐</a> · <a href="https://raspberry-kim.github.io/donghyun-lab15/" target="_blank" rel="noopener">동현닥</a> · <a href="https://raspberry-kim.github.io/donghyun-lab16/" target="_blank" rel="noopener">동현삼</a></span></footer>
 <script type="application/json" id="lab-data">{"format":"donghyun-hang-data","version":1,"meta":{"title":"동현항 샘플 자료","start":{"year":1522,"month":5,"day":1},"note":"항구 20곳은 1522년에 이미 교역하던 실제 항구다. 좌표는 실제 경위도에서 1° 칸으로 옮겼고, 항구 칸은 큰 바다와 맞닿은 가장 가까운 육지 칸이다(세비야는 실제로는 강 안쪽이라 바닷가로 나와 있다). 시세·시설·배 수치는 시험 값이다. 원작 수치를 옮긴 것이 아니다. 해안선은 오늘날 기준이다.","sources":["Natural Earth 110m land (public domain) https://www.naturalearthdata.com/"]},"map":{"grid":"square","cols":360,"rows":132,"wrapX":true,"origin":{"lon":-180,"lat":72},"degPerTile":1,"tiles":{"~":"sea","#":"land"},"carved":[{"name":"지브롤터 해협","cells":[[174,36]]},{"name":"도버 해협","cells":[[181,21]]},{"name":"다르다넬스·마르마라·보스포루스","cells":[[206,31],[207,31],[208,31]]},{"name":"말라카 해협","cells":[[281,70],[283,70]]}],"rle":["2#54~3#2~14#5~2#2~3#3~16#~#18~32#74~4#11~5#~56#3~5#~13#29~","19~12#21~#12~12#6~5#3~20#14~30#~2#45~7#37~6#~86#20~","17~24#4~15#3~15#3~3#~4#5~5#4~10#13~#2~26#43~15#28~3#3~6#~94#2~9#~","2#12~51#7~3#7~#2~7#2~4#7~7#15~25#44~23#5~#7~2#~12#2~4#~106#","4#12~76#~6#4~2#2~9#10~21#47~27#3~2#2~25#~106#","9#6~#2~76#~2#9~12#8~19#18~2#28~21#2~4#2~#~28#~107#","3~5#5~80#~#11~6#3~2#10~13#17~9#26~10#3~10#5~140#","6~#11~74#2~4#4~3#~9#13~11#19~7#25~11#3~11#2~141#2~","17~72#5~2#12~7#14~10#49~12#2~157#~","15~72#9~#5~#8~2#17~7#49~12#3~142#~13#~#~","14~72#16~6#23~6#48~12#4~136#2~3#2~9#7~","15~17#2~52#16~8#24~3#48~13#4~4#2~127#7~6#~2#9~","18~8#2~2#10~45#17~9#3~2#69~13#6~125#2~4#5~4#16~","22~4#16~45#15~10#~4#58~#10~3#2~6#7~117#18~3#18~","22~2#2~2#18~41#16~15#56~4#14~5#5~#~116#17~6#17~","20~2#25~45#11~15#56~4#10~3#~4#5~117#18~7#17~","17~2#29~47#7~18#55~3#10~2#~3#7~115#19~7#18~","49~49#3~22#48~3#2~3#9~2#6~121#19~5#19~","47~#3~47#3~23#46~4#2~4#6~135#~#13~4#20~","52~46#3~23#46~3#2~6#3~139#13~2#22~","52~72#52~5#2~138#~#13~#23~","52~68#2~2#50~3#5~139#~2#36~","53~2#~56#5~#4~4#52~142#2~2#36~","55~#~58#6~6#49~144#2~#37~","56~59#9~#~#50~142#3~#37~","56~62#~#58~33#~3#3~11#4~85#4~2#36~","56~63#60~31#3~3#~10#6~84#43~","56~56#2~2#62~14#3~14#9~9#4~85#5~2#37~","56~54#61~16#3~4#2~12#12~7#4~84#6~4#35~","55~54#62~12#6~#~4#3~10#13~7#5~78#9~4#36~","56~53#62~11#11~3#3~9#4~5#4~8#5~76#10~#39~","56~50#65~9#8~2#5~3#~5#5~21#3~68#~7#11~2#38~","56~50#65~9#8~2#6~#3~3#3~23#4~66#2~2#2~3#12~2#38~","57~48#66~9#21~3#2~23#5~64#7~3#11~2#39~","57~47#67~8#14~2#6~2#4~23#4~65#~2#4~3#9~3#39~","58~46#70~#6~10#11~#6~#2~2#2~85#5~3#7~5#39~","59~45#74~13#25~84#6~3#4~8#39~","60~43#70~18#25~84#11~6#43~","62~39#71~19#24~86#9~5#45~","63~37#71~24#5~3#12~86#9~2#48~","63~2#~33#71~26#4~7#3~2#2~88#8~#49~","64~#2~32#71~132#58~","65~#~18#4~2#6~2#71~58#2~72#58~","66~#~16#13~2#70~59#3~71#58~","65~3#~14#14~3#67~47#2~13#3~69#59~","67~#2~13#15~2#66~48#2~14#7~63#60~","68~#2~12#16~#65~50#2~15#3~#3~60#61~","68~2#2~10#83~50#2~15#2~3#10~52#2~#58~","73~9#82~51#3~21#9~49#3~#59~","74~8#14~#~4#61~53#3~21#9~46#5~#59~","75~8#8~2#8~2#60~54#2~20#11~17#5~16#~2#69~","74~9#6~4#10~2#58~54#3~18#15~14#5~15#73~","24~#50~9#5~3#15~3#54~53#4~17#15~12#8~13#3~2#69~","76~9#~6#10~#3~5#2~#50~54#3~16#16~11#10~12#3~#11~#58~","79~13#72~55#3~13#18~10#11~13#13~2#58~","81~11#71~56#4~10#20~9#12~14#12~2#58~","87~9#67~57#3~9#22~6#18~11#11~2#58~","88~9#66~58#2~6#25~6#18~11#11~2#58~","91~5#67~59#~4#28~5#18~11#11~4#56~","93~4#66~60#32~5#18~2#2~7#71~","94~2#11~#~2#53~59#5~3#25~4#19~#3~6#13~#2~#54~","94~3#7~10#2~#~#46~66#25~4#18~#5~3#12~#2~2#56~","96~2#2~#3~4#~10#47~65#25~3#~#17~2#5~#12~#61~","97~3#~19#47~63#27~#2~#17~2#23~3#54~","102~19#46~63#30~2#17~#22~#~3#53~","102~20#47~60#31~2#18~2#14~2#6~#55~","102~25#43~10#5~44#51~3#12~4#61~","103~25#44~#13~#~40#48~2#2~3#11~4#62~","102~27#60~38#50~2#2~2#10~4#63~","102~27#61~36#52~2#2~2#7~7#62~","101~29#59~36#54~2#8~9#9~#52~","100~30#59~34#56~4#6~9#2~4#3~#52~","99~32#58~33#58~4#5~9#~#12~#47~","99~36#54~33#59~3#6~7#2~3#10~2#46~","99~38#53~31#60~5#4~7#2~3#10~2#2~5#39~","99~42#50~29#62~4#8~2#3~#~#4~#6~11#8~#27~","99~44#48~28#64~3#16~#13~9#7~#27~","99~46#47~27#65~2#32~8#3~3#28~","99~46#47~27#66~3#30~10#7~#24~","100~45#48~26#68~6#25~9#33~","101~44#48~26#75~#2~2#~2#3~2#13~3#3~2#32~","101~43#49~27#79~#4~#22~2#11~#19~","102~42#49~27#140~","102~41#51~26#102~#37~","103~39#51~28#8~#81~6#5~#37~","103~38#51~29#7~2#80~6#5~3#36~","104~37#51~29#7~2#76~2#~7#6~3#35~","105~36#51~28#6~4#74~12#5~4#35~","107~34#51~28#4~6#73~15#3~5#33~#","108~33#51~26#6~5#73~24#34~","110~30#52~24#8~5#73~24#34~","110~30#53~22#9~5#72~27#32~","110~29#54~22#9~5#68~32#15~#15~","110~29#55~21#9~4#67~34#16~#14~","110~28#56~22#7~5#66~37#29~","109~26#59~21#9~4#66~37#29~","109~24#61~21#9~3#66~39#28~","109~23#63~18#81~39#27~","109~22#64~18#81~39#27~","109~22#64~18#81~39#27~","109~22#65~16#82~40#26~","109~21#67~14#84~38#27~","108~22#67~13#85~38#27~","108~21#69~12#86~14#~22#27~","108~20#70~11#87~9#9~18#28~","108~19#71~8#89~9#11~16#29~","108~14#~3#73~#96~3#16~#~14#29~","107~16#195~12#23~#6~","107~16#197~10#24~#5~","106~17#197~10#25~#4~","106~15#202~#~2#27~4#2~","106~12#236~3#3~","106~12#237~2#3~","106~9#210~3#24~2#6~","106~10#209~3#23~3#6~","107~8#211~#23~3#7~","105~10#233~3#9~","105~8#234~4#9~","105~8#235~#11~","105~9#246~","104~9#247~","104~8#137~#110~","105~6#249~","105~6#8~3#238~","106~5#249~","106~6#248~","108~6#246~","360~","360~","360~","360~","360~"]},"goods":[{"id":"wine","name":"포도주","base":30},{"id":"olive","name":"올리브유","base":24},{"id":"wool","name":"모직물","base":40},{"id":"glass","name":"유리구슬","base":36},{"id":"gold","name":"금","base":300},{"id":"ivory","name":"상아","base":120},{"id":"pepper","name":"후추","base":60},{"id":"cotton","name":"면직물","base":45},{"id":"silk","name":"비단","base":160},{"id":"porcelain","name":"도자기","base":110},{"id":"clove","name":"정향","base":140},{"id":"sugar","name":"설탕","base":50}],"facilities":{"harbor":"항구","market":"교역소","shipyard":"도크","inn":"주점","guild":"조합","palace":"왕궁","lodge":"여관"},"ports":[{"id":"lisbon","name":"리스본","lon":-9.14,"lat":38.72,"x":171,"y":33,"anchor":[170,33],"market":[{"good":"wine","price":18,"stock":200},{"good":"olive","price":14,"stock":200},{"good":"wool","price":45,"stock":0},{"good":"glass","price":46,"stock":0},{"good":"gold","price":408,"stock":0},{"good":"ivory","price":163,"stock":0},{"good":"pepper","price":126,"stock":0},{"good":"cotton","price":94,"stock":0},{"good":"silk","price":384,"stock":0},{"good":"porcelain","price":264,"stock":0},{"good":"clove","price":323,"stock":0},{"good":"sugar","price":75,"stock":0}],"facilities":["harbor","market","shipyard","inn","guild","palace","lodge"]},{"id":"seville","name":"세비야","lon":-5.98,"lat":37.39,"x":174,"y":34,"anchor":[173,35],"market":[{"good":"wine","price":18,"stock":200},{"good":"olive","price":14,"stock":200},{"good":"wool","price":46,"stock":0},{"good":"glass","price":45,"stock":0},{"good":"gold","price":403,"stock":0},{"good":"ivory","price":161,"stock":0},{"good":"pepper","price":125,"stock":0},{"good":"cotton","price":94,"stock":0},{"good":"silk","price":384,"stock":0},{"good":"porcelain","price":264,"stock":0},{"good":"clove","price":321,"stock":0},{"good":"sugar","price":76,"stock":0}],"facilities":["harbor","market","shipyard","inn","guild","palace","lodge"]},{"id":"london","name":"런던","lon":-0.12,"lat":51.5,"x":179,"y":20,"anchor":[179,21],"market":[{"good":"wine","price":34,"stock":0},{"good":"olive","price":27,"stock":0},{"good":"wool","price":24,"stock":200},{"good":"glass","price":51,"stock":0},{"good":"gold","price":442,"stock":0},{"good":"ivory","price":177,"stock":0},{"good":"pepper","price":133,"stock":0},{"good":"cotton","price":100,"stock":0},{"good":"silk","price":384,"stock":0},{"good":"porcelain","price":264,"stock":0},{"good":"clove","price":336,"stock":0},{"good":"sugar","price":79,"stock":0}],"facilities":["harbor","market","shipyard","inn","guild","palace","lodge"]},{"id":"amsterdam","name":"암스테르담","lon":4.9,"lat":52.37,"x":184,"y":19,"anchor":[184,18],"market":[{"good":"wine","price":35,"stock":0},{"good":"olive","price":28,"stock":0},{"good":"wool","price":24,"stock":200},{"good":"glass","price":52,"stock":0},{"good":"gold","price":455,"stock":0},{"good":"ivory","price":182,"stock":0},{"good":"pepper","price":136,"stock":0},{"good":"cotton","price":102,"stock":0},{"good":"silk","price":384,"stock":0},{"good":"porcelain","price":264,"stock":0},{"good":"clove","price":336,"stock":0},{"good":"sugar","price":81,"stock":0}],"facilities":["harbor","market","shipyard","inn","lodge"]},{"id":"genoa","name":"제노바","lon":8.93,"lat":44.41,"x":188,"y":27,"anchor":[188,28],"market":[{"good":"wine","price":18,"stock":200},{"good":"olive","price":14,"stock":200},{"good":"wool","price":51,"stock":0},{"good":"glass","price":41,"stock":0},{"good":"gold","price":438,"stock":0},{"good":"ivory","price":175,"stock":0},{"good":"pepper","price":132,"stock":0},{"good":"cotton","price":99,"stock":0},{"good":"silk","price":384,"stock":0},{"good":"porcelain","price":264,"stock":0},{"good":"clove","price":336,"stock":0},{"good":"sugar","price":82,"stock":0}],"facilities":["harbor","market","shipyard","inn","lodge"]},{"id":"venice","name":"베네치아","lon":12.33,"lat":45.44,"x":192,"y":26,"anchor":[192,27],"market":[{"good":"wine","price":18,"stock":200},{"good":"olive","price":14,"stock":200},{"good":"wool","price":56,"stock":0},{"good":"glass","price":22,"stock":200},{"good":"gold","price":478,"stock":0},{"good":"ivory","price":191,"stock":0},{"good":"pepper","price":140,"stock":0},{"good":"cotton","price":105,"stock":0},{"good":"silk","price":384,"stock":0},{"good":"porcelain","price":264,"stock":0},{"good":"clove","price":336,"stock":0},{"good":"sugar","price":89,"stock":0}],"facilities":["harbor","market","shipyard","inn","guild","palace","lodge"]},{"id":"istanbul","name":"이스탄불","lon":28.98,"lat":41.01,"x":209,"y":31,"anchor":[208,30],"market":[{"good":"wine","price":18,"stock":200},{"good":"olive","price":14,"stock":200},{"good":"wool","price":58,"stock":0},{"good":"glass","price":41,"stock":0},{"good":"gold","price":490,"stock":0},{"good":"ivory","price":196,"stock":0},{"good":"pepper","price":142,"stock":0},{"good":"cotton","price":107,"stock":0},{"good":"silk","price":384,"stock":0},{"good":"porcelain","price":264,"stock":0},{"good":"clove","price":336,"stock":0},{"good":"sugar","price":91,"stock":0}],"facilities":["harbor","market","shipyard","inn","guild","palace","lodge"]},{"id":"alexandria","name":"알렉산드리아","lon":29.92,"lat":31.2,"x":210,"y":40,"anchor":[209,40],"market":[{"good":"wine","price":18,"stock":200},{"good":"olive","price":14,"stock":200},{"good":"wool","price":58,"stock":0},{"good":"glass","price":41,"stock":0},{"good":"gold","price":490,"stock":0},{"good":"ivory","price":196,"stock":0},{"good":"pepper","price":142,"stock":0},{"good":"cotton","price":107,"stock":0},{"good":"silk","price":384,"stock":0},{"good":"porcelain","price":264,"stock":0},{"good":"clove","price":336,"stock":0},{"good":"sugar","price":91,"stock":0}],"facilities":["harbor","market","shipyard","inn","lodge"]},{"id":"elmina","name":"엘미나","lon":-1.35,"lat":5.08,"x":178,"y":66,"anchor":[178,67],"market":[{"good":"wine","price":40,"stock":0},{"good":"olive","price":32,"stock":0},{"good":"wool","price":59,"stock":0},{"good":"glass","price":57,"stock":0},{"good":"gold","price":180,"stock":200},{"good":"ivory","price":72,"stock":200},{"good":"pepper","price":109,"stock":0},{"good":"cotton","price":82,"stock":0},{"good":"silk","price":352,"stock":0},{"good":"porcelain","price":242,"stock":0},{"good":"clove","price":284,"stock":0},{"good":"sugar","price":78,"stock":0}],"facilities":["harbor","market","inn","lodge"]},{"id":"sofala","name":"소팔라","lon":34.85,"lat":-20.15,"x":214,"y":92,"anchor":[215,92],"market":[{"good":"wine","price":54,"stock":0},{"good":"olive","price":43,"stock":0},{"good":"wool","price":77,"stock":0},{"good":"glass","price":73,"stock":0},{"good":"gold","price":180,"stock":200},{"good":"ivory","price":72,"stock":200},{"good":"pepper","price":79,"stock":0},{"good":"cotton","price":59,"stock":0},{"good":"silk","price":277,"stock":0},{"good":"porcelain","price":191,"stock":0},{"good":"clove","price":218,"stock":0},{"good":"sugar","price":96,"stock":0}],"facilities":["harbor","market","inn","lodge"]},{"id":"mombasa","name":"몸바사","lon":39.67,"lat":-4.05,"x":219,"y":75,"anchor":[219,76],"market":[{"good":"wine","price":57,"stock":0},{"good":"olive","price":46,"stock":0},{"good":"wool","price":82,"stock":0},{"good":"glass","price":78,"stock":0},{"good":"gold","price":342,"stock":0},{"good":"ivory","price":72,"stock":200},{"good":"pepper","price":77,"stock":0},{"good":"cotton","price":58,"stock":0},{"good":"silk","price":272,"stock":0},{"good":"porcelain","price":187,"stock":0},{"good":"clove","price":214,"stock":0},{"good":"sugar","price":103,"stock":0}],"facilities":["harbor","market","inn","lodge"]},{"id":"aden","name":"아덴","lon":45.03,"lat":12.78,"x":225,"y":58,"anchor":[225,59],"market":[{"good":"wine","price":63,"stock":0},{"good":"olive","price":50,"stock":0},{"good":"wool","price":89,"stock":0},{"good":"glass","price":85,"stock":0},{"good":"gold","price":398,"stock":0},{"good":"ivory","price":142,"stock":0},{"good":"pepper","price":74,"stock":0},{"good":"cotton","price":56,"stock":0},{"good":"silk","price":264,"stock":0},{"good":"porcelain","price":182,"stock":0},{"good":"clove","price":206,"stock":0},{"good":"sugar","price":112,"stock":0}],"facilities":["harbor","market","shipyard","inn","lodge"]},{"id":"hormuz","name":"호르무즈","lon":56.45,"lat":27.1,"x":236,"y":44,"anchor":[236,45],"market":[{"good":"wine","price":65,"stock":0},{"good":"olive","price":52,"stock":0},{"good":"wool","price":92,"stock":0},{"good":"glass","price":86,"stock":0},{"good":"gold","price":420,"stock":0},{"good":"ivory","price":151,"stock":0},{"good":"pepper","price":68,"stock":0},{"good":"cotton","price":51,"stock":0},{"good":"silk","price":249,"stock":0},{"good":"porcelain","price":171,"stock":0},{"good":"clove","price":194,"stock":0},{"good":"sugar","price":116,"stock":0}],"facilities":["harbor","market","shipyard","inn","lodge"]},{"id":"goa","name":"고아","lon":73.83,"lat":15.5,"x":254,"y":56,"anchor":[253,56],"market":[{"good":"wine","price":62,"stock":0},{"good":"olive","price":50,"stock":0},{"good":"wool","price":89,"stock":0},{"good":"glass","price":84,"stock":0},{"good":"gold","price":395,"stock":0},{"good":"ivory","price":154,"stock":0},{"good":"pepper","price":36,"stock":200},{"good":"cotton","price":27,"stock":200},{"good":"silk","price":232,"stock":0},{"good":"porcelain","price":160,"stock":0},{"good":"clove","price":178,"stock":0},{"good":"sugar","price":111,"stock":0}],"facilities":["harbor","market","shipyard","inn","lodge"]},{"id":"calicut","name":"캘리컷","lon":75.78,"lat":11.25,"x":256,"y":60,"anchor":[255,60],"market":[{"good":"wine","price":62,"stock":0},{"good":"olive","price":50,"stock":0},{"good":"wool","price":89,"stock":0},{"good":"glass","price":84,"stock":0},{"good":"gold","price":400,"stock":0},{"good":"ivory","price":156,"stock":0},{"good":"pepper","price":36,"stock":200},{"good":"cotton","price":27,"stock":200},{"good":"silk","price":227,"stock":0},{"good":"porcelain","price":156,"stock":0},{"good":"clove","price":174,"stock":0},{"good":"sugar","price":111,"stock":0}],"facilities":["harbor","market","shipyard","inn","lodge"]},{"id":"malacca","name":"말라카","lon":102.25,"lat":2.2,"x":282,"y":69,"anchor":[282,70],"market":[{"good":"wine","price":69,"stock":0},{"good":"olive","price":55,"stock":0},{"good":"wool","price":96,"stock":0},{"good":"glass","price":86,"stock":0},{"good":"gold","price":468,"stock":0},{"good":"ivory","price":183,"stock":0},{"good":"pepper","price":74,"stock":0},{"good":"cotton","price":56,"stock":0},{"good":"silk","price":188,"stock":0},{"good":"porcelain","price":129,"stock":0},{"good":"clove","price":84,"stock":200},{"good":"sugar","price":120,"stock":0}],"facilities":["harbor","market","shipyard","inn","lodge"]},{"id":"canton","name":"광저우","lon":113.26,"lat":23.13,"x":293,"y":49,"anchor":[293,50],"market":[{"good":"wine","price":72,"stock":0},{"good":"olive","price":58,"stock":0},{"good":"wool","price":96,"stock":0},{"good":"glass","price":86,"stock":0},{"good":"gold","price":520,"stock":0},{"good":"ivory","price":204,"stock":0},{"good":"pepper","price":85,"stock":0},{"good":"cotton","price":64,"stock":0},{"good":"silk","price":96,"stock":200},{"good":"porcelain","price":66,"stock":200},{"good":"clove","price":164,"stock":0},{"good":"sugar","price":120,"stock":0}],"facilities":["harbor","market","shipyard","inn","guild","palace","lodge"]},{"id":"hakata","name":"하카타","lon":130.4,"lat":33.6,"x":310,"y":38,"anchor":[310,37],"market":[{"good":"wine","price":72,"stock":0},{"good":"olive","price":58,"stock":0},{"good":"wool","price":96,"stock":0},{"good":"glass","price":86,"stock":0},{"good":"gold","price":552,"stock":0},{"good":"ivory","price":217,"stock":0},{"good":"pepper","price":92,"stock":0},{"good":"cotton","price":69,"stock":0},{"good":"silk","price":96,"stock":200},{"good":"porcelain","price":126,"stock":0},{"good":"clove","price":180,"stock":0},{"good":"sugar","price":120,"stock":0}],"facilities":["harbor","market","shipyard","inn","lodge"]},{"id":"santodomingo","name":"산토도밍고","lon":-69.9,"lat":18.47,"x":110,"y":53,"anchor":[110,54],"market":[{"good":"wine","price":45,"stock":0},{"good":"olive","price":36,"stock":0},{"good":"wool","price":63,"stock":0},{"good":"glass","price":64,"stock":0},{"good":"gold","price":470,"stock":0},{"good":"ivory","price":188,"stock":0},{"good":"pepper","price":134,"stock":0},{"good":"cotton","price":100,"stock":0},{"good":"silk","price":384,"stock":0},{"good":"porcelain","price":264,"stock":0},{"good":"clove","price":336,"stock":0},{"good":"sugar","price":30,"stock":200}],"facilities":["harbor","market","inn","lodge"]},{"id":"veracruz","name":"베라크루스","lon":-96.13,"lat":19.2,"x":83,"y":52,"anchor":[84,52],"market":[{"good":"wine","price":52,"stock":0},{"good":"olive","price":41,"stock":0},{"good":"wool","price":72,"stock":0},{"good":"glass","price":72,"stock":0},{"good":"gold","price":535,"stock":0},{"good":"ivory","price":214,"stock":0},{"good":"pepper","price":144,"stock":0},{"good":"cotton","price":108,"stock":0},{"good":"silk","price":384,"stock":0},{"good":"porcelain","price":264,"stock":0},{"good":"clove","price":336,"stock":0},{"good":"sugar","price":30,"stock":200}],"facilities":["harbor","market","inn","lodge"]}],"shipTypes":[{"id":"caravel","name":"캐러벨","cargo":120,"minCrew":10,"maxCrew":40,"speed":2,"hull":60,"guns":8,"price":2000},{"id":"carrack","name":"캐럭","cargo":320,"minCrew":30,"maxCrew":120,"speed":1,"hull":120,"guns":16,"price":5000}],"fleets":[{"id":"player","name":"포동이 탐험대","x":170,"y":33,"port":"lisbon","crew":28,"food":90,"water":60,"gold":1000,"captain":{"name":"포동이","war":70},"ships":[{"id":"s1","type":"caravel","name":"꼬리바람호","hold":[{"good":"wine","qty":40,"paid":18},{"good":"olive","qty":20,"paid":14}]}]}],"rivals":[{"id":"redsail","name":"붉은 돛 해적단","captain":{"name":"붉은수염","war":55},"ships":["caravel"],"crew":24,"gold":400},{"id":"blackreef","name":"검은 암초 해적단","captain":{"name":"외눈 선장","war":72},"ships":["caravel","caravel"],"crew":56,"gold":900},{"id":"storm","name":"폭풍 사략 함대","captain":{"name":"폭풍 제독","war":86},"ships":["carrack","caravel"],"crew":110,"gold":1800}]}</script>
 <script>/*! 동현랭 (Donghyun-lang) runtime — 브라우저와 Node 양쪽에서 동작한다.
  *  <script src="donghyun.js"><\/script>
@@ -1267,7 +1269,23 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
     }
   }
 
-  Object.assign(DH, { Camera, TileMapRenderer });
+  /** 칸마다 가장 가까운 뭍까지의 걸음 수(뭍은 0, 뭍이 없으면 Infinity). r*cols+c 자리에 담는다. 바다를 깊이로 칠할 때 쓴다. */
+  function shoreDistance(grid, isLand) {
+    const n = grid.cols * grid.rows, d = new Float64Array(n).fill(Infinity), q = [];
+    for (let r = 0; r < grid.rows; r++) for (let c = 0; c < grid.cols; c++) if (isLand(c, r)) { d[r * grid.cols + c] = 0; q.push(c, r); }
+    for (let i = 0; i < q.length; i += 2) {
+      const c = q[i], r = q[i + 1], k = d[r * grid.cols + c] + 1;
+      for (const [nc, nr] of grid.neighbors(c, r)) { const j = nr * grid.cols + nc; if (d[j] > k) { d[j] = k; q.push(nc, nr); } }
+    }
+    return d;
+  }
+  /** 두 색(#rrggbb)을 t(0~1)만큼 섞는다. */
+  function mixColor(a, b, t) {
+    const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), x = p(a), y = p(b);
+    return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join('');
+  }
+
+  Object.assign(DH, { Camera, TileMapRenderer, shoreDistance, mixColor });
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 ;
@@ -1358,6 +1376,8 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
     render(g, alpha) {}             // 그리기. 좌표는 논리 크기(engine.width × engine.height)
     onTap(x, y) {} onDrag(dx, dy, x, y) {} onWheel(delta, x, y) {} onKey(code, ev) {}
     save() { return null; }         // 저장할 장면 상태(없으면 null)
+    /** 효과음을 청한다. 엔진은 소리를 내지 않고 'sfx' 사건만 알린다(앱이 받아 튼다. node 시험에서는 아무 일도 없다). */
+    sfx(k, delay = 0) { this.engine.bus.emit('sfx', { k, delay }); }
   }
 
   /** 지도 장면의 공통 바탕: 격자 + 카메라 + 타일 렌더러, 끌어서 옮기기 · 바퀴/+−로 확대 · 화살표로 옮기기.
@@ -1684,7 +1704,7 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
     const inMap = (c, r) => Number.isInteger(c) && Number.isInteger(r) && r >= 0 && r < m.rows && c >= 0 && c < m.cols;
     const at = (c, r) => names[tiles[r][normC(c)]];
     const isSea = (c, r) => r >= 0 && r < m.rows && (wrapX || (c >= 0 && c < m.cols)) && at(c, r) === 'sea';
-    const map = { kind: 'square', cols: m.cols, rows: m.rows, wrapX, tiles, names, at, isSea };
+    const map = { kind: 'square', cols: m.cols, rows: m.rows, wrapX, origin: m.origin, degPerTile: m.degPerTile, tiles, names, at, isSea };
     chk.done();
 
     const goods = chk.index(json.goods, 'goods');
@@ -2376,7 +2396,7 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
   const DH = root.DH = root.DH || {};
   const FONT = '"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
   const fmt = n => Number(n).toLocaleString('ko-KR');
-  const WATER = '#a9cbe0', INK = '#26211c', ACCENT = '#f2b705', RED = '#c0321f', STEP = 18, FX = 54;
+  const WATER = '#9fc4d9', WATER2 = '#a6c9dc', INK = '#26211c', ACCENT = '#f2b705', RED = '#c0321f', STEP = 18, FX = 54;
   const LOOK = { me: { hull: '#6b4a2f', sail: '#fbf7ef' }, foe: { hull: '#3c3226', sail: '#c8402f' } };
   const SIDE = { me: '우리', foe: '적' };
   const ARROW = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
@@ -2401,7 +2421,7 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
     }
     enter() {
       const b = this.b, F = b.fleets;
-      this.setupMap({ grid: b.grid, tileAt: () => 'sea', styles: { sea: { fill: WATER } }, line: 'rgba(38,33,28,.16)', minZoom: 1, maxZoom: 1 });
+      this.setupMap({ grid: b.grid, tileAt: (c, r) => ((c + (r >> 1)) % 3 === 0 ? 'sea2' : 'sea'), styles: { sea: { fill: WATER }, sea2: { fill: WATER2 } }, line: 'rgba(38,33,28,.16)', minZoom: 1, maxZoom: 1 });
       this.layout.log(`해전이 벌어졌다 · ${F.me.name} ${b.alive('me').length}척 대 ${F.foe.name} ${b.alive('foe').length}척`);
       this.refresh();
     }
@@ -2443,7 +2463,7 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
       if (!this.myTurn) return;
       const list = this.b.alive(this.me).filter(u => !u.done); if (!list.length) return;
       const i = list.indexOf(this.sel), u = list[i < 0 ? (dir > 0 ? 0 : list.length - 1) : (i + dir + list.length) % list.length];
-      this.ask = false; this.select(u); this.cur = { c: u.c, r: u.r }; this.curX = this.grid.center(u.c, u.r).x; this.refresh();
+      this.ask = false; this.select(u); this.cur = { c: u.c, r: u.r }; this.curX = this.grid.center(u.c, u.r).x; this.sfx('tick'); this.refresh();
     }
     get myTurn() { return this.mode === 'fight' && !this.auto && !this.b.ended && this.b.side === this.me; }
     unit(id) { return this.b.units.find(u => u.id === id); }
@@ -2459,6 +2479,9 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
       else if (rec.type === 'board') { hit(x, `선원 −${rec.hit}`); if (rec.back) hit(u, `선원 −${rec.back}`); }
       else if (rec.type === 'duel') hit(rec.winner === u.side ? x : u, '일기토 패');
       if (rec.text) this.layout.log(rec.text);
+      if (rec.type === 'fire') this.sfx('cannon'); else if (rec.type === 'board') this.sfx('clash'); else if (rec.type === 'duel') { this.sfx('clash'); this.sfx('clash', 0.4); }
+      else if (rec.from && rec.to && (rec.from[0] !== rec.to[0] || rec.from[1] !== rec.to[1])) this.sfx('ship');
+      if (rec.out === 'sunk') this.sfx('explode', 0.35); else if (rec.out) this.sfx('fall', 0.35);
     }
     endSide() {
       const b = this.b; b.endSide(); this.sel = null; this.reach = new Map(); this.ask = false; this.idle = 0; this.wait = STEP;
@@ -2468,7 +2491,7 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
     finish() {
       if (this.mode === 'result') return;
       this.mode = 'result'; this.res = this.b.result(); this.doneAt = this.engine.tick; this.sel = null; this.reach = new Map(); this.ask = false;
-      this.layout.log(`해전이 끝났다 · ${this.res.reason}`); this.refresh();
+      this.layout.log(`해전이 끝났다 · ${this.res.reason}`); this.sfx(this.res.fled ? 'swish' : this.res.winner === 'me' ? 'win' : 'lose', 0.5); this.refresh();
     }
 
     update() {
@@ -2504,7 +2527,7 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
         const from = [s.c, s.r]; b.move(s, cell.c, cell.r); this.show({ type: 'move', from, to: [s.c, s.r] });
         if (b.fireTargets(s).length) this.select(s); else { b.wait(s); this.select(null); }      // 쏠 적이 없으면 그 턴 일을 마친다
       }
-      else if (u && u.side === this.me && !u.done && u !== s) this.select(u);
+      else if (u && u.side === this.me && !u.done && u !== s) { this.select(u); this.sfx('tick'); }
       else { this.select(null); this.look = cell; }
       if (b.ended) this.finish(); else this.refresh();
     }
@@ -2642,6 +2665,7 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
   const DH = root.DH = root.DH || {};
   const FONT = '"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
   const TILE = 4, INK = '#26211c', ACCENT = '#f2b705';
+  const MAP = { shallow: '#b5d6e2', sea: '#9fc4d9', deep: '#93bcd4', m: '#ece2c7', t: '#e2dfb6', p: '#ecebe3', rim: '#c9b48a' };   // 지도 기본 색(동현삼과 같은 바다) · 뭍은 온대(m) · 열대(t) · 한대(p)
   const fmt = n => Number(n).toLocaleString('ko-KR');
   const KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }, WIND = { left: '서', right: '동', up: '북', down: '남' };
   const VIEW = [{ id: 'follow', label: '배 따라가기' }, { id: 'zin', label: '확대', key: '+' }, { id: 'zout', label: '축소', key: '−' }];
@@ -2691,12 +2715,24 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
     enter() {
       const w = this.world, e = this.engine;
       const grid = new DH.SquareGrid(w.map.cols, w.map.rows, TILE, { wrapX: true, diagonal: true });
-      this.setupMap({ grid, tileAt: (c, r) => w.map.at(c, r), styles: { sea: { fill: '#a9cbe0' }, land: { fill: '#eadfc3' } }, minZoom: e.height / grid.height, maxZoom: 5 });
+      this.setupMap({ grid, ...this.palette(grid), minZoom: e.height / grid.height, maxZoom: 5 });
       this.cam.zoom = 2; this.centerOnFleet();
       this._off = [e.on('clock:day', () => this.onDay())];
       this.hello(); this.refresh();
     }
     exit() { this._off.forEach(f => f()); }
+    /** 지도 색(레트로 픽셀 지도처럼 몇 가지 평평한 색만 쓴다). 바다는 뭍에서 멀수록 짙어지는 세 단(얕은 물 · 연안 · 대양).
+     *  뭍은 위도대로 세 가지(열대 · 온대 · 한대)이고, 바다에 닿은 칸은 조금 짙게 해 해안선을 세운다. 지도는 바뀌지 않으므로 한 번만 정한다. */
+    palette(grid) {
+      const m = this.world.map, o = (m.origin && m.origin.lat) ?? 72, step = m.degPerTile || 1, land = (c, r) => !m.isSea(c, r), depth = DH.shoreDistance(grid, land);
+      const kind = Array.from({ length: grid.rows }, (_, r) => {
+        const lat = Math.abs(o - (r + 0.5) * step), belt = lat >= 58 ? 'p' : lat <= 23.5 ? 't' : 'm';
+        return Array.from({ length: grid.cols }, (_, c) => { const d = depth[r * grid.cols + c]; return d > 0 ? (d <= 1 ? 's1' : d <= 4 ? 's2' : 's3') : belt + (grid.neighbors(c, r).some(([nc, nr]) => !land(nc, nr)) ? 'c' : ''); });
+      });
+      const styles = { s1: { fill: MAP.shallow }, s2: { fill: MAP.sea }, s3: { fill: MAP.deep }, default: { fill: MAP.m } };
+      for (const b of ['p', 'm', 't']) { styles[b] = { fill: MAP[b] }; styles[b + 'c'] = { fill: DH.mixColor(MAP[b], MAP.rim, 0.3) }; }
+      return { styles, tileAt: (c, r) => kind[r][c] };
+    }
     get mode() { const v = this.voyage; return v.over ? 'over' : v.port ? 'port' : 'sea'; }
     get at() { return [this.voyage.x, this.voyage.y]; }
     centerOnFleet() { const p = this.shipPx(); this.cam.centerOn(p.x, p.y); this.cam.clampTo(this.grid); }
@@ -2714,33 +2750,33 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
       const r = v.stepDay(); this.from = r.from; this.leg++;
       for (const e of r.events) L.log(r.arrived && e.endsWith('닿았다') ? `${e} · ${this.leg}일 걸렸다` : e);
       if (!v.moving) { c.running = false; this.spot = null; }
-      if (r.arrived) { this.selected = null; this.spot = null; this.tab = null; this.route = null; this.from = [v.x, v.y]; }
+      if (r.arrived) { this.sfx('zone'); this.selected = null; this.spot = null; this.tab = null; this.route = null; this.from = [v.x, v.y]; }
       if (r.encounter) { c.running = false; return this.openBattle(r.encounter); }
       this.settled();
     }
     /** 해전 화면을 얹는다. 끝나면 결과를 탐험대에 반영하고 돌아온다. */
     openBattle(rival) {
-      const v = this.voyage, b = v.openBattle(rival); this.refresh();
+      const v = this.voyage, b = v.openBattle(rival); this.sfx('alert'); this.refresh();
       this.engine.pushScene(new DH.Hang.HangBattleScene(this.engine, this.layout, b, { onDone: res => {
         const out = v.settleBattle(res); this.layout.log(out.text);
         this.from = [v.x, v.y]; if (v.port) { this.selected = null; this.spot = null; this.tab = null; this.route = null; }
         this.follow = true; this.centerOnFleet(); this.settled();
       } }));
     }
-    settled() { const v = this.voyage; if (v.over && !this._told) { this._told = true; this.engine.clock.running = false; this.layout.log(this.overTitle()); } if (!v.over) this._told = false; this.refresh(); }
+    settled() { const v = this.voyage; if (v.over && !this._told) { this._told = true; this.engine.clock.running = false; this.layout.log(this.overTitle()); this.sfx(v.overWhy === 'gold' ? 'win' : 'lose', 0.6); } if (!v.over) this._told = false; this.refresh(); }
     overTitle() { const v = this.voyage; return v.overWhy === 'gold' ? '목표한 자금을 모았다' : v.overWhy === 'time' ? '기한이 다 되었다' : '선원을 모두 잃었다'; }
     update() { if (this.follow && this.engine.clock.running) this.centerOnFleet(); if (this.engine.tick % 6 === 0) this.refreshInfo(); }
 
     /** 뱃길을 잡고 떠난다. target: 항구 id 또는 바다 칸 [c, r] */
     sail(target) {
       const v = this.voyage, r = v.sailTo(target);
-      if (!r.ok) { this.layout.log(r.why); return this.refresh(); }
-      this.layout.log(`${r.text} · 약 ${r.days}일`); this.leg = 0; this.tab = null; this.follow = true; this.selected = null; this.route = null; if (!Array.isArray(target)) this.spot = null; this.from = [v.x, v.y]; this.engine.clock.running = true;
+      if (!r.ok) { this.layout.log(r.why); this.sfx('buzz'); return this.refresh(); }
+      this.layout.log(`${r.text} · 약 ${r.days}일`); this.sfx('ship'); this.leg = 0; this.tab = null; this.follow = true; this.selected = null; this.route = null; if (!Array.isArray(target)) this.spot = null; this.from = [v.x, v.y]; this.engine.clock.running = true;
       this.refresh();
     }
     /** 항구를 골랐을 때 거기까지의 뱃길(칸 수)을 한 번 재어 둔다. */
     pick(pid) {
-      const v = this.voyage, p = this.world.ports.get(pid); this.selected = pid; this.spot = null; this.tab = null;
+      const v = this.voyage, p = this.world.ports.get(pid); if (pid !== this.selected) this.sfx('tick'); this.selected = pid; this.spot = null; this.tab = null;
       const path = pid === v.port ? [] : DH.findPath(v.grid, [v.x, v.y], p.anchor, this.world.map.isSea);
       this.route = { id: pid, len: path ? path.length : null };
     }
@@ -2762,7 +2798,7 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
       if (dir && this.mode === 'sea') {                                           // 바다에서는 방향키가 키다
         used();
         if (v.heading === dir && c.running) return;
-        const r = v.steer(dir); this.layout.log(r.ok ? r.text : r.why);
+        const r = v.steer(dir); this.layout.log(r.ok ? r.text : r.why); this.sfx(r.ok ? 'swish' : 'buzz');
         if (r.ok) { this.spot = null; this.follow = true; this.from = [v.x, v.y]; c.running = true; }
         return this.refresh();
       }
@@ -2805,7 +2841,8 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
       const e = this.engine, m = 28, mid = this.cam.x + this.cam.viewW / this.cam.zoom / 2, P = this.portPx(this.world.ports.get(pid), mid), q = this.cam.toScreen(P.x, P.y);
       if (q.x < m || q.x > e.width - m || q.y < m || q.y > e.height - m) { this.cam.centerOn(P.x, P.y); this.cam.clampTo(this.grid); this.follow = false; }
     }
-    say(r) { this.layout.log(r.ok ? r.text : r.why); }
+    /** 한 일을 기록에 남긴다. 되었으면 그 소리(ok), 안 되었으면 막히는 소리 */
+    say(r, ok) { this.layout.log(r.ok ? r.text : r.why); if (!r.ok) this.sfx('buzz'); else if (ok) this.sfx(ok); }
     command(id) {
       const v = this.voyage, c = this.engine.clock, [key, arg] = id.split(':');
       if (id === 'zin') return this.zoomBy(1.25);
@@ -2815,17 +2852,17 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
       if (id === 'sail') {
         const target = this.selected && this.selected !== v.port ? this.selected : this.spot;
         if (target) return this.sail(target);
-        if (v.port) { v.leave(); this.tab = null; this.layout.log('닻을 올렸다. 방향키로 키를 잡거나 지도의 바다를 찍어 뱃길을 잡는다'); }
+        if (v.port) { v.leave(); this.sfx('ship'); this.tab = null; this.layout.log('닻을 올렸다. 방향키로 키를 잡거나 지도의 바다를 찍어 뱃길을 잡는다'); }
       }
-      else if (id === 'enter') { const p = v.anchorAt(v.x, v.y); if (p && !v.port && !c.running) { v.enter(p.id); this.selected = null; this.spot = null; this.route = null; this.layout.log(`${p.name}에 들어왔다`); } }
+      else if (id === 'enter') { const p = v.anchorAt(v.x, v.y); if (p && !v.port && !c.running) { v.enter(p.id); this.selected = null; this.spot = null; this.route = null; this.layout.log(`${p.name}에 들어왔다`); this.sfx('zone'); } }
       else if (id === 'pause') { if (v.moving) { c.running = !c.running; if (!c.running) this.from = [v.x, v.y]; } }
       else if (id === 'speed') c.speed = c.speed === 1 ? 2 : c.speed === 2 ? 4 : 1;
       else if (id === 'back') this.tab = null;
       else if (key === 'tab' && v.port && TABS[arg]) { this.tab = arg; this.selected = null; this.spot = null; this.route = null; }
       else if (v.port) {
-        if (key === 'buy') this.say(v.buy(arg)); else if (key === 'sell') this.say(v.sell(arg));
-        else if (id === 'hire') this.say(v.hire()); else if (id === 'repair') this.say(v.repair()); else if (key === 'ship') this.say(v.buyShip(arg));
-        else if (id === 'food') this.say(v.buyFood()); else if (id === 'water') this.say(v.fillWater());
+        if (key === 'buy') this.say(v.buy(arg), 'coin'); else if (key === 'sell') this.say(v.sell(arg), 'coin');
+        else if (id === 'hire') this.say(v.hire(), 'foot'); else if (id === 'repair') this.say(v.repair(), 'thud'); else if (key === 'ship') this.say(v.buyShip(arg), 'bell');
+        else if (id === 'food') this.say(v.buyFood(), 'pop'); else if (id === 'water') this.say(v.fillWater(), 'pop');
         return this.settled();
       }
       this.refresh();
@@ -2970,7 +3007,7 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
     const world = DH.Hang.parse(await DH.Data.load(src));
     const W = 480, H = 360;
     const layout = new DH.Layout(host, { title: '동현항', width: W, height: H, hotkeys: true });      // 조작 단추에 번호가 붙는다(숫자 키)
-    const engine = new DH.Engine({ canvas: layout.canvas, width: W, height: H, seed: opt.seed ?? 1, background: '#a9cbe0', clock: { unit: 'day', start: world.meta.start, ticksPerUnit: 20 } });
+    const engine = new DH.Engine({ canvas: layout.canvas, width: W, height: H, seed: opt.seed ?? 1, background: MAP.deep, clock: { unit: 'day', start: world.meta.start, ticksPerUnit: 20 } });
     const scene = new HangSeaScene(engine, world, layout); engine.setScene(scene);
     if (opt.script) scene.applyDonghyunLang(opt.script);                      // 동현랭 설정을 주면 그 값으로 연다
     if (opt.autostart !== false) engine.start();
@@ -2982,9 +3019,151 @@ node qa/ui.cjs                 # 화면 시험 28개 (Playwright · 데스크톱
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 ;
+/* 합성 효과음: 소리 파일 없이 Web Audio로 그 자리에서 만든다.
+   발소리·말발굽·바퀴·궤도·배·비행·점령 환호·상대 점령 알림·승리 딩동댕·패배 땡, 공격·반격·격파, 동현텐의 짧은 소리.
+   브라우저 규칙에 따라 첫 클릭·터치·키 입력 뒤에 소리 장치를 연다.
+   동현삼·동현항은 동현큐의 이 파일을 그대로 쓰고 끝에 동전 소리(coin)·북소리(drum)만 더했다. 두 저장소의 파일은 같다. */
+var DHSFX=function(storeKey){ /* 동현워의 합성 효과음에 동현크용 소리를 더했다 */
+  'use strict';
+  var AC=window.AudioContext||window.webkitAudioContext, ctx=null, master=null, noiseBuf=null;
+  var on=true; try{ on=localStorage.getItem(storeKey)!=='off'; }catch(e){}
+  function unlock(){
+    if(!AC) return;
+    if(!ctx){ try{ ctx=new AC(); }catch(e){ return; }
+      master=ctx.createGain(); master.gain.value=0.32;
+      var comp=ctx.createDynamicsCompressor(); master.connect(comp); comp.connect(ctx.destination);
+      var n=ctx.sampleRate, b=ctx.createBuffer(1,n,n), d=b.getChannelData(0);
+      for(var i=0;i<n;i++) d[i]=Math.random()*2-1; noiseBuf=b; }
+    if(ctx.state!=='running'){
+      try{ var r=ctx.resume(); if(r&&r.catch) r.catch(function(){}); }catch(e){}
+      /* 옛 iOS Safari: 손짓 안에서 빈 소리를 한 번 틀어야 소리 장치가 열린다 */
+      try{ var sb=ctx.createBufferSource(); sb.buffer=ctx.createBuffer(1,1,22050); sb.connect(ctx.destination); sb.start(0); }catch(e){}
+    }
+  }
+  /* 휴대폰은 손가락을 뗄 때(touchend·click)만 소리를 허락하므로 그 이벤트도 함께 듣는다 */
+  ['touchend','click','pointerup','mousedown','keydown','touchstart','pointerdown'].forEach(function(ev){ document.addEventListener(ev,unlock,{capture:true,passive:true}); });
+  function ready(){ return on&&ctx&&ctx.state!=='closed'; }
+  function env(g,t,a,peak,dec){ g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(peak,t+a); g.gain.exponentialRampToValueAtTime(0.0001,t+a+dec); }
+  function noise(t,dur,type,freq,q,peak,a,out){
+    var s=ctx.createBufferSource(); s.buffer=noiseBuf; s.loop=true;
+    var f=ctx.createBiquadFilter(); f.type=type; f.frequency.setValueAtTime(freq,t); if(q) f.Q.value=q;
+    var g=ctx.createGain(); env(g,t,a||0.005,peak,dur);
+    s.connect(f); f.connect(g); g.connect(out||master); s.start(t,Math.random()*0.5); s.stop(t+(a||0.005)+dur+0.05); return f;
+  }
+  function tone(t,type,freq,dur,peak,a,out){
+    var o=ctx.createOscillator(); o.type=type; o.frequency.setValueAtTime(freq,t);
+    var g=ctx.createGain(); env(g,t,a||0.01,peak,dur);
+    o.connect(g); g.connect(out||master); o.start(t); o.stop(t+(a||0.01)+dur+0.05); return o;
+  }
+  function bus(peak){ var g=ctx.createGain(); g.gain.value=peak; g.connect(master); return g; }
+  var S={
+    foot:function(t,dur,heavy){ var n=Math.max(2,Math.min(6,Math.round(dur/0.16))); for(var i=0;i<n;i++){ var u=t+i*0.16+(i%2)*0.012;
+      noise(u,0.06,'lowpass',heavy?600:900,0,0.5); var o=tone(u,'sine',heavy?95:120,0.08,0.45,0.004); o.frequency.exponentialRampToValueAtTime(55,u+0.08); } },
+    horse:function(t,dur){ var n=Math.max(2,Math.min(5,Math.round(dur/0.3))); for(var i=0;i<n;i++){ var u=t+i*0.3;
+      [0,0.06,0.115].forEach(function(o,k){ noise(u+o,0.035,'bandpass',1500+k*300,4,0.7); tone(u+o,'sine',180,0.04,0.25,0.003); }); } },
+    tire:function(t,dur){ var d=Math.max(0.45,dur+0.15), b=bus(0.5);
+      var o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.setValueAtTime(70,t); o.frequency.linearRampToValueAtTime(105,t+d*0.6); o.frequency.linearRampToValueAtTime(80,t+d);
+      var f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=420; var g=ctx.createGain(); env(g,t,0.06,0.6,d);
+      o.connect(f); f.connect(g); g.connect(b); o.start(t); o.stop(t+d+0.1); noise(t,d,'lowpass',300,0,0.15,0.06,b); },
+    tread:function(t,dur){ var d=Math.max(0.6,dur+0.2), b=bus(0.55);
+      var o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.setValueAtTime(42,t); o.frequency.linearRampToValueAtTime(52,t+d);
+      var f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=260; var g=ctx.createGain(); env(g,t,0.08,0.8,d);
+      var am=ctx.createGain(); am.gain.value=0.6; var lfo=ctx.createOscillator(); lfo.frequency.value=11; var lg=ctx.createGain(); lg.gain.value=0.4; lfo.connect(lg); lg.connect(am.gain);
+      o.connect(f); f.connect(am); am.connect(g); g.connect(b); o.start(t); o.stop(t+d+0.1); lfo.start(t); lfo.stop(t+d+0.1);
+      for(var u=t+0.05;u<t+d;u+=0.12) noise(u,0.03,'bandpass',2200,6,0.12,0.003,b); noise(t,d,'lowpass',180,0,0.35,0.08,b); },
+    siege:function(t,dur){ var d=Math.max(0.6,dur+0.2), b=bus(0.5); noise(t,d,'lowpass',220,0,0.3,0.06,b);
+      for(var u=t+0.05;u<t+d;u+=0.34){ var o=tone(u,'triangle',300+Math.random()*80,0.16,0.22,0.02,b); o.frequency.linearRampToValueAtTime(470+Math.random()*90,u+0.16); } },
+    ship:function(t,dur){ var d=Math.max(0.8,dur+0.3), b=bus(0.6);
+      var f=noise(t,d,'lowpass',300,0,0.45,0.15,b); f.frequency.linearRampToValueAtTime(800,t+d*0.5); f.frequency.linearRampToValueAtTime(300,t+d);
+      [110,111.6].forEach(function(fr){ var o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=fr; var lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=650;
+        var g=ctx.createGain(); env(g,t,0.06,0.22,0.5); o.connect(lp); lp.connect(g); g.connect(b); o.start(t); o.stop(t+0.65); }); },
+    air:function(t,dur){ var d=Math.max(0.6,dur+0.2), b=bus(0.5);
+      var f=noise(t,d,'bandpass',700,1.2,0.5,0.2,b); f.frequency.linearRampToValueAtTime(2000,t+d*0.5); f.frequency.linearRampToValueAtTime(600,t+d);
+      var o=tone(t,'sawtooth',170,d,0.06,0.2,b); o.frequency.linearRampToValueAtTime(120,t+d); },
+    copter:function(t,dur){ var d=Math.max(0.6,dur+0.2), b=bus(0.55); for(var u=t;u<t+d;u+=0.07) noise(u,0.045,'bandpass',320,1.5,0.55,0.004,b); },
+    cheer:function(t){ var b=bus(0.55);
+      for(var i=0;i<7;i++){ var u=t+Math.random()*0.08, f=noise(u,0.75+Math.random()*0.2,'bandpass',650+Math.random()*700,3,0.35,0.06,b); f.frequency.linearRampToValueAtTime(900+Math.random()*900,u+0.5); }
+      for(var k=0;k<4;k++){ var u2=t+Math.random()*0.1, o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.setValueAtTime(280+Math.random()*180,u2); o.frequency.linearRampToValueAtTime(380+Math.random()*220,u2+0.4);
+        var lfo=ctx.createOscillator(); lfo.frequency.value=5+Math.random()*3; var lg=ctx.createGain(); lg.gain.value=12; lfo.connect(lg); lg.connect(o.frequency);
+        var lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1400; var g=ctx.createGain(); env(g,u2,0.08,0.07,0.7);
+        o.connect(lp); lp.connect(g); g.connect(b); o.start(u2); o.stop(u2+0.9); lfo.start(u2); lfo.stop(u2+0.9); } },
+    alert:function(t){ tone(t,'triangle',330,0.18,0.35); tone(t+0.2,'triangle',247,0.3,0.35); },
+    bell:function(t,f,dur,peak){ tone(t,'sine',f,dur,peak,0.005); tone(t,'sine',f*2,dur*0.5,peak*0.3,0.005); tone(t,'sine',f*3.01,dur*0.25,peak*0.12,0.005); },
+    win:function(t){ S.bell(t,523.25,0.5,0.5); S.bell(t+0.28,659.25,0.5,0.5); S.bell(t+0.56,783.99,1.2,0.55); },
+    lose:function(t){ S.bell(t,196,1.3,0.55); tone(t,'sine',196*2.76,0.5,0.08,0.005); },
+    /* 공격·반격·격파 */
+    gun:function(t){ for(var i=0;i<2;i++){ noise(t+i*0.11,0.07,'bandpass',1800,0.8,0.8,0.002); var o=tone(t+i*0.11,'square',220,0.04,0.12,0.002); o.frequency.exponentialRampToValueAtTime(70,t+i*0.11+0.04); } },
+    mg:function(t){ for(var i=0;i<6;i++){ noise(t+i*0.065,0.04,'bandpass',2000,0.9,0.6,0.002); } },
+    cannon:function(t){ noise(t,0.45,'lowpass',700,0,1,0.003); var o=tone(t,'sine',120,0.35,0.8,0.003); o.frequency.exponentialRampToValueAtTime(38,t+0.35); },
+    shell:function(t){ var o=tone(t,'sine',1400,0.42,0.12,0.02); o.frequency.exponentialRampToValueAtTime(500,t+0.42); S.cannon(t+0.42); },
+    rocket:function(t){ var f=noise(t,0.35,'bandpass',900,1.2,0.5,0.01); f.frequency.exponentialRampToValueAtTime(3000,t+0.3); noise(t+0.32,0.4,'lowpass',900,0,0.8,0.003); var o=tone(t+0.32,'sine',90,0.3,0.6,0.003); o.frequency.exponentialRampToValueAtTime(40,t+0.62); },
+    bomb:function(t){ var o=tone(t,'sine',1800,0.5,0.1,0.02); o.frequency.exponentialRampToValueAtTime(350,t+0.5); S.explode(t+0.5); },
+    torpedo:function(t){ var f=noise(t,0.5,'bandpass',400,2,0.35,0.05); f.frequency.linearRampToValueAtTime(250,t+0.5); var o=tone(t+0.5,'sine',70,0.5,0.8,0.01); o.frequency.exponentialRampToValueAtTime(30,t+1); noise(t+0.5,0.5,'lowpass',300,0,0.6,0.01); },
+    flak:function(t){ for(var i=0;i<4;i++){ noise(t+i*0.09,0.08,'lowpass',1200,0,0.7,0.002); tone(t+i*0.09,'sine',150,0.06,0.35,0.002); } },
+    clash:function(t){ for(var i=0;i<2;i++){ var u=t+i*0.17; [1250,1870,2630].forEach(function(f){ tone(u,'square',f*(1+Math.random()*0.02),0.12,0.05,0.001); }); noise(u,0.05,'highpass',3000,0,0.4,0.001); tone(u,'sine',160,0.06,0.3,0.002); } },
+    arrow:function(t){ var o=tone(t,'triangle',190,0.08,0.3,0.002); o.frequency.exponentialRampToValueAtTime(110,t+0.08); var f=noise(t+0.03,0.25,'bandpass',2600,3,0.4,0.03); f.frequency.exponentialRampToValueAtTime(1200,t+0.28); noise(t+0.3,0.04,'lowpass',900,0,0.5,0.002); },
+    bang:function(t){ noise(t,0.25,'lowpass',1500,0,0.9,0.002); var o=tone(t,'sine',160,0.18,0.5,0.002); o.frequency.exponentialRampToValueAtTime(50,t+0.18); },
+    thud:function(t){ for(var i=0;i<2;i++){ var u=t+i*0.22, o=tone(u,'sine',85,0.2,0.9,0.003); o.frequency.exponentialRampToValueAtTime(40,u+0.2); noise(u,0.1,'lowpass',400,0,0.6,0.002); } },
+    catapult:function(t){ var o=tone(t,'triangle',260,0.15,0.2,0.01); o.frequency.linearRampToValueAtTime(420,t+0.15); var f=noise(t+0.12,0.35,'bandpass',600,1.5,0.35,0.05); f.frequency.linearRampToValueAtTime(1500,t+0.45); S.thud(t+0.5); },
+    explode:function(t){ noise(t,0.7,'lowpass',900,0,1,0.003); var o=tone(t,'sine',100,0.6,0.9,0.003); o.frequency.exponentialRampToValueAtTime(30,t+0.6); },
+    fall:function(t){ noise(t,0.18,'lowpass',500,0,0.6,0.004); var o=tone(t,'sine',140,0.25,0.5,0.004); o.frequency.exponentialRampToValueAtTime(55,t+0.25); },
+    /* 동현텐: 고르기·짝·틀림·줄·판 비우기·Add·Hint·끝 */
+    tick:function(t){ tone(t,'triangle',880,0.05,0.25,0.003); },
+    pop:function(t){ var o=tone(t,'sine',520,0.12,0.45,0.004); o.frequency.exponentialRampToValueAtTime(1040,t+0.08); },
+    buzz:function(t){ var o=tone(t,'square',140,0.16,0.12,0.005); o.frequency.linearRampToValueAtTime(110,t+0.16); },
+    rows:function(t){ S.bell(t,659.25,0.3,0.4); S.bell(t+0.1,987.77,0.45,0.4); },
+    swish:function(t){ var f=noise(t,0.32,'bandpass',500,1.5,0.45,0.04); f.frequency.linearRampToValueAtTime(2400,t+0.3); },
+    sparkle:function(t){ [1318.5,1568,2093].forEach(function(f,i){ S.bell(t+i*0.06,f,0.25,0.18); }); },
+    /* 동현크 */
+    jump:function(t){ var o=tone(t,'square',330,0.12,0.18,0.004); o.frequency.exponentialRampToValueAtTime(660,t+0.1); },
+    jump2:function(t){ var o=tone(t,'square',440,0.1,0.16,0.004); o.frequency.exponentialRampToValueAtTime(990,t+0.09); },
+    stomp:function(t){ noise(t,0.08,'lowpass',900,0,0.6,0.002); var o=tone(t,'square',260,0.09,0.2,0.002); o.frequency.exponentialRampToValueAtTime(120,t+0.09); },
+    paw:function(t){ var f=noise(t,0.09,'bandpass',1200,1.2,0.5,0.004); f.frequency.exponentialRampToValueAtTime(400,t+0.09); tone(t,'triangle',520,0.05,0.15,0.003); },
+    bark:function(t){ var o=tone(t,'sawtooth',300,0.07,0.16,0.004); o.frequency.exponentialRampToValueAtTime(180,t+0.07); noise(t,0.05,'bandpass',900,1,0.3,0.003); },
+    bone:function(t){ tone(t,'square',988,0.06,0.16,0.003); tone(t+0.07,'square',1319,0.14,0.16,0.003); },
+    heartup:function(t){ [659.25,830.6,987.77,1318.5].forEach(function(f,i){ tone(t+i*0.07,'triangle',f,0.14,0.2,0.004); }); },
+    hurt:function(t){ var o=tone(t,'sawtooth',220,0.22,0.25,0.003); o.frequency.exponentialRampToValueAtTime(70,t+0.22); noise(t,0.1,'lowpass',600,0,0.4,0.002); },
+    die:function(t){ [392,330,262,196].forEach(function(f,i){ tone(t+i*0.13,'square',f,0.14,0.18,0.004); }); },
+    swap:function(t){ [523.25,659.25,783.99,1046.5].forEach(function(f,i){ tone(t+i*0.05,'square',f,0.08,0.14,0.003); }); },
+    ping:function(t){ tone(t,'sine',1760,0.08,0.12,0.003); },
+    zone:function(t){ S.bell(t,783.99,0.3,0.35); S.bell(t+0.15,1046.5,0.5,0.35); },
+    shot:function(t){ noise(t,0.06,'bandpass',1500,0.8,0.5,0.002); var o=tone(t,'square',200,0.05,0.12,0.002); o.frequency.exponentialRampToValueAtTime(90,t+0.05); },
+    shotgun:function(t){ noise(t,0.2,'lowpass',1200,0,0.9,0.002); var o=tone(t,'sine',140,0.15,0.5,0.002); o.frequency.exponentialRampToValueAtTime(45,t+0.15); },
+    charge:function(t){ var f=noise(t,0.22,'bandpass',600,1.5,0.5,0.01); f.frequency.linearRampToValueAtTime(2000,t+0.2); tone(t,'triangle',330,0.1,0.15,0.005); },
+    over:function(t){ S.bell(t,523.25,0.4,0.4); S.bell(t+0.22,392,0.4,0.4); S.bell(t+0.44,261.63,0.9,0.45); },
+    /* 동현램 v0.15: 붕괴 예고 우르릉, 트램 종, 기물마다 다른 격파 폭발, 안 죽은 기물을 칠 때의 쇳소리, 초파리 날갯짓 */
+    rumble:function(t){ var d=1.6, b=bus(0.7); var f=noise(t,d,'lowpass',140,0,0.9,0.12,b); f.frequency.linearRampToValueAtTime(260,t+d);
+      var o=tone(t,'sine',38,d,0.5,0.1,b); o.frequency.linearRampToValueAtTime(52,t+d); for(var u=t+0.2;u<t+d;u+=0.23) noise(u,0.05,'bandpass',900+Math.random()*600,4,0.25,0.003,b); },
+    tramBell:function(t){ S.bell(t,1318.5,0.35,0.3); S.bell(t+0.18,1318.5,0.45,0.3); },
+    clank:function(t){ [1450,2210].forEach(function(f){ tone(t,'square',f*(1+Math.random()*0.03),0.09,0.05,0.001); }); noise(t,0.06,'highpass',2500,0,0.45,0.001); tone(t,'sine',170,0.07,0.35,0.002); },
+    boomCar:function(t){ noise(t,0.3,'lowpass',1400,0,0.9,0.002); var o=tone(t,'sine',150,0.22,0.6,0.002); o.frequency.exponentialRampToValueAtTime(45,t+0.22); S.clank(t+0.05); noise(t+0.12,0.25,'highpass',3200,0,0.3,0.01); /* 유리 흩어지는 쉭 */ },
+    boomTaxi:function(t){ noise(t,0.26,'lowpass',1600,0,0.8,0.002); var o=tone(t,'sine',190,0.2,0.55,0.002); o.frequency.exponentialRampToValueAtTime(60,t+0.2); var h=tone(t+0.03,'square',440,0.25,0.08,0.004); h.frequency.linearRampToValueAtTime(380,t+0.28); /* 경적이 늘어지며 꺼진다 */ },
+    boomTank:function(t){ noise(t,0.8,'lowpass',700,0,1,0.003); var o=tone(t,'sine',80,0.7,1,0.003); o.frequency.exponentialRampToValueAtTime(24,t+0.7); for(var i=0;i<3;i++) noise(t+0.15+i*0.13,0.08,'lowpass',1100,0,0.5,0.002); /* 연쇄 폭발 */ },
+    boomHeli:function(t){ noise(t,0.55,'lowpass',1000,0,0.9,0.003); var o=tone(t,'sine',120,0.5,0.8,0.003); o.frequency.exponentialRampToValueAtTime(34,t+0.5); var r=tone(t+0.05,'sawtooth',240,0.6,0.08,0.01); r.frequency.exponentialRampToValueAtTime(60,t+0.65); for(var u=t+0.1;u<t+0.6;u+=0.08) noise(u,0.03,'bandpass',320,1.5,0.3,0.003); /* 날개가 느려지며 떨어진다 */ },
+    boomTram:function(t){ noise(t,0.5,'lowpass',900,0,0.9,0.003); var o=tone(t,'sine',110,0.45,0.8,0.003); o.frequency.exponentialRampToValueAtTime(32,t+0.45); S.clank(t+0.08); S.clank(t+0.2); var z=tone(t+0.05,'sawtooth',90,0.4,0.1,0.01); z.frequency.linearRampToValueAtTime(60,t+0.45); S.bell(t+0.3,1318.5,0.4,0.15); /* 쇠 부딪힘 두 번과 마지막 종 */ },
+    /* 동현삼·동현항: 사고팔 때 동전, 침공할 때 북 */
+    coin:function(t){ tone(t,'square',1319,0.05,0.12,0.002); tone(t+0.06,'square',1760,0.16,0.12,0.002); },
+    drum:function(t){ for(var i=0;i<3;i++){ var u=t+i*0.18, o=tone(u,'sine',i===2?70:90,0.22,0.85,0.003); o.frequency.exponentialRampToValueAtTime(42,u+0.22); noise(u,0.08,'lowpass',500,0,0.45,0.002); } },
+    flap:function(t){ for(var i=0;i<3;i++){ noise(t+i*0.045,0.035,'bandpass',320,1.2,0.9,0.004); var o=tone(t+i*0.045,'triangle',190,0.04,0.2,0.003); o.frequency.exponentialRampToValueAtTime(120,t+i*0.045+0.04); } }
+  };
+  // play(k)로 부를 때 길이·음높이가 필요한 소리의 기본값(동현삼·동현항: 이동 · 출항 · 배 구입)
+  var ARGS={foot:[0.5],horse:[0.6],tire:[0.5],tread:[0.6],siege:[0.6],ship:[0.6],air:[0.6],copter:[0.6],bell:[880,0.45,0.35]};
+  var MT={foot:'foot',mech:'mech',horse:'horse',tire:'tire',tread:'tread',siege:'siege',ship:'ship',lander:'ship',air:'air'};
+  return {
+    get on(){ return on; },
+    set:function(v){ on=!!v; try{ localStorage.setItem(storeKey,on?'on':'off'); }catch(e){} if(on) unlock(); },
+    /* 유닛 이동: mt는 이동 방식, dur는 화면 이동 시간(초), copter는 헬기 여부 */
+    move:function(mt,dur,copter){ if(!ready()) return; var t=ctx.currentTime+0.01, k=copter?'copter':MT[mt];
+      if(k==='mech') S.foot(t,dur,true); else if(S[k]) S[k](t,dur); },
+    play:function(k,delay){ if(!ready()||!S[k]) return; S[k].apply(null,[ctx.currentTime+0.01+(delay||0)].concat(ARGS[k]||[])); }
+  };
+};
+
+;
 /* 동현항 앱: 공통 엔진의 지도 장면을 A 칸에 띄우고, B 칸의 동현랭 편집기가 설정을 읽어 새 판을 연다.
  * 편집기(줄 번호 · 색 입히기 · 들여쓰기 · .dh 저장과 열기)는 동현 시리즈와 같은 모양이다. 동현삼과 이 파일은 GAME 한 줄만 다르다.
- * 저장과 불러오기(브라우저 칸 3개 + .dhsave 파일)는 동현심과 같은 규칙이다. 무엇을 적고 어떻게 되살리는지는 장면(saveGame · loadGame)이 안다. */
+ * 저장과 불러오기(브라우저 칸 3개 + .dhsave 파일)는 동현심과 같은 규칙이다. 무엇을 적고 어떻게 되살리는지는 장면(saveGame · loadGame)이 안다.
+ * 효과음은 장면이 엔진에 알리는 'sfx' 사건을 여기서 받아 튼다(sfx.js · 동현큐와 같은 소리). 첫 출전 전에는 지도 위에 시작 카드를 얹고 판을 멈춘다. */
 (function () {
 'use strict';
 const GAME = DH.Hang;
@@ -2993,8 +3172,13 @@ const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
 const el = (tag, text) => { const e = document.createElement(tag); if (text !== undefined) e.textContent = text; return e; };
 let current = null;            // boot()이 돌려준 묶음: engine · layout · scene · world · lang · examples · convention · applyDonghyunLang
 
-/* ---------- 화면 전환 · 탭 ---------- */
+/* ---------- 화면 전환 · 소리 · 탭 ---------- */
 $('#theme').onclick = () => { const dark = document.documentElement.dataset.theme !== 'dark'; document.documentElement.dataset.theme = dark ? 'dark' : 'light'; $('#theme').setAttribute('aria-pressed', String(dark)); };
+const SND = DHSFX(GAME.SAVE.file + ':sound'), sounds = [];              // sounds: 시험용 기록(최근 50개)
+function sndUI() { const b = $('#sound'); b.setAttribute('aria-pressed', String(SND.on)); b.classList.toggle('muted', !SND.on); b.title = SND.on ? '효과음 끄기 (M)' : '효과음 켜기 (M)'; }
+$('#sound').onclick = () => { SND.set(!SND.on); sndUI(); }; sndUI();
+document.addEventListener('keydown', e => { if (e.code !== 'KeyM' || e.metaKey || e.ctrlKey || e.altKey || menu) return; const a = document.activeElement; if (a && (a.tagName === 'TEXTAREA' || a.tagName === 'INPUT' || a.tagName === 'SELECT')) return; SND.set(!SND.on); sndUI(); });
+function playSfx(s) { sounds.push(s.k); if (sounds.length > 50) sounds.shift(); SND.play(s.k, s.delay); }
 let tab = 'play', resume = false;
 document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
   const next = b.dataset.tab; if (next === tab) return;
@@ -3031,15 +3215,16 @@ code.addEventListener('compositionend', () => codeChanged());
 function codeLead() { const a = code.selectionStart, v = code.value, ls = v.lastIndexOf('\n', a - 1) + 1, le = v.indexOf('\n', ls); return { a, ls, lead: /^[ \t]*/.exec(v.slice(ls, le < 0 ? v.length : le))[0].length }; }
 document.addEventListener('selectionchange', () => { if (document.activeElement !== code || code.selectionStart !== code.selectionEnd) return; const { a, ls, lead } = codeLead(); if (a - ls < lead) code.setSelectionRange(ls + lead, ls + lead); });
 code.addEventListener('beforeinput', e => { const { a, ls, lead } = codeLead(); if (a !== code.selectionEnd) return; if (e.inputType === 'deleteContentBackward' && ls > 0 && a > ls && a - ls <= lead) { e.preventDefault(); code.setRangeText('', ls - 1, a, 'end'); codeChanged(); } });
-code.oninput = codeChanged;
+let picked = '';                                       // 시작 카드에 적을 코드 이름(예제 이름 · 파일 이름 · 직접 고친 코드)
+code.oninput = e => { picked = ''; codeChanged(e); };
 code.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); sortie(); } });
 function selectExample() {
   const ex = current && current.examples.find(e => e.id === $('#example').value); if (!ex) return;
-  code.value = ex.code; const note = ex.code.split('\n').find(l => l.startsWith('ㅋㅋ ')); $('#example-note').textContent = note ? note.slice(3) : ''; codeChanged();
+  code.value = ex.code; picked = ex.name; const note = ex.code.split('\n').find(l => l.startsWith('ㅋㅋ ')); $('#example-note').textContent = note ? note.slice(3) : ''; codeChanged();
 }
 $('#example').onchange = selectExample;
 $('#save').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([code.value + '\n'], { type: 'text/plain;charset=utf-8' })); a.download = 'sortie.dh'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
-$('#open').onchange = async e => { const f = e.target.files[0]; if (!f) return; code.value = (await f.text()).replace(/\r/g, '').replace(/\n$/, ''); $('#example-note').textContent = ''; codeChanged(); e.target.value = ''; };
+$('#open').onchange = async e => { const f = e.target.files[0]; if (!f) return; code.value = (await f.text()).replace(/\r/g, '').replace(/\n$/, ''); picked = f.name; $('#example-note').textContent = ''; codeChanged(); e.target.value = ''; };
 $('#run').onclick = () => sortie();
 
 /* ---------- 출전 규약: 동현랭이 출력한 정수를 '설정 번호 · 값'으로 읽는다 ---------- */
@@ -3057,8 +3242,8 @@ function sortie() {
   if (!current) return;
   clearTimeout(previewTimer);
   const rep = current.applyDonghyunLang(code.value);
-  if (!rep.ok) { $('#status').textContent = '출전하지 못했다'; $('#status').dataset.kind = 'error'; return say('error', rep.errors.join(' ') + ' 하던 판은 그대로 두었다.'); }
-  $('#status').dataset.kind = ''; $('#status').textContent = rep.empty ? '기본값으로 새 판' : `설정 ${rep.settings.length}개로 새 판`;
+  if (!rep.ok) { $('#status').textContent = '출전하지 못했다'; $('#status').dataset.kind = 'error'; SND.play('buzz'); return say('error', rep.errors.join(' ') + (waiting ? '' : ' 하던 판은 그대로 두었다.')); }
+  begun(); $('#status').dataset.kind = ''; $('#status').textContent = rep.empty ? '기본값으로 새 판' : `설정 ${rep.settings.length}개로 새 판`;
   say('ok', rep.empty ? '설정이 없다. 기본값으로 새 판을 열었다.' : `설정 ${rep.settings.length}개를 적용하고 새 판을 열었다: ${rep.applied.join(' · ')}`);
 }
 /** 예제 목록과 설정 번호 표를 채운다 */
@@ -3145,7 +3330,7 @@ function saveToFile() {
 function loadFrom(d) {
   const r = current.scene.loadGame(d);
   if (!r.ok) { toast('불러오기 실패: ' + r.why + ` 하던 ${SAVE.word}은 그대로 두었다.`, 'error'); return false; }
-  status(`저장한 ${SAVE.word}을 불러왔다`); say('ok', r.text + (r.applied.length ? ` · 저장될 때의 설정: ${r.applied.join(' · ')}` : ' · 저장될 때의 설정: 기본값') + '. 편집기의 코드는 그대로다.');
+  begun(); status(`저장한 ${SAVE.word}을 불러왔다`); say('ok', r.text + (r.applied.length ? ` · 저장될 때의 설정: ${r.applied.join(' · ')}` : ' · 저장될 때의 설정: 기본값') + '. 편집기의 코드는 그대로다.');
   fit(); return true;
 }
 async function loadFile(input) {
@@ -3180,6 +3365,7 @@ menuBack.addEventListener('keydown', e => {
 });
 function saveMenu() {
   if (!current) return;
+  if (waiting) return openMenu('지금은 저장할 수 없다', [['돌아가기', null]], null, `아직 ${SAVE.word}을 시작하지 않았다. 출전을 누르면 시작한다.`);
   const can = current.scene.saveInfo(); if (!can.ok) return openMenu('지금은 저장할 수 없다', [['돌아가기', null]], null, can.why);
   const items = [];
   for (let n = 1; n <= SLOTS; n++) { const d = readSlot(n); items.push({ label: `브라우저 칸 ${n}`, note: slotNote(d), fn: () => (d ? confirmMenu(`칸 ${n}에 덮어쓸까?`, [['덮어쓴다', () => saveToSlot(n)], ['그만둔다', saveMenu]], saveMenu) : saveToSlot(n)) }); }
@@ -3204,10 +3390,41 @@ for (const id of ['#game-save', '#fs-save']) $(id).onclick = saveMenu;
 for (const id of ['#game-load', '#fs-load']) $(id).onclick = loadMenu;
 $('#load-file').onchange = e => loadFile(e.target);
 
-/* ---------- 시작: 자료를 읽고 기본값으로 판을 연다 ---------- */
+/* ---------- 시작 카드: 첫 출전(또는 불러오기) 전까지 지도 위에 얹는다. 아래 판은 멈추고 입력은 카드가 받는다 ---------- */
+let waiting = true;
+const FONT = '"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+class StartCard extends DH.Scene {
+  constructor(engine, layout) { super(engine); this.layout = layout; }
+  enter() {
+    this.layout.setDetail({ title: '출전 준비', rows: [], note: `B 칸에서 동현랭 출전 코드(예제)를 고르고 출전을 누르면 시작한다. 저장해 둔 ${SAVE.word}은 지도 아래 불러오기로 이어 한다.` });
+    this.layout.setMenu([{ id: 'go', label: '출전', primary: true, hint: 'B 칸의 코드로 시작한다 (Ctrl/⌘ + Enter)' }], () => sortie());
+  }
+  onKey(code, ev) { if (ev && (ev.ctrlKey || ev.metaKey || ev.altKey)) return; if (code === 'Enter' || code === 'NumpadEnter' || code === 'Digit1' || code === 'Numpad1') { ev && ev.preventDefault(); sortie(); } }
+  render(g) {
+    const W = this.engine.width, H = this.engine.height, w = 280, h = 88, x = (W - w) / 2, y = (H - h) / 2;
+    if (current && this._src !== code.value) { this._src = code.value; this._rep = current.lang.parse(code.value, { ctx: { world: current.world } }); }   // 글이 바뀔 때만 다시 읽는다
+    const rep = this._rep, fit = s => (s.length > 30 ? s.slice(0, 29) + '…' : s);
+    g.fillStyle = 'rgba(38,33,28,.22)'; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(74,66,88,.88)'; g.fillRect(x, y, w, h);
+    g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = '#fff'; g.font = `bold 13px ${FONT}`;
+    g.fillText(fit(`${SAVE.name} · ${picked || '직접 쓴 코드'}`), W / 2, y + 12);
+    g.font = `11px ${FONT}`; g.fillText(fit(!rep ? '' : !rep.ok ? '코드에 오류가 있다 · B 칸을 보자' : rep.empty ? '설정 없음 · 기본값으로 연다' : `설정 ${rep.settings.length}개 · ${rep.settings.map(s => s.label).join(' · ')}`), W / 2, y + 34);
+    g.fillStyle = '#f2b705'; g.font = `bold 12px ${FONT}`; g.fillText('출전을 누르면 시작한다', W / 2, y + 60);
+  }
+  save() { return null; }
+}
+/** 첫 출전이나 불러오기가 되면 카드를 걷는다. 장면의 applyDonghyunLang · loadGame이 위에 얹힌 장면을 이미 내렸으면 할 일이 없다 */
+function begun() {
+  if (!waiting) return; waiting = false;
+  const e = current.engine, i = e.scenes.findIndex(s => s instanceof StartCard); if (i >= 0) e.scenes.splice(i, 1)[0].exit();
+}
+
+/* ---------- 시작: 자료를 읽고 기본값의 판 위에 시작 카드를 얹는다 ---------- */
 GAME.boot($('#host'), '#lab-data').then(g => {
-  current = g; window.__dh = g;                          // 시험용 손잡이
-  $('#run').disabled = false; $('#full').disabled = false; $('#game-save').disabled = false; $('#game-load').disabled = false; $('#status').textContent = '기본값으로 열었다';
+  current = g; window.__dh = g; g.sounds = sounds;       // 시험용 손잡이
+  g.engine.on('sfx', playSfx);
+  g.engine.pushScene(new StartCard(g.engine, g.layout)); g.waiting = () => waiting;
+  $('#run').disabled = false; $('#full').disabled = false; $('#game-save').disabled = false; $('#game-load').disabled = false; $('#status').textContent = '출전 준비';
   fillLang();
 }).catch(e => {
   const p = el('pre', e.message); p.className = 'boot-error'; $('#host').replaceChildren(p);

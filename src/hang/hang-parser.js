@@ -29,7 +29,7 @@
     const inMap = (c, r) => Number.isInteger(c) && Number.isInteger(r) && r >= 0 && r < m.rows && c >= 0 && c < m.cols;
     const at = (c, r) => names[tiles[r][normC(c)]];
     const isSea = (c, r) => r >= 0 && r < m.rows && (wrapX || (c >= 0 && c < m.cols)) && at(c, r) === 'sea';
-    const map = { kind: 'square', cols: m.cols, rows: m.rows, wrapX, tiles, names, at, isSea };
+    const map = { kind: 'square', cols: m.cols, rows: m.rows, wrapX, origin: m.origin, degPerTile: m.degPerTile, tiles, names, at, isSea };
     chk.done();
 
     const goods = chk.index(json.goods, 'goods');

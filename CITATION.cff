@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 title: "Donghyunhang (동현항): a single-player sailing and trading simulation game on a world map with hex sea battles, with starting values and rule numbers set through the esoteric language Donghyun-lang"
 type: software
-version: "0.04"
+version: "0.05"
 doi: "10.5281/zenodo.24106054"
 date-released: "2026-11-10"
 authors:
@@ -40,6 +40,10 @@ abstract: >-
   the random-number state and the market prices. The whole game can be
   played by keyboard: numbered control buttons, arrow keys to pick ports in
   harbour or to steer at sea, and a hex cursor in sea battles.
+  Sound effects are synthesized in the browser with the Web Audio API (no
+  audio files) and can be switched off with a header button or the M key.
+  A start card waits on the map until the player presses Sortie. The map
+  shades the sea in three depths by distance from shore.
   The MIT license applies to the Donghyunhang code and documentation; the
   page fonts are under the SIL Open Font License. See LICENSE and
   CREDITS.md.

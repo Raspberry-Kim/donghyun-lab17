@@ -10,7 +10,7 @@
   const DH = root.DH = root.DH || {};
   const FONT = '"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
   const fmt = n => Number(n).toLocaleString('ko-KR');
-  const WATER = '#a9cbe0', INK = '#26211c', ACCENT = '#f2b705', RED = '#c0321f', STEP = 18, FX = 54;
+  const WATER = '#9fc4d9', WATER2 = '#a6c9dc', INK = '#26211c', ACCENT = '#f2b705', RED = '#c0321f', STEP = 18, FX = 54;
   const LOOK = { me: { hull: '#6b4a2f', sail: '#fbf7ef' }, foe: { hull: '#3c3226', sail: '#c8402f' } };
   const SIDE = { me: '우리', foe: '적' };
   const ARROW = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
@@ -35,7 +35,7 @@
     }
     enter() {
       const b = this.b, F = b.fleets;
-      this.setupMap({ grid: b.grid, tileAt: () => 'sea', styles: { sea: { fill: WATER } }, line: 'rgba(38,33,28,.16)', minZoom: 1, maxZoom: 1 });
+      this.setupMap({ grid: b.grid, tileAt: (c, r) => ((c + (r >> 1)) % 3 === 0 ? 'sea2' : 'sea'), styles: { sea: { fill: WATER }, sea2: { fill: WATER2 } }, line: 'rgba(38,33,28,.16)', minZoom: 1, maxZoom: 1 });
       this.layout.log(`해전이 벌어졌다 · ${F.me.name} ${b.alive('me').length}척 대 ${F.foe.name} ${b.alive('foe').length}척`);
       this.refresh();
     }
@@ -77,7 +77,7 @@
       if (!this.myTurn) return;
       const list = this.b.alive(this.me).filter(u => !u.done); if (!list.length) return;
       const i = list.indexOf(this.sel), u = list[i < 0 ? (dir > 0 ? 0 : list.length - 1) : (i + dir + list.length) % list.length];
-      this.ask = false; this.select(u); this.cur = { c: u.c, r: u.r }; this.curX = this.grid.center(u.c, u.r).x; this.refresh();
+      this.ask = false; this.select(u); this.cur = { c: u.c, r: u.r }; this.curX = this.grid.center(u.c, u.r).x; this.sfx('tick'); this.refresh();
     }
     get myTurn() { return this.mode === 'fight' && !this.auto && !this.b.ended && this.b.side === this.me; }
     unit(id) { return this.b.units.find(u => u.id === id); }
@@ -93,6 +93,9 @@
       else if (rec.type === 'board') { hit(x, `선원 −${rec.hit}`); if (rec.back) hit(u, `선원 −${rec.back}`); }
       else if (rec.type === 'duel') hit(rec.winner === u.side ? x : u, '일기토 패');
       if (rec.text) this.layout.log(rec.text);
+      if (rec.type === 'fire') this.sfx('cannon'); else if (rec.type === 'board') this.sfx('clash'); else if (rec.type === 'duel') { this.sfx('clash'); this.sfx('clash', 0.4); }
+      else if (rec.from && rec.to && (rec.from[0] !== rec.to[0] || rec.from[1] !== rec.to[1])) this.sfx('ship');
+      if (rec.out === 'sunk') this.sfx('explode', 0.35); else if (rec.out) this.sfx('fall', 0.35);
     }
     endSide() {
       const b = this.b; b.endSide(); this.sel = null; this.reach = new Map(); this.ask = false; this.idle = 0; this.wait = STEP;
@@ -102,7 +105,7 @@
     finish() {
       if (this.mode === 'result') return;
       this.mode = 'result'; this.res = this.b.result(); this.doneAt = this.engine.tick; this.sel = null; this.reach = new Map(); this.ask = false;
-      this.layout.log(`해전이 끝났다 · ${this.res.reason}`); this.refresh();
+      this.layout.log(`해전이 끝났다 · ${this.res.reason}`); this.sfx(this.res.fled ? 'swish' : this.res.winner === 'me' ? 'win' : 'lose', 0.5); this.refresh();
     }
 
     update() {
@@ -138,7 +141,7 @@
         const from = [s.c, s.r]; b.move(s, cell.c, cell.r); this.show({ type: 'move', from, to: [s.c, s.r] });
         if (b.fireTargets(s).length) this.select(s); else { b.wait(s); this.select(null); }      // 쏠 적이 없으면 그 턴 일을 마친다
       }
-      else if (u && u.side === this.me && !u.done && u !== s) this.select(u);
+      else if (u && u.side === this.me && !u.done && u !== s) { this.select(u); this.sfx('tick'); }
       else { this.select(null); this.look = cell; }
       if (b.ended) this.finish(); else this.refresh();
     }

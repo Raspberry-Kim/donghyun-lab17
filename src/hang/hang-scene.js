@@ -12,6 +12,7 @@
   const DH = root.DH = root.DH || {};
   const FONT = '"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
   const TILE = 4, INK = '#26211c', ACCENT = '#f2b705';
+  const MAP = { shallow: '#b5d6e2', sea: '#9fc4d9', deep: '#93bcd4', m: '#ece2c7', t: '#e2dfb6', p: '#ecebe3', rim: '#c9b48a' };   // 지도 기본 색(동현삼과 같은 바다) · 뭍은 온대(m) · 열대(t) · 한대(p)
   const fmt = n => Number(n).toLocaleString('ko-KR');
   const KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }, WIND = { left: '서', right: '동', up: '북', down: '남' };
   const VIEW = [{ id: 'follow', label: '배 따라가기' }, { id: 'zin', label: '확대', key: '+' }, { id: 'zout', label: '축소', key: '−' }];
@@ -61,12 +62,24 @@
     enter() {
       const w = this.world, e = this.engine;
       const grid = new DH.SquareGrid(w.map.cols, w.map.rows, TILE, { wrapX: true, diagonal: true });
-      this.setupMap({ grid, tileAt: (c, r) => w.map.at(c, r), styles: { sea: { fill: '#a9cbe0' }, land: { fill: '#eadfc3' } }, minZoom: e.height / grid.height, maxZoom: 5 });
+      this.setupMap({ grid, ...this.palette(grid), minZoom: e.height / grid.height, maxZoom: 5 });
       this.cam.zoom = 2; this.centerOnFleet();
       this._off = [e.on('clock:day', () => this.onDay())];
       this.hello(); this.refresh();
     }
     exit() { this._off.forEach(f => f()); }
+    /** 지도 색(레트로 픽셀 지도처럼 몇 가지 평평한 색만 쓴다). 바다는 뭍에서 멀수록 짙어지는 세 단(얕은 물 · 연안 · 대양).
+     *  뭍은 위도대로 세 가지(열대 · 온대 · 한대)이고, 바다에 닿은 칸은 조금 짙게 해 해안선을 세운다. 지도는 바뀌지 않으므로 한 번만 정한다. */
+    palette(grid) {
+      const m = this.world.map, o = (m.origin && m.origin.lat) ?? 72, step = m.degPerTile || 1, land = (c, r) => !m.isSea(c, r), depth = DH.shoreDistance(grid, land);
+      const kind = Array.from({ length: grid.rows }, (_, r) => {
+        const lat = Math.abs(o - (r + 0.5) * step), belt = lat >= 58 ? 'p' : lat <= 23.5 ? 't' : 'm';
+        return Array.from({ length: grid.cols }, (_, c) => { const d = depth[r * grid.cols + c]; return d > 0 ? (d <= 1 ? 's1' : d <= 4 ? 's2' : 's3') : belt + (grid.neighbors(c, r).some(([nc, nr]) => !land(nc, nr)) ? 'c' : ''); });
+      });
+      const styles = { s1: { fill: MAP.shallow }, s2: { fill: MAP.sea }, s3: { fill: MAP.deep }, default: { fill: MAP.m } };
+      for (const b of ['p', 'm', 't']) { styles[b] = { fill: MAP[b] }; styles[b + 'c'] = { fill: DH.mixColor(MAP[b], MAP.rim, 0.3) }; }
+      return { styles, tileAt: (c, r) => kind[r][c] };
+    }
     get mode() { const v = this.voyage; return v.over ? 'over' : v.port ? 'port' : 'sea'; }
     get at() { return [this.voyage.x, this.voyage.y]; }
     centerOnFleet() { const p = this.shipPx(); this.cam.centerOn(p.x, p.y); this.cam.clampTo(this.grid); }
@@ -84,33 +97,33 @@
       const r = v.stepDay(); this.from = r.from; this.leg++;
       for (const e of r.events) L.log(r.arrived && e.endsWith('닿았다') ? `${e} · ${this.leg}일 걸렸다` : e);
       if (!v.moving) { c.running = false; this.spot = null; }
-      if (r.arrived) { this.selected = null; this.spot = null; this.tab = null; this.route = null; this.from = [v.x, v.y]; }
+      if (r.arrived) { this.sfx('zone'); this.selected = null; this.spot = null; this.tab = null; this.route = null; this.from = [v.x, v.y]; }
       if (r.encounter) { c.running = false; return this.openBattle(r.encounter); }
       this.settled();
     }
     /** 해전 화면을 얹는다. 끝나면 결과를 탐험대에 반영하고 돌아온다. */
     openBattle(rival) {
-      const v = this.voyage, b = v.openBattle(rival); this.refresh();
+      const v = this.voyage, b = v.openBattle(rival); this.sfx('alert'); this.refresh();
       this.engine.pushScene(new DH.Hang.HangBattleScene(this.engine, this.layout, b, { onDone: res => {
         const out = v.settleBattle(res); this.layout.log(out.text);
         this.from = [v.x, v.y]; if (v.port) { this.selected = null; this.spot = null; this.tab = null; this.route = null; }
         this.follow = true; this.centerOnFleet(); this.settled();
       } }));
     }
-    settled() { const v = this.voyage; if (v.over && !this._told) { this._told = true; this.engine.clock.running = false; this.layout.log(this.overTitle()); } if (!v.over) this._told = false; this.refresh(); }
+    settled() { const v = this.voyage; if (v.over && !this._told) { this._told = true; this.engine.clock.running = false; this.layout.log(this.overTitle()); this.sfx(v.overWhy === 'gold' ? 'win' : 'lose', 0.6); } if (!v.over) this._told = false; this.refresh(); }
     overTitle() { const v = this.voyage; return v.overWhy === 'gold' ? '목표한 자금을 모았다' : v.overWhy === 'time' ? '기한이 다 되었다' : '선원을 모두 잃었다'; }
     update() { if (this.follow && this.engine.clock.running) this.centerOnFleet(); if (this.engine.tick % 6 === 0) this.refreshInfo(); }
 
     /** 뱃길을 잡고 떠난다. target: 항구 id 또는 바다 칸 [c, r] */
     sail(target) {
       const v = this.voyage, r = v.sailTo(target);
-      if (!r.ok) { this.layout.log(r.why); return this.refresh(); }
-      this.layout.log(`${r.text} · 약 ${r.days}일`); this.leg = 0; this.tab = null; this.follow = true; this.selected = null; this.route = null; if (!Array.isArray(target)) this.spot = null; this.from = [v.x, v.y]; this.engine.clock.running = true;
+      if (!r.ok) { this.layout.log(r.why); this.sfx('buzz'); return this.refresh(); }
+      this.layout.log(`${r.text} · 약 ${r.days}일`); this.sfx('ship'); this.leg = 0; this.tab = null; this.follow = true; this.selected = null; this.route = null; if (!Array.isArray(target)) this.spot = null; this.from = [v.x, v.y]; this.engine.clock.running = true;
       this.refresh();
     }
     /** 항구를 골랐을 때 거기까지의 뱃길(칸 수)을 한 번 재어 둔다. */
     pick(pid) {
-      const v = this.voyage, p = this.world.ports.get(pid); this.selected = pid; this.spot = null; this.tab = null;
+      const v = this.voyage, p = this.world.ports.get(pid); if (pid !== this.selected) this.sfx('tick'); this.selected = pid; this.spot = null; this.tab = null;
       const path = pid === v.port ? [] : DH.findPath(v.grid, [v.x, v.y], p.anchor, this.world.map.isSea);
       this.route = { id: pid, len: path ? path.length : null };
     }
@@ -132,7 +145,7 @@
       if (dir && this.mode === 'sea') {                                           // 바다에서는 방향키가 키다
         used();
         if (v.heading === dir && c.running) return;
-        const r = v.steer(dir); this.layout.log(r.ok ? r.text : r.why);
+        const r = v.steer(dir); this.layout.log(r.ok ? r.text : r.why); this.sfx(r.ok ? 'swish' : 'buzz');
         if (r.ok) { this.spot = null; this.follow = true; this.from = [v.x, v.y]; c.running = true; }
         return this.refresh();
       }
@@ -175,7 +188,8 @@
       const e = this.engine, m = 28, mid = this.cam.x + this.cam.viewW / this.cam.zoom / 2, P = this.portPx(this.world.ports.get(pid), mid), q = this.cam.toScreen(P.x, P.y);
       if (q.x < m || q.x > e.width - m || q.y < m || q.y > e.height - m) { this.cam.centerOn(P.x, P.y); this.cam.clampTo(this.grid); this.follow = false; }
     }
-    say(r) { this.layout.log(r.ok ? r.text : r.why); }
+    /** 한 일을 기록에 남긴다. 되었으면 그 소리(ok), 안 되었으면 막히는 소리 */
+    say(r, ok) { this.layout.log(r.ok ? r.text : r.why); if (!r.ok) this.sfx('buzz'); else if (ok) this.sfx(ok); }
     command(id) {
       const v = this.voyage, c = this.engine.clock, [key, arg] = id.split(':');
       if (id === 'zin') return this.zoomBy(1.25);
@@ -185,17 +199,17 @@
       if (id === 'sail') {
         const target = this.selected && this.selected !== v.port ? this.selected : this.spot;
         if (target) return this.sail(target);
-        if (v.port) { v.leave(); this.tab = null; this.layout.log('닻을 올렸다. 방향키로 키를 잡거나 지도의 바다를 찍어 뱃길을 잡는다'); }
+        if (v.port) { v.leave(); this.sfx('ship'); this.tab = null; this.layout.log('닻을 올렸다. 방향키로 키를 잡거나 지도의 바다를 찍어 뱃길을 잡는다'); }
       }
-      else if (id === 'enter') { const p = v.anchorAt(v.x, v.y); if (p && !v.port && !c.running) { v.enter(p.id); this.selected = null; this.spot = null; this.route = null; this.layout.log(`${p.name}에 들어왔다`); } }
+      else if (id === 'enter') { const p = v.anchorAt(v.x, v.y); if (p && !v.port && !c.running) { v.enter(p.id); this.selected = null; this.spot = null; this.route = null; this.layout.log(`${p.name}에 들어왔다`); this.sfx('zone'); } }
       else if (id === 'pause') { if (v.moving) { c.running = !c.running; if (!c.running) this.from = [v.x, v.y]; } }
       else if (id === 'speed') c.speed = c.speed === 1 ? 2 : c.speed === 2 ? 4 : 1;
       else if (id === 'back') this.tab = null;
       else if (key === 'tab' && v.port && TABS[arg]) { this.tab = arg; this.selected = null; this.spot = null; this.route = null; }
       else if (v.port) {
-        if (key === 'buy') this.say(v.buy(arg)); else if (key === 'sell') this.say(v.sell(arg));
-        else if (id === 'hire') this.say(v.hire()); else if (id === 'repair') this.say(v.repair()); else if (key === 'ship') this.say(v.buyShip(arg));
-        else if (id === 'food') this.say(v.buyFood()); else if (id === 'water') this.say(v.fillWater());
+        if (key === 'buy') this.say(v.buy(arg), 'coin'); else if (key === 'sell') this.say(v.sell(arg), 'coin');
+        else if (id === 'hire') this.say(v.hire(), 'foot'); else if (id === 'repair') this.say(v.repair(), 'thud'); else if (key === 'ship') this.say(v.buyShip(arg), 'bell');
+        else if (id === 'food') this.say(v.buyFood(), 'pop'); else if (id === 'water') this.say(v.fillWater(), 'pop');
         return this.settled();
       }
       this.refresh();
@@ -340,7 +354,7 @@
     const world = DH.Hang.parse(await DH.Data.load(src));
     const W = 480, H = 360;
     const layout = new DH.Layout(host, { title: '동현항', width: W, height: H, hotkeys: true });      // 조작 단추에 번호가 붙는다(숫자 키)
-    const engine = new DH.Engine({ canvas: layout.canvas, width: W, height: H, seed: opt.seed ?? 1, background: '#a9cbe0', clock: { unit: 'day', start: world.meta.start, ticksPerUnit: 20 } });
+    const engine = new DH.Engine({ canvas: layout.canvas, width: W, height: H, seed: opt.seed ?? 1, background: MAP.deep, clock: { unit: 'day', start: world.meta.start, ticksPerUnit: 20 } });
     const scene = new HangSeaScene(engine, world, layout); engine.setScene(scene);
     if (opt.script) scene.applyDonghyunLang(opt.script);                      // 동현랭 설정을 주면 그 값으로 연다
     if (opt.autostart !== false) engine.start();
