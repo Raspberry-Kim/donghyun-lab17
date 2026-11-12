@@ -147,7 +147,7 @@ const H = DH.Hang, hw = () => H.parse(hangJ()), V = (o = {}) => new H.Voyage(hw(
 const quiet = () => { const st = H.newState(); st.rules.encounter.percent = 0; return st; };      // 적 함대가 나오지 않는 바다
 ok('동현항 globalState: 기본값은 RULES · SEA 그대로 · 설정 없는 탐험은 state가 있든 없든 똑같이 흐른다', () => {
   const st = H.newState(); assert.deepStrictEqual(st.rules, H.RULES); assert.notStrictEqual(st.rules, H.RULES); assert.deepStrictEqual(st.sea, H.SEA);
-  assert.deepStrictEqual([st.start, st.stage, st.cargo, st.rivals], [{ seed: null, gold: null, food: null, water: null, crew: null, war: null }, { gold: 0, days: 0 }, [], []]);
+  assert.deepStrictEqual([st.start, st.stage, st.cargo, st.rivals], [{ seed: null, gold: null, food: null, water: null, crew: null, war: null, ship: null }, { gold: 0, days: 0 }, [], []]);
   const st2 = H.newState(), r = H.applyDonghyunLang(HEAD + 'ㅋㅋ 없음' + TAIL, st2, { world: hw() }); assert.ok(r.ok && r.empty); assert.deepStrictEqual(st2, H.newState());
   const run = o => { const v = V(o), log = []; v.sailTo('hakata'); for (let i = 0; i < 120 && !v.port && !v.over; i++) { const d = v.stepDay(); log.push([v.x, v.y, v.crew, v.food, v.water, d.encounter && d.encounter.id]); if (d.encounter) v.settleBattle(v.openBattle(d.encounter).auto()); } return JSON.stringify([log, v.gold, v.port, v.rng.state]); };
   const a = run({}), b = run({ state: H.newState() }), c = run({ state: st2 }); assert.strictEqual(a, b); assert.strictEqual(a, c); assert.ok(a.includes('redsail') || a.includes('blackreef') || a.includes('storm'), '그 사이 적 함대를 만났다');
@@ -242,16 +242,16 @@ ok('동현항 백병전: 맞닿은 배에 올라탄다 · 적 선원 −(우리�
   b.endSide(); b.endSide(); foe[1].crew = 6; const k = b.board(me[0], foe[1]); assert.deepStrictEqual([k.hit, k.back, k.out, foe[1].out, foe[1].crew, me[0].crew, b.ended], [6, 0, 'taken', 'taken', 0, 23, false], '기함이 아니면 싸움은 이어진다');
   assert.deepStrictEqual([b.alive('foe').map(u => u.id), b.crewOf('foe'), b.unitAt(2, 4)], [['foe0'], 28, null], '빼앗긴 배는 바다에서 빠진다');
 });
-ok('동현항 일기토: 기함이 기함에 올라타면 선장끼리 겨룬다 · 기력 100 · 한 번에 무력의 20~50% · 올라탄 쪽이 먼저 · 진 쪽이 해전을 진다', () => {
+ok('동현항 일기토: 기함이 적 기함과 맞닿으면 신청한다 · 받아들이면 선장끼리 겨룬다 · 기력 100 · 한 번에 무력의 20~50% · 신청한 쪽이 먼저 · 진 쪽이 해전을 진다', () => {
   const wins = {}; let first = null;
   for (const id of ['redsail', 'blackreef', 'storm']) { wins[id] = 0;
-    for (let s = 1; s <= 200; s++) { const v = new H.Voyage(hw(), { rng: new DH.RNG(s) }); v.leave(); const b = v.openBattle(v.rivals.get(id)), [x, y] = b.units; y.c = 2; y.r = 4; const r = b.board(x, y), war = [70, v.rivals.get(id).captain.war];
+    for (let s = 1; s <= 200; s++) { const v = new H.Voyage(hw(), { rng: new DH.RNG(s) }); v.leave(); const b = v.openBattle(v.rivals.get(id)), [x, y] = b.units; y.c = 2; y.r = 4; assert.deepStrictEqual(b.duelTargets(x), [y]); const r = b.challenge(x, y), war = [70, v.rivals.get(id).captain.war];
       assert.strictEqual(r.type, 'duel'); assert.ok(b.ended && b.winner === r.winner && b.duel.winner === r.winner); if (r.winner === 'me') wins[id]++; if (!first) first = { r, b, y };
       let ha = 100, hb = 100; for (const [dx, dy, a2, b2] of b.duel.rounds) { assert.ok(dx >= Math.floor(war[0] * 0.2) && dx <= Math.floor(war[0] * 0.5), '우리 선장의 한 번 ' + dx); hb = Math.max(0, hb - dx); if (hb > 0) { assert.ok(dy >= Math.floor(war[1] * 0.2) && dy <= Math.floor(war[1] * 0.5)); ha = Math.max(0, ha - dy); } else assert.strictEqual(dy, 0, '쓰러진 쪽은 되받아치지 못한다'); assert.deepStrictEqual([a2, b2], [ha, hb]); }
       assert.ok((ha === 0) !== (hb === 0)); assert.strictEqual(r.winner, hb === 0 ? 'me' : 'foe'); const lose = r.winner === 'me' ? y : x; assert.deepStrictEqual([lose.out, lose.crew], ['taken', 0]); } }
   assert.deepStrictEqual(wins, { redsail: 192, blackreef: 132, storm: 71 }, '무력 70으로 먼저 걸었을 때 200판 가운데 이긴 판(무력 55 · 72 · 86)');
   assert.strictEqual(first.r.text, '일기토: 포동이(무력 70) 대 붉은수염(무력 55) · 4합 만에 포동이가 이겼다(남은 기력 47)'); assert.strictEqual(first.b.reason, '포동이가 일기토에서 붉은수염을 꺾었다'); assert.strictEqual(first.b.result().loot, 400);
-  const st = H.newState(); st.start.war = 100; st.rivals.push(['storm', 1]); const e = fight('storm', { state: st }); e.foe[0].c = 2; e.foe[0].r = 4; assert.deepStrictEqual([e.b.fleets.me.captain.war, e.b.fleets.foe.captain.war, e.b.board(e.me[0], e.foe[0]).winner], [100, 1, 'me'], 'globalState의 무력으로 겨룬다');
+  const st = H.newState(); st.start.war = 100; st.rivals.push(['storm', 1]); const e = fight('storm', { state: st }); e.foe[0].c = 2; e.foe[0].r = 4; assert.deepStrictEqual([e.b.fleets.me.captain.war, e.b.fleets.foe.captain.war, e.b.duelOf(e.me[0], e.foe[0]).winner], [100, 1, 'me'], 'globalState의 무력으로 겨룬다');
 });
 ok('동현항 해전 AI · 끝: AI끼리 싸우면 언제나 끝난다 · 20턴이 지나면 갈라진다 · 달아나기 · 끝난 뒤에는 아무 일도 못 한다', () => {
   for (const id of ['redsail', 'blackreef', 'storm']) for (let s = 1; s <= 40; s++) { const v = new H.Voyage(hw(), { rng: new DH.RNG(s) }); v.leave(); v.day = s; const b = v.openBattle(v.rivals.get(id)), r = b.auto();
@@ -265,7 +265,7 @@ ok('동현항 해전 AI · 끝: AI끼리 싸우면 언제나 끝난다 · 20턴�
 ok('동현항 해전 뒤: 이기면 적의 금 · 달아나면 짐 절반 · 지면 금 절반과 짐을 잃고 마지막 항구로 · 배를 잃으면 넘치는 짐이 가라앉는다', () => {
   const R = (winner, ships, o = {}) => ({ winner, fled: o.fled || null, reason: '시험', turns: 3, loot: o.loot || 0, duel: null, me: { ships }, foe: { ships: [] } });
   let v = V(); v.sailTo('seville'); v.stepDay(); let out = v.settleBattle(R('me', [{ ref: 's1', hull: 41, crew: 20, out: null }], { loot: 400 }));
-  assert.deepStrictEqual([out.text, v.gold, v.crew, v.ships[0].hull, v.cargoUsed, v.port, v.moving, v.sinceLand], ['해전에서 이겼다 · 금 +400 · 선원 28 → 20명', 1400, 20, 41, 60, null, true, 0]); assert.strictEqual(v.foodDays, 120, '사람이 줄면 남은 식량의 날 수가 는다(120일분까지)');
+  assert.deepStrictEqual([out.text, v.gold, v.crew, v.ships[0].hull, v.cargoUsed, v.port, v.moving, v.sinceLand], ['해전에서 이겼다 · 금 +400 · 선원 28 → 20명 · 선장 무력 70 → 71', 1400, 20, 41, 60, null, true, 0]); assert.strictEqual(v.foodDays, 120, '사람이 줄면 남은 식량의 날 수가 는다(120일분까지)');
   v = V(); v.leave(); out = v.settleBattle(R(null, [{ ref: 's1', hull: 60, crew: 28, out: null }], { fled: 'me' })); assert.deepStrictEqual([out.text, out.fled, [...v.cargo].map(([g, h]) => [g, h.qty]), v.gold], ['짐 30개를 버리고 달아났다 · 선원 28 → 28명', true, [['wine', 30]], 1000]);
   v = V(); v.sailTo('seville'); v.stepDay(); out = v.settleBattle(R('foe', [{ ref: 's1', hull: 0, crew: 0, out: 'sunk' }]));
   assert.deepStrictEqual([out.text, v.gold, v.crew, v.cargoUsed, v.port, v.ships.length, v.ships[0].hull, v.moving, [v.x, v.y]], ['해전에서 졌다 · 금 500과 짐을 모두 빼앗기고 리스본으로 떠밀려 왔다 · 선원 28 → 5명', 500, 5, 0, 'lisbon', 1, 15, false, [170, 33]]);
@@ -273,13 +273,98 @@ ok('동현항 해전 뒤: 이기면 적의 금 · 달아나면 짐 절반 · 지
   assert.deepStrictEqual([out.text, v.ships.map(s => s.id), v.crew, v.cargoUsed, v.cargoCap], ['승부가 나지 않아 두 함대가 갈라졌다 · 선원 100 → 25명 · 배를 잃어 짐 280개가 가라앉았다', ['s1'], 25, 120, 120]);
   const full = V(); full.sailTo('hakata'); for (let i = 0; i < 5; i++) full.stepDay(); const b = full.openBattle(full.rivals.get('redsail')), res = b.auto(), o2 = full.settleBattle(res); assert.ok(o2.ok && (res.winner !== 'me' || full.gold === 1400), '해전 → 결과 → 탐험대');
 });
+ok('동현항 선장 수련 · 포 보강: 여관에서 금 300에 무력 +1(100까지) · 도크에서 금 400에 포 +2문(배마다 +8문까지) · 보강한 포가 해전에 실린다', () => {
+  let v = V(); assert.deepStrictEqual(v.can('train'), { ok: true, gain: 1, to: 71, cost: 300 }); assert.deepStrictEqual([v.train().text, v.gold, v.captain.war], ['포동이가 수련했다 · 금 −300 · 무력 70 → 71', 700, 71]);
+  v.gold = 299; assert.strictEqual(v.train().why, '금이 모자란다'); v.gold = 9999; v.captain.war = 100; assert.strictEqual(v.can('train').why, '선장의 무력은 100까지다');
+  v = V(); assert.deepStrictEqual([v.addGuns('s1').text, v.gunsOf(v.ships[0]), v.gold], ['꼬리바람호에 포 2문을 더 달았다 · 금 −400 · 포 10문', 10, 600]);
+  v.gold = 9999; for (let i = 0; i < 3; i++) assert.ok(v.addGuns('s1').ok); assert.deepStrictEqual([v.ships[0].plus, v.gunsOf(v.ships[0]), v.can('gun', 's1').why, v.can('gun', 'zz').why, v.gold], [8, 16, '포는 배마다 8문까지 더 단다', '그런 배는 없다', 8799]);
+  v.leave(); const b = v.openBattle(v.rivals.get('redsail')), u = b.units[0]; assert.deepStrictEqual([u.guns, u.type, b.shot(u)], [16, 'caravel', { hull: 33, crew: 5 }], '포 16문 × 3 × 선원 28 ÷ 정원 40');
+  const far = V(); far.sailTo('seville'); far.stepDay(); assert.ok(!far.can('train').ok && !far.can('gun', 's1').ok && !far.can('swap', 's1', 'carrack').ok, '바다에서는 못 한다');
+});
+ok('동현항 배 바꾸기 · 팔기: 헌 배는 처음 값의 50% · 기함도 바꾼다 · 선체는 새것 · 보강한 포는 넘어간다 · 자리가 줄면 선원이 내린다 · 짐이 안 실리면 막는다 · 마지막 한 척은 못 판다', () => {
+  let v = V(); assert.deepStrictEqual([v.can('swap', 's1', 'carrack').why, v.can('swap', 's1', 'caravel').why, v.can('swap', 's1', 'turtle').why, v.can('swap', 's1', 'ark').why, v.can('swap', 'zz', 'carrack').why, v.can('sell', 's1').why],
+    ['금이 모자란다', '지금 타는 배와 같다', '무적 모드에서만 고를 수 있다', '그런 배는 없다', '그런 배는 없다', '마지막 한 척은 팔 수 없다']);
+  v.gold = 5000; v.addGuns('s1'); v.ships[0].hull = 20; assert.deepStrictEqual(v.can('swap', 's1', 'carrack'), { ok: true, cost: 4000, back: 0, trade: 1000, off: 0 }, '캐럭 5,000 − 캐러벨의 절반 1,000(다친 배도 같은 값)');
+  assert.strictEqual(v.swapShip('s1', 'carrack').text, '꼬리바람호를 캐러벨에서 캐럭으로 바꿨다 · 헌 배 값 금 1,000 · 금 −4,000');
+  assert.deepStrictEqual([v.gold, v.ships, v.cargoCap, v.maxCrew, v.minCrew, v.crew, v.speed, v.cargoUsed], [600, [{ id: 's1', type: 'carrack', name: '꼬리바람호', hull: 120, plus: 0 }], 320, 120, 30, 28, 1, 60], '이름과 id는 그대로 · 선체는 새것 · 포 보강은 사라진다');
+  v.crew = 100; assert.deepStrictEqual(v.can('swap', 's1', 'caravel'), { ok: true, cost: 0, back: 500, trade: 2500, off: 60 });
+  assert.deepStrictEqual([v.swapShip('s1', 'caravel').text, v.gold, v.crew, v.ships[0].hull], ['꼬리바람호를 캐럭에서 캐러벨로 바꿨다 · 헌 배 값 금 2,500 · 금 +500 · 선원 60명이 내렸다', 1100, 40, 60]);
+  v = V(); v.gold = 9000; v.swapShip('s1', 'carrack'); v.cargo.clear(); v.load('wine', 200, 18); assert.strictEqual(v.can('swap', 's1', 'caravel').why, '짐이 다 실리지 않는다(남는 적재량 120)');
+  v = V(); v.gold = 9000; v.buyShip('carrack'); v.crew = 150; assert.deepStrictEqual(v.can('sell', 's2'), { ok: true, income: 2500, off: 110 });
+  assert.deepStrictEqual([v.sellShip('s1').text, v.gold, v.ships.map(sh => sh.id + sh.type), v.crew, v.speed], ['캐러벨 꼬리바람호를 팔았다 · 금 +1,000 · 배 1척 · 선원 30명이 내렸다', 5000, ['s2carrack'], 120, 1], '기함을 팔면 다음 배가 기함이 된다');
+  assert.strictEqual(v.buyShip('caravel').ok, true); assert.deepStrictEqual(v.ships.map(sh => sh.id), ['s2', 's3'], '쓰이지 않은 번호를 받는다');
+});
+ok('동현항 해적과의 만남: 달아난다(더 빠르면 그냥 · 아니면 짐 절반) · 통행료(자금의 20%, 적어도 100) · 만난 뒤 다시 3일은 조용하다', () => {
+  let v = V(); v.leave(); const R = id => v.rivals.get(id);
+  assert.deepStrictEqual(v.meetInfo(R('redsail')), { fast: false, speed: 2, their: 2, drop: 30, toll: 200, pay: { ok: true, cost: 200 } }, '속도가 같으면 따돌리지 못한다');
+  assert.deepStrictEqual(v.meetInfo(R('storm')), { fast: true, speed: 2, their: 1, drop: 0, toll: 200, pay: { ok: true, cost: 200 } }, '캐럭이 낀 함대는 하루 1칸이다');
+  v.sinceLand = 9; assert.deepStrictEqual([v.evade(R('redsail')), v.cargoUsed, v.sinceLand, v.gold], [{ ok: true, type: 'evade', fast: false, cut: 30, text: '짐 30개를 버리고 붉은 돛 해적단에게서 달아났다' }, 30, 0, 1000]);
+  v = V(); v.leave(); v.sinceLand = 9; assert.deepStrictEqual([v.evade(R('storm')).text, v.cargoUsed, v.sinceLand], ['하루 2칸으로 달려 폭풍 사략 함대를 따돌렸다(해적은 하루 1칸)', 60, 0]);
+  v = V(); v.leave(); v.sinceLand = 9; assert.deepStrictEqual([v.payToll(R('blackreef')), v.gold, v.sinceLand], [{ ok: true, type: 'toll', cost: 200, text: '검은 암초 해적단에게 통행료 금 200을 내고 지나갔다' }, 800, 0]);
+  v.gold = 3333; assert.strictEqual(v.meetInfo(R('storm')).toll, 667, '올림'); v.gold = 300; assert.strictEqual(v.meetInfo(R('storm')).toll, 100, '적어도 100'); v.gold = 99; assert.deepStrictEqual([v.payToll(R('storm')), v.gold], [{ ok: false, why: '금이 모자란다' }, 99]);
+  const st = H.newState(); st.rules.encounter.tollPct = 50; st.rules.encounter.percent = 100; v = V({ state: st }); v.leave(); assert.strictEqual(v.meetInfo(R('storm')).toll, 500);
+  v.sailTo('hakata'); let d, n = 0; for (let i = 0; i < 4; i++) d = v.stepDay(); assert.ok(d.encounter && d.events.some(t => /^해적 출현 · .+[과와] 마주쳤다$/.test(t)), d.events.join()); v.payToll(d.encounter);
+  for (let i = 0; i < 3; i++) { d = v.stepDay(); assert.ok(!d.encounter, '통행료를 낸 뒤 3일'); } assert.ok(v.stepDay().encounter, '그 뒤에는 다시 만난다');
+});
+ok('동현항 백병전과 선장 무력: 피해 = 선원의 40%(되받기 30%) × 선장 무력 ÷ 70 · 기함에 올라타도 선원끼리 싸운다', () => {
+  let e = fight('redsail'); e.foe[0].c = 2; e.foe[0].r = 4; assert.deepStrictEqual([e.b.boardPreview(e.me[0], e.foe[0]), e.b.boardPreview(e.foe[0], e.me[0])], [{ hit: 11, left: 13, back: 3 }, { hit: 7, left: 21, back: 6 }], '28 × 40% × 70 ÷ 70 = 11 · 13 × 30% × 55 ÷ 70 = 3 / 24 × 40% × 55 ÷ 70 = 7 · 21 × 30% = 6');
+  const r = e.b.board(e.me[0], e.foe[0]); assert.deepStrictEqual([r.type, r.hit, r.back, e.b.ended, e.b.duel, e.me[0].crew, e.foe[0].crew, r.text], ['board', 11, 3, false, null, 25, 13, '포동이 탐험대 꼬리바람호가 붉은 돛 해적단 기함에 올라탔다 · 맞선 배 선원 −11 · 올라탄 배 선원 −3']);
+  const st = H.newState(); st.start.war = 100; e = fight('redsail', { state: st }); e.foe[0].c = 2; e.foe[0].r = 4; assert.deepStrictEqual(e.b.boardPreview(e.me[0], e.foe[0]), { hit: 16, left: 8, back: 1 }, '무력 100이면 28 × 40% × 100 ÷ 70 = 16');
+  e = fight('storm'); e.foe[0].c = 2; e.foe[0].r = 4; assert.deepStrictEqual(e.b.boardPreview(e.foe[0], e.me[0]), { hit: 28, left: 0, back: 0 }, '폭풍 제독(무력 86 · 선원 83): 83 × 40% × 86 ÷ 70 = 40 → 우리 28명이 모두 쓰러진다');
+});
+ok('동현항 일기토 신청: 해전마다 쪽마다 한 번 · 적은 15까지 뒤져도 받고 더 뒤지면 물리친다 · 물리치면 그 배는 이어서 움직인다 · 적은 10 넘게 앞설 때 신청한다 · 우리가 받을지 고른다', () => {
+  const st = H.newState(); st.start.war = 100; let e = fight('redsail', { state: st }); assert.deepStrictEqual(e.b.duelTargets(e.me[0]), [], '떨어져 있으면 신청하지 못한다'); e.foe[0].c = 2; e.foe[0].r = 4;
+  let r = e.b.challenge(e.me[0], e.foe[0]); assert.deepStrictEqual([r, e.b.ended, e.me[0].done, e.b.duelTargets(e.me[0]), e.b.challenge(e.me[0], e.foe[0])], [{ type: 'refuse', unit: 'me0', target: 'foe0', text: '붉은수염이 포동이의 일기토 신청을 물리쳤다' }, false, false, [], null], '무력 55는 100 − 15보다 낮다 · 한 번뿐이다');
+  assert.strictEqual(e.b.board(e.me[0], e.foe[0]).type, 'board', '물리친 뒤에도 올라탈 수 있다');
+  st.start.war = 70; assert.deepStrictEqual(['redsail', 'blackreef', 'storm'].map(id => { const q = fight(id); return [q.b.accepts('foe'), q.b.accepts('me')]; }), [[true, true], [true, false], [true, false]], '적은 55 ≥ 70 − 15라 받는다 · 맡겨 둔 우리 쪽은 무력이 같거나 높을 때만 받는다');
+  const dare = () => { const q = fight('storm'); for (const u of q.me) q.b.wait(u); q.b.endSide(); q.foe[0].c = 3; q.foe[0].r = 4; return q; };
+  e = dare(); r = e.b.aiAct(); assert.deepStrictEqual([r.type, r.unit, r.target, r.to, r.text, e.b.pending, e.b.ended, e.b.asked], ['challenge', 'foe0', 'me0', [2, 4], '폭풍 제독(무력 86)이 포동이(무력 70)에게 일기토를 신청했다', { unit: 'foe0', target: 'me0' }, false, { me: false, foe: true }]);
+  assert.deepStrictEqual(e.b.duelTargets(e.me[0]), [], '답을 기다리는 동안에는 새로 신청하지 못한다');
+  r = e.b.answer(false); assert.deepStrictEqual([r.type, r.text, e.b.pending, e.b.ended, e.foe[0].done, e.foe[0].moved, e.b.answer(true)], ['refuse', '포동이가 폭풍 제독의 일기토 신청을 물리쳤다', null, false, false, true, null]);
+  r = e.b.aiAct(); assert.deepStrictEqual([r.unit, r.type], ['foe0', 'board'], '물리치면 그 배가 이어서 올라탄다');
+  e = dare(); e.b.aiAct(); r = e.b.answer(true); assert.deepStrictEqual([r.type, r.winner, e.b.ended, e.b.winner, e.b.reason, e.b.duel.a.name], ['duel', 'foe', true, 'foe', '폭풍 제독이 일기토에서 포동이를 꺾었다', '폭풍 제독'], '신청한 쪽이 먼저 친다');
+  e = dare(); e.b.aiAct(); r = e.b.aiAct(); assert.deepStrictEqual([r.type, r.unit, e.b.pending], ['refuse', 'foe0', null], '답 없이 넘기면 맡겨 둔 규칙대로 답한다(70 < 86이라 물리친다)');
+  for (const id of ['redsail', 'blackreef']) for (let s = 1; s <= 30; s++) { const v = new H.Voyage(hw(), { rng: new DH.RNG(s) }); v.leave(); const b = v.openBattle(v.rivals.get(id)); b.auto(); assert.ok(!b.log.some(t => /^(붉은수염|외눈 선장)\(무력 \d+\)[이가] /.test(t)), id + s + ': 무력이 10 넘게 앞서지 않는 해적은 신청하지 않는다'); }
+});
+ok('동현항 선장의 성장: 해전을 이기면 무력 +1 · 일기토로 이겼으면 2 더 · 100까지 · 지거나 갈라지면 그대로', () => {
+  const R = (winner, duel) => ({ winner, fled: null, loot: 0, duel, me: { ships: [{ ref: 's1', hull: 60, crew: 28, out: null }] } });
+  const v = V(); v.leave(); assert.deepStrictEqual([v.settleBattle(R('me', { winner: 'me' })).text, v.captain.war], ['해전에서 이겼다 · 금 +0 · 선원 28 → 28명 · 선장 무력 70 → 73', 73]);
+  assert.deepStrictEqual([v.settleBattle(R(null, null)).text, v.captain.war], ['승부가 나지 않아 두 함대가 갈라졌다 · 선원 28 → 28명', 73]);
+  v.captain.war = 99; assert.deepStrictEqual([v.settleBattle(R('me', { winner: 'me' })).text, v.captain.war], ['해전에서 이겼다 · 금 +0 · 선원 28 → 28명 · 선장 무력 99 → 100', 100]);
+  assert.deepStrictEqual([v.settleBattle(R('me', null)).text, v.captain.war], ['해전에서 이겼다 · 금 +0 · 선원 28 → 28명', 100]);
+  const w = V(); w.sailTo('seville'); w.stepDay(); w.settleBattle(R('foe', { winner: 'foe' })); assert.strictEqual(w.captain.war, 70);
+  const full = V(); full.leave(); const b = full.openBattle(full.rivals.get('redsail')); b.units[1].c = 2; b.units[1].r = 4; const d = b.challenge(b.units[0], b.units[1]); assert.strictEqual(d.type, 'duel'); const o = full.settleBattle(b.result());
+  assert.strictEqual(full.captain.war, d.winner === 'me' ? 73 : 70); assert.ok(d.winner !== 'me' || / · 선장 무력 70 → 73$/.test(o.text)); assert.strictEqual(full.openBattle(full.rivals.get('redsail')).fleets.me.captain.war, full.captain.war, '오른 무력으로 다음 해전을 치른다');
+});
+ok('동현항 거북선: 짐 120 · 선원 10~40 · 속도 3 · 선체 200 · 포 40문 · 무적 모드에서만 사고 바꾼다 · 포 한 번에 선체 −84', () => {
+  const t = hw().shipTypes.get('turtle'); assert.deepStrictEqual(t, { id: 'turtle', name: '거북선', cargo: 120, minCrew: 10, maxCrew: 40, speed: 3, hull: 200, guns: 40, price: 30000, cheat: true });
+  const all = [...hw().shipTypes.values()]; assert.deepStrictEqual(all.map(x => x.id), ['caravel', 'carrack', 'turtle']); assert.ok(all.every(x => x.id === 'turtle' || (x.speed < t.speed && x.guns < t.guns && !x.cheat)), '가장 빠르고 포가 가장 많다'); assert.strictEqual(t.cargo, all[0].cargo, '짐은 캐러벨만큼');
+  let v = V(); v.gold = 99999; assert.deepStrictEqual([v.can('ship', 'turtle').why, v.can('swap', 's1', 'turtle').why], ['무적 모드에서만 고를 수 있다', '무적 모드에서만 고를 수 있다']);
+  const st = H.newState(); st.rules.invincible = 1; st.start.ship = 'turtle'; v = V({ state: st }); assert.deepStrictEqual([v.ships[0].type, v.ships[0].hull, v.speed, v.cargoCap, v.maxCrew, v.crew, v.cargoUsed], ['turtle', 200, 3, 120, 40, 28, 60], '설정으로 시작 기함을 바꾼다');
+  v.leave(); const b = v.openBattle(v.rivals.get('storm')), u = b.units[0]; assert.deepStrictEqual([u.type, u.guns, u.maxHull, b.shot(u)], ['turtle', 40, 200, { hull: 84, crew: 14 }], '40문 × 3 × 28 ÷ 40 = 84');
+  st.start.ship = 'carrack'; v = V({ state: st }); assert.deepStrictEqual([v.ships[0].type, v.crew, v.cargoCap], ['carrack', 30, 320], '캐럭으로 시작하면 선원을 최소 30명으로 맞춘다');
+});
+ok('동현항 무적 모드: 금을 내지 않는다 · 식량과 물이 줄지 않는다 · 우리 배가 다치지 않는다 · 선장이 일기토에서 지지 않는다 · 해전에서 지지 않는다', () => {
+  const st = H.newState(); st.rules.invincible = 1; let v = V({ state: st }); assert.ok(v.inv && !V().inv);
+  assert.deepStrictEqual([v.buy('wine').text, v.hire().text, v.train().text, v.addGuns('s1').text, v.buyShip('turtle').text, v.swapShip('s1', 'turtle').text, v.gold],
+    ['포도주 10개를 샀다 · 값 없이(무적 모드) · 값 18 → 19', '선원 5명을 모았다 · 값 없이(무적 모드) · 선원 33명', '포동이가 수련했다 · 값 없이(무적 모드) · 무력 70 → 71', '꼬리바람호에 포 2문을 더 달았다 · 값 없이(무적 모드) · 포 10문', '거북선 흰구름호를 샀다 · 값 없이(무적 모드) · 배 2척', '꼬리바람호를 캐러벨에서 거북선으로 바꿨다 · 헌 배 값 금 1,000 · 값 없이(무적 모드)', 1000]);
+  v.gold = 0; assert.ok(v.buy('wine').ok && v.train().ok && v.gold === 0, '금이 0이어도 된다'); const sold = v.sell('wine'); assert.ok(sold.ok && v.gold === sold.income, '판 값은 받는다');
+  v.sailTo('hakata'); const f0 = v.food, w0 = v.water; for (let i = 0; i < 6; i++) v.stepDay(); assert.deepStrictEqual([v.food, v.water, v.day], [f0, w0, 6]);
+  assert.deepStrictEqual([v.meetInfo(v.rivals.get('storm')).toll, v.meetInfo(v.rivals.get('redsail')).fast, v.payToll(v.rivals.get('storm')).text], [0, true, '폭풍 사략 함대가 통행료 없이 길을 비켰다(무적 모드)']);
+  let wins = 0, n = 0; for (const id of ['redsail', 'blackreef', 'storm']) for (let s = 1; s <= 25; s++) { const q = new H.Voyage(hw(), { rng: new DH.RNG(s), state: st }); q.leave(); const g0 = q.gold, b = q.openBattle(q.rivals.get(id)); assert.ok(b.fleets.me.invincible && !b.fleets.foe.invincible && b.accepts('me'));
+    const res = b.auto(); n++; if (res.winner === 'me') wins++; assert.notStrictEqual(res.winner, 'foe', id + s); for (const u of b.units) if (u.side === 'me') assert.deepStrictEqual([u.hull, u.crew, u.out], [u.maxHull, 28, null]);
+    if (b.duel) assert.deepStrictEqual([b.duel.winner, b.duel[b.duel.a.side === 'me' ? 'a' : 'b'].hp], ['me', 100], '기력이 줄지 않는다'); const o = q.settleBattle(res); assert.ok(o.ok && q.crew === 28 && q.gold >= g0); }
+  assert.strictEqual(wins, n, '75판을 모두 이긴다');
+  const e = fight('storm', { state: st }); for (const u of e.me) e.b.wait(u); e.b.endSide(); e.foe[0].c = 3; e.foe[0].r = 4; assert.strictEqual(e.b.aiAct().type, 'challenge'); const r = e.b.aiAct(); assert.deepStrictEqual([r.type, r.winner, e.b.duel.b.hp], ['duel', 'me', 100], '무적이면 맡겨 둔 싸움에서도 받는다');
+  const f = fight('storm', { state: st }); f.b.endSide(); f.foe[0].c = 3; f.foe[0].r = 4; const shot = f.b.fire(f.foe[0], f.me[0]); assert.deepStrictEqual([shot.hull, shot.crew, f.me[0].hull], [0, 0, 60]); assert.deepStrictEqual(f.b.boardPreview(f.foe[1], f.me[0]).hit, 0);
+});
 // ───────── 동현항 동현랭 ─────────
 ok('동현항 설정: 시작 자금 · 식량 · 물 · 선원 · 선장 무력 · 시작 짐 · 교역 단위 · 변동 폭 · 수수료 · 손실 · 만날 확률 · 해전 수치 · 적 선장 무력', () => {
   const w = hw(), st = H.newState(), L = H.lang;
   const r = H.applyDonghyunLang(L.compose([[2, 77], [3, 5000], [4, 30], [5, 20], [6, 40], [7, 95], [8, 1, 80], [8, 2, 0], [8, 7, 10], [10, 20], [11, 10], [12, 0], [13, 50], [14, 100], [22, 9], [23, 5], [24, 4], [30, 1, 40], [30, 3, 99]], '', { world: w }), st, { world: w });
-  assert.ok(r.ok, r.errors.join()); assert.strictEqual(r.settings.length, 19); assert.deepStrictEqual(st.start, { seed: 77, gold: 5000, food: 30, water: 20, crew: 40, war: 95 });
+  assert.ok(r.ok, r.errors.join()); assert.strictEqual(r.settings.length, 19); assert.deepStrictEqual(st.start, { seed: 77, gold: 5000, food: 30, water: 20, crew: 40, war: 95, ship: null });
   assert.deepStrictEqual([st.cargo, st.rivals, st.rules.lot, st.rules.price.stepPct, st.rules.price.feePct, st.rules.supply.lossPct, st.rules.encounter.percent, st.sea.turns, st.sea.mp, st.sea.range], [[['wine', 80], ['olive', 0], ['pepper', 10]], [['redsail', 40], ['storm', 99]], 20, 10, 0, 50, 100, 9, 5, 4]);
-  assert.ok(r.applied.includes('시작 짐 포도주 80') && r.applied.includes('적 선장 무력 붉은수염 40') && r.applied.includes('시작 자금 5,000'), r.applied.join());
+  assert.ok(r.applied.includes('시작 짐 포도주 80') && r.applied.includes('해적 선장 무력 붉은수염 40') && r.applied.includes('시작 자금 5,000'), r.applied.join());
   assert.deepStrictEqual([H.RULES.lot, H.SEA.mp, H.RULES.encounter.percent], [10, 3, 5], '기본값 표는 그대로다');
   const v = new H.Voyage(w, { rng: new DH.RNG(77), state: st });
   assert.deepStrictEqual([v.gold, v.crew, v.foodDays, v.waterDays, v.captain.war, [...v.cargo].map(([g, h]) => [g, h.qty]), v.rivals.get('redsail').captain.war, v.rivals.get('blackreef').captain.war, v.rivals.get('storm').captain.war], [5000, 40, 30, 20, 95, [['wine', 80], ['pepper', 10]], 40, 72, 99]);
@@ -299,16 +384,16 @@ ok('동현항 설정: 틀린 번호와 값은 까닭을 말하고 globalState를
   const w = hw(), st = H.newState(), same = JSON.stringify(st), L = H.lang;
   const E = (list, re) => { const r = H.applyDonghyunLang(L.compose(list, '', { world: w }), st, { world: w }); assert.strictEqual(r.ok, false); assert.ok(re.test(r.errors[0]), r.errors[0]); assert.strictEqual(JSON.stringify(st), same); };
   E([[3, 500], [8, 13, 10]], /설정 8\(시작 짐\): 교역품은 12가지뿐이다/); E([[6, 41]], /설정 6\(시작 선원\): 선원 41명은 배의 10~40명 밖이다/); E([[6, 9]], /10~40명 밖/); E([[4, 121]], /시작 식량\(일\) 값 121은 쓸 수 없다\. 0~120만 된다/);
-  E([[8, 1, 80], [8, 2, 41]], /시작 짐 121개는 배에 다 실리지 않는다\. 적재량은 120이다\./); E([[8, 3, 61]], /시작 짐 121개는/); E([[30, 4, 50]], /설정 30\(적 선장 무력\): 적 함대는 3개뿐이다/); E([[30, 1, 101]], /무력 값 101은 쓸 수 없다\. 1~100만 된다/);
+  E([[8, 1, 80], [8, 2, 41]], /시작 짐 121개는 배에 다 실리지 않는다\. 적재량은 120이다\./); E([[8, 3, 61]], /시작 짐 121개는/); E([[30, 4, 50]], /설정 30\(해적 선장 무력\): 해적은 3무리뿐이다/); E([[30, 1, 101]], /무력 값 101은 쓸 수 없다\. 1~100만 된다/);
   E([[23, 7]], /배 이동력 값 7은 쓸 수 없다\. 1~6만 된다/); E([[14, 101]], /0~100만 된다/);
   const r = H.applyDonghyunLang(put(1, 1), st, { world: w }); assert.ok(/1번째 정수 1은 동현항 설정 번호가 아니다/.test(r.errors[0]), r.errors[0]);
   assert.ok(H.applyDonghyunLang(L.compose([[8, 1, 60], [8, 2, 60]], '', { world: w }), H.newState(), { world: w }).ok, '적재량에 꼭 맞으면 된다');
-  const ex = H.examples(w); assert.deepStrictEqual(ex.map(e => e.id), ['none', 'rich', 'stage', 'war', 'poor', 'calm', 'hunger', 'guns', 'scale', 'loop']);
+  const ex = H.examples(w); assert.deepStrictEqual(ex.map(e => e.id), ['none', 'rich', 'stage', 'war', 'poor', 'calm', 'hunger', 'guns', 'scale', 'loop', 'turtle']);
   for (const e of ex) { const s2 = H.newState(), q = H.applyDonghyunLang(e.code, s2, { world: w }); assert.ok(q.ok, e.name + q.errors.join()); assert.strictEqual(q.empty, e.id === 'none'); assert.ok(e.code.startsWith('나는 동현이냐?') && e.code.endsWith('동현이구나')); new H.Voyage(hw(), { state: s2 }); }
-  assert.strictEqual(L.describe(H.newState()).length, 18); assert.ok(L.describe(H.newState()).every(x => x.now !== undefined && x.now !== null && x.range), '표의 모든 줄에 범위와 기본값이 있다');
+  assert.strictEqual(L.describe(H.newState()).length, 23); assert.ok(L.describe(H.newState()).every(x => x.now !== undefined && x.now !== null && x.range), '표의 모든 줄에 범위와 기본값이 있다');
   assert.ok(H.lang instanceof A, '공통 어댑터 클래스를 쓴다');
 });
-ok('동현항 예제: 이름 앞에 번호 01~10 · 예제마다 새 탐험이 열린다 · 09 변수(배율 1~4) · 10 반복문(열두 교역품 · 적재량에 꼭 찬다)', () => {
+ok('동현항 예제: 이름 앞에 번호 01~11 · 예제마다 새 탐험이 열린다 · 09 변수(배율 1~4) · 10 반복문(열두 교역품 · 적재량에 꼭 찬다)', () => {
   const ex = H.examples(hw()), by = id => ex.find(e => e.id === id), run = code => { const st = H.newState(), w = hw(), r = H.applyDonghyunLang(code, st, { world: w }); return { st, r, w }; };
   const voyage = id => { const { st, r, w } = run(by(id).code); assert.ok(r.ok, id + r.errors.join()); return new H.Voyage(w, { rng: new DH.RNG(3), state: st }); }, hold = v => [...v.cargo].map(([k, h]) => k + ' ' + h.qty).join(' · ');
   ex.forEach((e, i) => { assert.ok(e.name.startsWith(String(i + 1).padStart(2, '0') + ' · '), e.name); assert.ok(e.code.split('\n')[1].startsWith('ㅋㅋ '), e.id + ': 둘째 줄이 설명이다');
@@ -316,9 +401,9 @@ ok('동현항 예제: 이름 앞에 번호 01~10 · 예제마다 새 탐험이 �
     const v = voyage(e.id); assert.ok(v.cargoUsed <= v.cargoCap && v.port === 'lisbon'); });
   const applied = id => run(by(id).code).r.applied;
   assert.deepStrictEqual(applied('poor'), ['시작 자금 300', '시작 식량(일) 30', '시작 물(일) 30', '시작 짐 포도주 0', '시작 짐 올리브유 0', '교역 단위 5']);
-  assert.deepStrictEqual(applied('calm'), ['시작 자금 20,000', '적 함대를 만날 확률(%/일) 0', '교역 단위 40', '시세 변동 폭(%) 1', '교역소 수수료(%) 0']);
-  assert.deepStrictEqual(applied('hunger'), ['시작 식량(일) 10', '시작 물(일) 10', '굶을 때 하루 선원 손실(%) 30', '적 함대를 만날 확률(%/일) 0']);
-  assert.deepStrictEqual(applied('guns'), ['적 함대를 만날 확률(%/일) 60', '포 사거리 6', '배 이동력 1', '해전 기한(턴) 40', '적 선장 무력 외눈 선장 50', '적 선장 무력 폭풍 제독 50']);
+  assert.deepStrictEqual(applied('calm'), ['시작 자금 20,000', '해적을 만날 확률(%/일) 0', '교역 단위 40', '시세 변동 폭(%) 1', '교역소 수수료(%) 0']);
+  assert.deepStrictEqual(applied('hunger'), ['시작 식량(일) 10', '시작 물(일) 10', '굶을 때 하루 선원 손실(%) 30', '해적을 만날 확률(%/일) 0']);
+  assert.deepStrictEqual(applied('guns'), ['해적을 만날 확률(%/일) 60', '포 사거리 6', '배 이동력 1', '해전 기한(턴) 40', '해적 선장 무력 외눈 선장 50', '해적 선장 무력 폭풍 제독 50']);
   let v = voyage('poor'); assert.deepStrictEqual([v.gold, v.cargoUsed, v.foodDays, v.waterDays], [300, 0, 30, 30]);
   v = voyage('hunger'); assert.deepStrictEqual([v.foodDays, v.waterDays], [10, 10]);
   // 09 변수: 대입 한 줄만 바꾸면 세 값이 함께 바뀐다
@@ -334,6 +419,26 @@ ok('동현항 예제: 이름 앞에 번호 01~10 · 예제마다 새 탐험이 �
   const L = run(by('loop').code); assert.strictEqual(L.r.output.trim().split('\n').length, 36, '정수 서른여섯 개(설정 열두 개 × 세 정수)'); assert.deepStrictEqual(L.st.cargo.map(c => c[1]), Array(12).fill(10));
   v = voyage('loop'); assert.deepStrictEqual([v.cargo.size, v.cargoUsed, v.cargoCap], [12, 120, 120]); assert.deepStrictEqual([...v.cargo.keys()], [...L.w.goods.keys()], '교역품 열두 가지가 자료의 차례대로 실린다');
 });
+ok('동현항 설정 9 · 15~18: 시작 기함 · 무적 모드 · 통행료 · 선장 수련 값 · 포 보강 값 · 거북선은 무적 모드에서만 · 기함에 맞춰 선원과 짐을 검사한다', () => {
+  const w = hw(), L = H.lang, run = list => { const st = H.newState(), r = H.applyDonghyunLang(L.compose(list, '', { world: w }), st, { world: w }); return { st, r }; };
+  let { st, r } = run([[9, 2], [15, 1], [16, 50], [17, 0], [18, 1000], [6, 100], [8, 1, 300]]); assert.ok(r.ok, r.errors.join());
+  assert.deepStrictEqual([st.start.ship, st.rules.invincible, st.rules.encounter.tollPct, st.rules.inn.train, st.rules.dock.gunGold, r.applied], ['carrack', 1, 50, 0, 1000, ['시작 기함 캐럭', '무적 모드 1', '통행료(자금의 %) 50', '선장 수련 값(금) 0', '포 보강 값(금) 1,000', '시작 선원 100', '시작 짐 포도주 300']]);
+  assert.deepStrictEqual([H.RULES.invincible, H.RULES.encounter.tollPct, H.RULES.inn.train, H.RULES.dock.gunGold], [0, 20, 300, 400], '기본값 표는 그대로다');
+  const v = new H.Voyage(w, { rng: new DH.RNG(3), state: st }); assert.deepStrictEqual([v.ships[0].type, v.crew, v.cargoUsed, v.cargoCap, v.inv], ['carrack', 100, 320, 320, true]);
+  ({ st, r } = run([[17, 0], [18, 150]])); assert.ok(r.ok); const q = new H.Voyage(hw(), { rng: new DH.RNG(3), state: st }); assert.deepStrictEqual([q.train().text, q.addGuns('s1').text, q.gold], ['포동이가 수련했다 · 금 −0 · 무력 70 → 71', '꼬리바람호에 포 2문을 더 달았다 · 금 −150 · 포 10문', 850]);
+  const E = (list, re) => { const x = run(list); assert.strictEqual(x.r.ok, false, JSON.stringify(list)); assert.ok(re.test(x.r.errors[0]), x.r.errors[0]); assert.deepStrictEqual(x.st, H.newState()); };
+  E([[9, 3]], /^거북선은 무적 모드에서만 탄다\. 설정 15\(무적 모드\)를 1로 함께 적는다\.$/); E([[9, 3], [15, 0]], /거북선은 무적 모드에서만/); E([[9, 4]], /설정 9\(시작 기함\): 배 종류는 3가지뿐이다/);
+  E([[9, 2], [6, 29]], /설정 6\(시작 선원\): 선원 29명은 배의 30~120명 밖이다/); E([[9, 2], [8, 1, 301]], /시작 짐 321개는 배에 다 실리지 않는다\. 적재량은 320이다\./); E([[15, 2]], /무적 모드 값 2는 쓸 수 없다\. 0~1만 된다/); E([[16, 0]], /통행료\(자금의 %\) 값 0은 쓸 수 없다/);
+  assert.ok(run([[9, 3], [15, 1]]).r.ok && run([[15, 1], [9, 3]]).r.ok, '적는 차례는 상관없다');
+  const rows = L.describe(H.newState()); assert.deepStrictEqual(rows.map(x => x.n), [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 30]);
+});
+ok('동현항 예제 11 · 무적 모드: 거북선으로 떠나 금이 줄지 않고 해전마다 이긴다 · 승리 조건은 적지 않는다', () => {
+  const w = hw(), ex = H.examples(w).find(e => e.id === 'turtle'), st = H.newState(), r = H.applyDonghyunLang(ex.code, st, { world: w }); assert.ok(r.ok, r.errors.join());
+  assert.strictEqual(ex.name, '11 · 무적 모드: 거북선과 끝없는 자금'); assert.deepStrictEqual(r.applied, ['무적 모드 1', '시작 기함 거북선', '해적을 만날 확률(%/일) 40']); assert.deepStrictEqual(st.stage, { gold: 0, days: 0 });
+  const v = new H.Voyage(w, { rng: new DH.RNG(5), state: st }); assert.deepStrictEqual([v.ships[0].type, v.speed, v.over], ['turtle', 3, null]); v.sailTo('calicut'); let met = 0;
+  for (let i = 0; i < 400 && !v.port; i++) { const d = v.stepDay(); if (d.encounter) { met++; const res = v.openBattle(d.encounter).auto(); assert.strictEqual(res.winner, 'me'); assert.ok(v.settleBattle(res).ok); } }
+  assert.ok(met >= 3 && v.port === 'calicut' && v.crew === 28 && v.ships[0].hull === 200 && v.captain.war > 70, `해적 ${met}번 · ${v.port} · 무력 ${v.captain.war}`);
+});
 
 /* ---------- 장면을 화면 없이 돌린다(저장 · 불러오기). 조작 창은 가짜로 받아 적는다 ---------- */
 function mk(seed = 1, script) {
@@ -341,8 +446,8 @@ function mk(seed = 1, script) {
   const world = DH.Hang.parse(hangJ()), engine = new DH.Engine({ width: 480, height: 360, seed, clock: { unit: 'day', start: world.meta.start, ticksPerUnit: 20 } });
   const scene = new DH.Hang.HangSeaScene(engine, world, L); engine.setScene(scene);
   if (script !== undefined) assert.ok(scene.applyDonghyunLang(script).ok);
-  /** 틱을 흘린다. 해전이 열리면 선원들에게 맡기고 결과 카드를 넘긴다 */
-  const run = ticks => { for (let i = 0; i < ticks; i++) { const t = engine.scene; if (t !== scene) { if (t.mode === 'result') t.command('back'); else if (t.myTurn && !t.auto) t.command('auto'); } engine.step(1); } };
+  /** 틱을 흘린다. 해적을 만나면 싸우기로 하고, 해전이 열리면 선원들에게 맡기고 결과 카드를 넘긴다 */
+  const run = ticks => { for (let i = 0; i < ticks; i++) { const t = engine.scene; if (t === scene && scene.mode === 'meet') scene.command('fight'); else if (t !== scene) { if (t.mode === 'result') t.command('back'); else if (t.myTurn && !t.auto) t.command('auto'); } engine.step(1); } };
   const sailTo = pid => { scene.pick(pid); scene.command('sail'); };
   return { world, layout: L, engine, scene, run, sailTo };
 }
@@ -355,7 +460,7 @@ ok('동현항 저장: 탐험을 적었다가 되살리면 똑같다(뱃길 · �
   const v = s.voyage, j = J(v); assert.ok(!v.port && v.moving && j.path.length > 0 && j.dest === 'genoa', '바다 한가운데');
   const h = DH.Hang.Voyage.restore(k.world, j, { rng: new DH.RNG(1), state: s.state });
   assert.deepStrictEqual(J(h), j); assert.deepStrictEqual([h.moving, h.cargoUsed, h.cargoCap, h.maxCrew, h.foodDays, h.speed], [true, v.cargoUsed, v.cargoCap, v.maxCrew, v.foodDays, v.speed]);
-  assert.deepStrictEqual(Object.keys(j), ['gold', 'crew', 'food', 'water', 'x', 'y', 'port', 'lastPort', 'day', 'sinceLand', 'path', 'dest', 'heading', 'over', 'overWhy', 'ships', 'cargo', 'markets']);
+  assert.deepStrictEqual(Object.keys(j), ['gold', 'crew', 'food', 'water', 'x', 'y', 'port', 'lastPort', 'day', 'sinceLand', 'path', 'dest', 'heading', 'over', 'overWhy', 'war', 'ships', 'cargo', 'markets']);
   assert.deepStrictEqual([j.markets.length, j.cargo.map(c => c[0]), Object.keys(j.ships[0])], [20, [...v.cargo.keys()], ['id', 'type', 'name', 'hull']]);
   const lis = j.markets.find(m => m[0] === 'lisbon')[1], base = k.world.ports.get('lisbon').market; assert.ok(lis.some((e, i) => e[1] !== base[i].price) && lis.some((e, i) => e[2] !== base[i].stock), '사고팔아 움직인 값과 재고가 적힌다(날마다 제자리로 돌아가는 중이다)');
   assert.deepStrictEqual([...h.markets.get('lisbon').values()].map(e => [e.good, e.price, e.stock]), lis);
@@ -404,13 +509,56 @@ ok('동현항 저장: 맞지 않는 묶음은 까닭을 말하고 하던 탐험�
 });
 ok('동현항 저장: 해전 중에는 저장하지 못한다 · 불러오기는 해전 중에도 된다(해전을 접는다) · 끝난 탐험도 저장된다 · 화면 정보가 이상하면 버린다', () => {
   const k = mk(5, DH.Hang.lang.compose([[14, 100]])), s = k.scene; assert.deepStrictEqual(s.saveInfo(), { ok: true }); const d = pack(k);
-  k.sailTo('calicut'); for (let i = 0; i < 4000 && k.engine.scene === s; i++) k.engine.step(1);
-  assert.ok(k.engine.scene instanceof DH.Hang.HangBattleScene); assert.deepStrictEqual(s.saveInfo(), { ok: false, why: '해전이 끝난 뒤에 저장할 수 있다.' });
+  k.sailTo('calicut'); for (let i = 0; i < 4000 && s.mode !== 'meet'; i++) k.engine.step(1);
+  assert.deepStrictEqual([s.mode, k.engine.clock.running, s.saveInfo()], ['meet', false, { ok: false, why: '해적과 마주친 동안에는 저장할 수 없다. 먼저 어떻게 할지 고른다.' }], '해적 출현 카드가 떠 있는 동안에도 저장하지 못한다');
+  s.command('fight'); assert.ok(k.engine.scene instanceof DH.Hang.HangBattleScene); assert.deepStrictEqual(s.saveInfo(), { ok: false, why: '해전이 끝난 뒤에 저장할 수 있다.' });
   const r = s.loadGame(d); assert.ok(r.ok && !/계속/.test(r.text)); assert.ok(k.engine.scene === s && s.mode === 'port' && s.voyage.port === 'lisbon' && s.voyage.day === 0, '해전을 접고 저장한 날로 돌아온다');
   const w = mk(2, DH.Hang.lang.compose([[20, 500]])); w.scene.command('tab:market'); w.scene.command('sell:wine'); assert.deepStrictEqual([w.scene.mode, w.scene.voyage.over, w.scene.saveInfo().ok], ['over', 'won', true]);
   const x = mk(9); assert.ok(x.scene.loadGame(pack(w)).ok); assert.deepStrictEqual([x.scene.mode, x.scene.voyage.overWhy, x.layout.items[0].id], ['over', 'gold', 'again']);
   const t = mk(4); t.scene.command('tab:dock'); const dt = pack(t); assert.deepStrictEqual(Object.keys(dt.scene), ['selected', 'spot', 'tab', 'follow', 'leg', 'cam']); assert.strictEqual(dt.scene.tab, 'dock');
   assert.ok(x.scene.loadGame(dt).ok); assert.strictEqual(x.scene.tab, 'dock', '보던 창구가 그대로 열린다');
   dt.scene = { selected: 'atlantis', tab: 'casino', spot: [0, 0], leg: -3, cam: { x: 'a' } }; assert.ok(x.scene.loadGame(dt).ok); assert.deepStrictEqual([x.scene.selected, x.scene.tab, x.scene.spot, x.scene.leg], [null, null, null, 0]);
+});
+ok('동현항 저장: 선장 무력과 보강한 포가 적힌다 · v0.07까지의 저장(둘 다 없음)도 열린다 · 틀린 값은 버린다', () => {
+  const v = V(); v.addGuns('s1'); v.train(); const j = J(v); assert.deepStrictEqual([j.war, j.ships], [71, [{ id: 's1', type: 'caravel', name: '꼬리바람호', hull: 60, plus: 2 }]]);
+  const h = H.Voyage.restore(hw(), j, { rng: new DH.RNG(1) }); assert.deepStrictEqual([h.captain.war, h.gunsOf(h.ships[0]), J(h)], [71, 10, j]);
+  const old = J(V()); delete old.war; assert.deepStrictEqual(Object.keys(old.ships[0]), ['id', 'type', 'name', 'hull'], '보강한 포가 없으면 적지 않는다'); const o = H.Voyage.restore(hw(), old, { rng: new DH.RNG(1) }); assert.deepStrictEqual([o.captain.war, o.ships[0].plus, o.gunsOf(o.ships[0])], [70, 0, 8]);
+  const st = H.newState(); st.start.war = 95; assert.strictEqual(H.Voyage.restore(hw(), old, { rng: new DH.RNG(1), state: st }).captain.war, 95, '옛 저장은 설정의 무력을 쓴다');
+  for (const war of [0, 101, 'x', 1.5]) assert.throws(() => H.Voyage.restore(hw(), { ...j, war }, { rng: new DH.RNG(1) }), /선장 정보가 맞지 않는다/);
+  for (const plus of [9, -1, 1.5, 'x']) assert.throws(() => { const k = J(j); k.ships[0].plus = plus; H.Voyage.restore(hw(), k, { rng: new DH.RNG(1) }); }, /배 정보가 자료와 맞지 않는다/);
+});
+ok('동현항 만남: 해적 기함이 올라타면 잃는 선원을 미리 알려 준다 · 해전의 백병전과 같은 값 · 캐러벨 기함은 폭풍 제독에게 한 번에 빼앗기고 캐럭 기함은 버틴다', () => {
+  const v = V(), R = id => v.flagRisk(v.rivals.get(id));
+  assert.deepStrictEqual([R('redsail'), R('blackreef'), R('storm')], [{ ours: 28, theirs: 24, hit: 7, taken: false }, { ours: 28, theirs: 28, hit: 11, taken: false }, { ours: 28, theirs: 83, hit: 28, taken: true }]);
+  for (const id of ['redsail', 'blackreef', 'storm']) { const f = fight(id), p = f.b.boardPreview(f.foe[0], f.me[0]), k = f.v.flagRisk(f.v.rivals.get(id)); assert.deepStrictEqual([p.hit, f.me[0].crew, f.foe[0].crew], [k.hit, k.ours, k.theirs], id); }
+  const full = V(); full.gold = 9999; while (full.can('hire').ok) full.hire(); assert.deepStrictEqual(full.flagRisk(full.rivals.get('storm')), { ours: 40, theirs: 83, hit: 40, taken: true }, '선원을 가득 채워도 캐러벨은 한 번에 빼앗긴다');
+  const big = V(); big.gold = 99999; big.swapShip('s1', 'carrack'); while (big.can('hire').ok) big.hire(); assert.deepStrictEqual(big.flagRisk(big.rivals.get('storm')), { ours: 120, theirs: 83, hit: 40, taken: false });
+  const st = H.newState(); st.rules.invincible = 1; const inv = V({ state: st }); assert.deepStrictEqual(inv.flagRisk(inv.rivals.get('storm')), { ours: 28, theirs: 83, hit: 0, taken: false });
+});
+ok('동현항 화면: 해적 출현 카드에서 싸운다 · 달아난다 · 통행료를 고른다 · 고르기 전에는 날이 가지 않는다 · 달아나거나 내면 잡아 둔 뱃길을 이어 간다', () => {
+  const meet = seed => { const k = mk(seed, DH.Hang.lang.compose([[14, 100]])); k.sailTo('calicut'); for (let i = 0; i < 4000 && k.scene.mode !== 'meet'; i++) k.engine.step(1); assert.strictEqual(k.scene.mode, 'meet'); return k; };
+  let k = meet(5), s = k.scene, v = s.voyage; const rv = s.meet, m = v.meetInfo(rv);
+  assert.ok(k.layout.logs.some(t => t === `해적 출현 · ${DH.josa(rv.name, '과', '와')} 마주쳤다`), k.layout.logs.slice(-3).join(' / '));
+  assert.deepStrictEqual(k.layout.items.map(i => i.id), ['fight', 'evade', 'toll']); assert.deepStrictEqual([k.layout.items[0].label, k.layout.items[0].primary, k.layout.items[1].label, k.layout.items[2].label], ['싸운다', true, m.fast ? '달아난다 · 따돌린다' : `달아난다 · 짐 −${m.drop}`, `통행료를 낸다 · 금 ${m.toll}`]);
+  const day = v.day; k.engine.step(200); assert.deepStrictEqual([v.day, s.mode, k.engine.clock.running], [day, 'meet', false], '고르기 전에는 멈춰 있다'); s.command('sail'); s.command('pause'); s.command('tab:market'); assert.strictEqual(s.mode, 'meet', '다른 단추는 듣지 않는다');
+  const g0 = v.gold; s.command('toll'); assert.deepStrictEqual([s.mode, s.meet, v.gold, k.engine.clock.running, v.moving], ['sea', null, g0 - m.toll, true, true]); k.engine.step(20); assert.strictEqual(v.day, day + 1, '뱃길을 이어 간다');
+  k = meet(5); s = k.scene; v = s.voyage; const used = v.cargoUsed, mi = v.meetInfo(s.meet); s.command('evade'); assert.deepStrictEqual([s.mode, v.cargoUsed, k.engine.clock.running], ['sea', used - mi.drop, true]);
+  k = meet(5); s = k.scene; s.voyage.gold = 50; s.refresh(); assert.deepStrictEqual([k.layout.items[2].disabled, k.layout.items[2].hint, k.layout.items[2].label], [true, '금이 모자란다', '통행료를 낸다']); s.command('toll'); assert.strictEqual(s.mode, 'meet', '못 내면 그대로다');
+  const got = []; k.layout.press = n => got.push(n); k.layout.pressPrimary = () => got.push('primary'); for (const code of ['ArrowLeft', 'Space', 'Escape', 'Digit2', 'Enter']) s.onKey(code);
+  assert.deepStrictEqual([got, s.mode, s.voyage.heading], [[2, 'primary'], 'meet', v.heading], '숫자 키와 Enter만 듣는다(방향키 · Space · Esc는 듣지 않는다)');
+  s.command('fight'); assert.ok(k.engine.scene instanceof DH.Hang.HangBattleScene && s.meet === null);
+});
+ok('동현항 화면: 여관의 선장 수련 · 도크에서 배를 골라 포 보강 · 바꾸기 · 팔기 · 거북선은 무적 모드에서만 보인다', () => {
+  let k = mk(3), s = k.scene, v = s.voyage, ids = () => k.layout.items.map(i => i.id), item = id => k.layout.items.find(i => i.id === id);
+  s.command('tab:inn'); assert.deepStrictEqual([ids(), item('train').label], [['hire', 'train', 'back'], '선장 수련 무력 +1 · 금 300']); s.command('train'); assert.deepStrictEqual([v.captain.war, v.gold], [71, 700]); s.command('back');
+  s.command('tab:dock'); assert.deepStrictEqual([ids(), item('pick:s1').label], [['repair', 'pick:s1', 'ship:caravel', 'ship:carrack', 'back'], '꼬리바람호 손보기']);
+  s.command('pick:s1'); assert.deepStrictEqual([ids(), item('gun').label, item('swap:carrack').disabled, item('swap:carrack').hint, item('sellship').hint], [['gun', 'swap:carrack', 'sellship', 'back'], '포 보강 +2문 · 금 400', true, '금이 모자란다', '마지막 한 척은 팔 수 없다']);
+  s.command('gun'); assert.deepStrictEqual([v.ships[0].plus, v.gold], [2, 300]); v.gold = 9000; s.refresh(); assert.strictEqual(item('swap:carrack').label, '캐럭으로 바꾸기 · 금 4,000'); s.command('swap:carrack');
+  assert.deepStrictEqual([v.ships[0].type, v.gold, ids(), item('swap:caravel').label], ['carrack', 5000, ['gun', 'swap:caravel', 'sellship', 'back'], '캐러벨로 바꾸기 · 금 +500']);
+  s.command('back'); assert.deepStrictEqual([s.tab, s.dockShip, ids()[0]], ['dock', null, 'repair'], '돌아가기 한 번에 도크로'); s.command('ship:caravel'); s.command('pick:s2'); s.command('sellship'); assert.deepStrictEqual([v.ships.length, s.dockShip, v.gold, ids()[0]], [1, null, 4000, 'repair']);
+  s.command('pick:zz'); assert.strictEqual(s.dockShip, null); s.command('pick:s1'); s.onKey('Escape'); assert.deepStrictEqual([s.tab, s.dockShip], ['dock', null]); s.onKey('Escape'); assert.strictEqual(s.tab, null);
+  k = mk(3, DH.Hang.lang.compose([[15, 1], [9, 3]])); s = k.scene; v = s.voyage; assert.ok(k.layout.logs.some(t => /무적 모드/.test(t)), k.layout.logs.join(' / ')); s.command('tab:dock'); assert.deepStrictEqual(ids(), ['repair', 'pick:s1', 'ship:caravel', 'ship:carrack', 'ship:turtle', 'back']);
+  s.command('ship:turtle'); assert.deepStrictEqual([v.ships.map(sh => sh.type), v.gold], [['turtle', 'turtle'], 1000]); s.command('pick:s1'); assert.deepStrictEqual(ids(), ['gun', 'swap:caravel', 'swap:carrack', 'sellship', 'back']);
+  const d = pack(k); const x = mk(9); assert.ok(x.scene.loadGame(d).ok); assert.deepStrictEqual([x.scene.voyage.inv, x.scene.voyage.ships.map(sh => sh.type), x.scene.tab, x.scene.dockShip], [true, ['turtle', 'turtle'], 'dock', null], '저장에 설정이 함께 담겨 무적 모드와 거북선이 되살아난다');
 });
 console.log(`핵심 시험 ${n}개 통과`);

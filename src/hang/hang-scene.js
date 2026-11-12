@@ -2,10 +2,12 @@
  *   항구   조작 창이 교역소 · 여관 · 도크 · 보급 · 출항으로 바뀐다. 지도에서 갈 항구나 바다를 찍고 출항한다.
  *   바다   방향키로 키를 잡거나 지도의 바다를 찍으면 그리로 간다. 항구를 찍으면 시세가 보이고 '○○로 항해' 단추가 뜬다.
  *          배가 움직이는 동안에만 날이 간다(하루 = 한 걸음). 정박 칸에 닿으면 그 항구에 든다.
- *   만남   적 함대를 만나면 해전 화면(hang-battle-scene.js)으로 넘어가고, 끝나면 결과를 반영해 이 지도로 돌아온다.
+ *   만남   해적을 만나면 배가 멎고 '해적 출현' 카드가 뜬다. 싸운다 · 달아난다 · 통행료를 낸다 가운데 고른다.
+ *          싸우면 해전 화면(hang-battle-scene.js)으로 넘어가고, 끝나면 결과를 반영해 이 지도로 돌아온다.
+ *   도크   배를 고르면(○○ 손보기) 그 배에 포를 더 달거나, 다른 배로 바꾸거나, 판다. 여관에서는 선장이 수련해 무력을 올린다.
  * 키보드(지도를 한 번 누른 뒤): 바다에서 방향키는 키 · 항구에서 방향키는 그쪽 항구 고르기 · Space 바다에서 멈춤·계속(그 밖에는 가까운 항구부터 차례로) ·
  *   Q E 가까운 항구 차례로(앞 · 뒤) · 숫자 키 조작 창의 단추 · Enter 노란 단추 · Esc 그만두기 · Shift+방향키(또는 W A S D) 지도 옮기기 · + − 확대와 축소.
- * 저장: saveGame()이 설정 목록 · 날짜 · 난수 · 탐험을 한 묶음으로 내고, loadGame()이 검사한 뒤 되살린다. 해전 중에는 저장하지 않는다.
+ * 저장: saveGame()이 설정 목록 · 날짜 · 난수 · 탐험을 한 묶음으로 내고, loadGame()이 검사한 뒤 되살린다. 해전 중과 해적 출현 카드가 떠 있는 동안에는 저장하지 않는다.
  *   불러온 탐험은 멈춘 채로 돌아온다(잡아 둔 뱃길과 키는 그대로여서 '계속'을 누르면 이어 간다). */
 (function (root) {
   'use strict';
@@ -27,6 +29,7 @@
       super(engine); this.world = world; this.layout = layout;
       this.state = DH.Hang.newState();                            // globalState: 기본값. 동현랭 설정이 오면 새로 지어 덮어쓴다
       this.selected = null; this.spot = null; this.tab = null; this.route = null; this.follow = true; this.leg = 0;
+      this.meet = null; this.dockShip = null;                     // 마주친 해적(카드가 떠 있는 동안) · 도크에서 손보려고 고른 배 id
       this.voyage = this.newVoyage(); this.from = [this.voyage.x, this.voyage.y];
       this.settings = [];                                          // 지금 탐험에 적용된 동현랭 설정 [[번호, 값…]] (저장할 때 함께 적는다)
     }
@@ -50,12 +53,13 @@
       const s = this.world.meta.start, c = this.engine.clock;
       Object.assign(c, { year: s.year, month: s.month || 1, day: s.day || 1, serial: 0, _acc: 0, running: false });
       this.voyage = this.newVoyage(); this.from = [this.voyage.x, this.voyage.y];
-      this.selected = null; this.spot = null; this.tab = null; this.route = null; this.follow = true; this.leg = 0;
+      this.selected = null; this.spot = null; this.tab = null; this.route = null; this.follow = true; this.leg = 0; this.meet = null; this.dockShip = null;
       this.centerOnFleet(); this.hello(); this.refresh();
     }
     hello() {
       const v = this.voyage, st = v.stage;
       this.layout.log(`${v.here ? v.here.name : '바다'}에 닻을 내리고 있다. 채비를 하고 지도에서 갈 곳을 찍어 출항한다`);
+      if (v.inv) this.layout.log('무적 모드: 금을 내지 않고, 식량과 물이 줄지 않고, 해전에서 우리 배가 다치지 않고, 선장이 일기토에서 지지 않는다');
       if (st.gold) this.layout.log(`이기는 조건: 자금 ${DH.josa(fmt(st.gold), '을', '를')} 모은다` + (st.days ? ` · 바다에서 ${st.days}일 안에` : ''));
       else if (st.days) this.layout.log(`기한: 바다에서 ${st.days}일을 보내면 탐험이 끝난다`);
     }
@@ -80,7 +84,7 @@
       for (const b of ['p', 'm', 't']) { styles[b] = { fill: MAP[b] }; styles[b + 'c'] = { fill: DH.mixColor(MAP[b], MAP.rim, 0.3) }; }
       return { styles, tileAt: (c, r) => kind[r][c] };
     }
-    get mode() { const v = this.voyage; return v.over ? 'over' : v.port ? 'port' : 'sea'; }
+    get mode() { const v = this.voyage; return v.over ? 'over' : this.meet ? 'meet' : v.port ? 'port' : 'sea'; }
     get at() { return [this.voyage.x, this.voyage.y]; }
     centerOnFleet() { const p = this.shipPx(); this.cam.centerOn(p.x, p.y); this.cam.clampTo(this.grid); }
     /** 배의 세계 좌표. 항해 중에는 하루 안에서 어제 자리 → 오늘 자리로 미끄러진다. */
@@ -90,7 +94,7 @@
       return { x: a.x + (bx - a.x) * t, y: a.y + (b.y - a.y) * t };
     }
 
-    /** 하루가 갔다: 규칙을 한 걸음 돌리고, 생긴 일을 기록하고, 적을 만났으면 해전을 연다. */
+    /** 하루가 갔다: 규칙을 한 걸음 돌리고, 생긴 일을 기록하고, 해적을 만났으면 배를 세우고 어떻게 할지 묻는다. */
     onDay() {
       const v = this.voyage, c = this.engine.clock, L = this.layout;
       if (!v.moving) { c.running = false; return; }
@@ -98,7 +102,7 @@
       for (const e of r.events) L.log(r.arrived && e.endsWith('닿았다') ? `${e} · ${this.leg}일 걸렸다` : e);
       if (!v.moving) { c.running = false; this.spot = null; }
       if (r.arrived) { this.sfx('zone'); this.selected = null; this.spot = null; this.tab = null; this.route = null; this.from = [v.x, v.y]; }
-      if (r.encounter) { c.running = false; return this.openBattle(r.encounter); }
+      if (r.encounter) { c.running = false; this.meet = r.encounter; this.selected = null; this.spot = null; this.route = null; this.follow = true; this.centerOnFleet(); this.sfx('alert'); return this.refresh(); }
       this.settled();
     }
     /** 해전 화면을 얹는다. 끝나면 결과를 탐험대에 반영하고 돌아온다. */
@@ -128,7 +132,7 @@
       this.route = { id: pid, len: path ? path.length : null };
     }
     onTap(x, y) {
-      if (this.mode === 'over') return;
+      if (this.mode === 'over' || this.mode === 'meet') return;
       const w = this.world, wpt = this.cam.toWorld(x, y), g = this.grid; let best = null, bd = 14 / this.cam.zoom + TILE;
       for (const p of w.ports.values()) { const c = g.center(p.x, p.y), d = Math.hypot(g.nearX(c.x, wpt.x) - wpt.x, c.y - wpt.y); if (d < bd) { bd = d; best = p.id; } }
       if (best) { this.pick(best); return this.refresh(); }
@@ -141,6 +145,11 @@
     onKey(code, ev) {
       if (ev && (ev.ctrlKey || ev.metaKey || ev.altKey)) return;
       const v = this.voyage, c = this.engine.clock, dir = KEYS[code], shift = !!(ev && ev.shiftKey), n = digit(code), used = () => { if (ev) ev.preventDefault(); };
+      if (this.mode === 'meet') {                                                 // 해적 출현 카드: 숫자 키와 Enter로만 고른다
+        if (ev && ev.repeat) return;
+        if (n) { used(); this.layout.press(n); } else if (code === 'Enter' || code === 'NumpadEnter') { used(); this.layout.pressPrimary(); }
+        return;
+      }
       if ((dir && shift) || PAN[code]) return super.onKey(PAN[code] || code, ev);              // 지도 옮기기(배 따라가기가 풀린다)
       if (dir && this.mode === 'sea') {                                           // 바다에서는 방향키가 키다
         used();
@@ -150,7 +159,7 @@
         return this.refresh();
       }
       if (dir) { used(); return this.step(ARROW[code]); }                         // 항구에서는 그쪽으로 가장 가까운 항구를 고른다
-      if (code === 'Escape') { if (this.tab) this.tab = null; else { this.selected = null; this.route = null; this.spot = null; } return this.refresh(); }
+      if (code === 'Escape') { if (this.tab === 'dock' && this.dockShip) this.dockShip = null; else if (this.tab) this.tab = null; else { this.selected = null; this.route = null; this.spot = null; } return this.refresh(); }
       if (ev && ev.repeat) return;                                                // 누르고 있어도 단추는 한 번만 눌린다
       if (n) { used(); this.layout.press(n); }
       else if (code === 'Enter' || code === 'NumpadEnter') { used(); this.layout.pressPrimary(); }
@@ -196,6 +205,14 @@
       if (id === 'zout') return this.zoomBy(0.8);
       if (id === 'follow') { this.follow = true; return this.centerOnFleet(); }
       if (this.mode === 'over') { if (id === 'again') this.restart(); return; }
+      if (this.mode === 'meet') {                                                 // 해적 앞에서: 싸운다 · 달아난다 · 통행료
+        const rival = this.meet;
+        if (id === 'fight') { this.meet = null; return this.openBattle(rival); }
+        const r = id === 'evade' ? v.evade(rival) : id === 'toll' ? v.payToll(rival) : null; if (!r) return;
+        this.say(r, id === 'evade' ? 'swish' : 'coin');
+        if (r.ok) { this.meet = null; this.from = [v.x, v.y]; c.running = v.moving; }          // 잡아 둔 뱃길을 그대로 이어 간다
+        return this.settled();
+      }
       if (id === 'sail') {
         const target = this.selected && this.selected !== v.port ? this.selected : this.spot;
         if (target) return this.sail(target);
@@ -204,11 +221,14 @@
       else if (id === 'enter') { const p = v.anchorAt(v.x, v.y); if (p && !v.port && !c.running) { v.enter(p.id); this.selected = null; this.spot = null; this.route = null; this.layout.log(`${p.name}에 들어왔다`); this.sfx('zone'); } }
       else if (id === 'pause') { if (v.moving) { c.running = !c.running; if (!c.running) this.from = [v.x, v.y]; } }
       else if (id === 'speed') c.speed = c.speed === 1 ? 2 : c.speed === 2 ? 4 : 1;
-      else if (id === 'back') this.tab = null;
-      else if (key === 'tab' && v.port && TABS[arg]) { this.tab = arg; this.selected = null; this.spot = null; this.route = null; }
+      else if (id === 'back') { if (this.tab === 'dock' && this.dockShip) this.dockShip = null; else this.tab = null; }
+      else if (key === 'tab' && v.port && TABS[arg]) { this.tab = arg; this.dockShip = null; this.selected = null; this.spot = null; this.route = null; }
+      else if (key === 'pick' && this.tab === 'dock' && v.ships.some(sh => sh.id === arg)) { this.dockShip = arg; this.sfx('tick'); }
       else if (v.port) {
         if (key === 'buy') this.say(v.buy(arg), 'coin'); else if (key === 'sell') this.say(v.sell(arg), 'coin');
-        else if (id === 'hire') this.say(v.hire(), 'foot'); else if (id === 'repair') this.say(v.repair(), 'thud'); else if (key === 'ship') this.say(v.buyShip(arg), 'bell');
+        else if (id === 'hire') this.say(v.hire(), 'foot'); else if (id === 'train') this.say(v.train(), 'clash'); else if (id === 'repair') this.say(v.repair(), 'thud'); else if (key === 'ship') this.say(v.buyShip(arg), 'bell');
+        else if (id === 'gun') this.say(v.addGuns(this.dockShip), 'thud'); else if (key === 'swap') this.say(v.swapShip(this.dockShip, arg), 'bell');
+        else if (id === 'sellship') { const r = v.sellShip(this.dockShip); this.say(r, 'coin'); if (r.ok) this.dockShip = null; }
         else if (id === 'food') this.say(v.buyFood(), 'pop'); else if (id === 'water') this.say(v.fillWater(), 'pop');
         return this.settled();
       }
@@ -217,7 +237,7 @@
 
     refreshInfo() {
       const v = this.voyage;
-      this.layout.setInfo([{ label: '날짜', value: this.engine.clock.label }, { label: '자금', value: fmt(v.gold) }, { label: '식량', value: v.foodDays + '일' }, { label: '물', value: v.waterDays + '일' },
+      this.layout.setInfo([{ label: '날짜', value: this.engine.clock.label }, { label: '자금', value: v.inv ? `${fmt(v.gold)}(무적)` : fmt(v.gold) }, { label: '식량', value: v.foodDays + '일' }, { label: '물', value: v.waterDays + '일' },
         { label: '선원', value: `${v.crew}/${v.maxCrew}명` }, { label: '짐', value: `${v.cargoUsed}/${v.cargoCap}` }]);
     }
     refresh() { this.refreshInfo(); this.layout.setDetail(this.detail()); this.layout.setMenu(this.menu(), id => this.command(id)); }
@@ -228,7 +248,18 @@
 
     detail() {
       const w = this.world, v = this.voyage, R = v.rules, mode = this.mode, here = v.here, gname = id => w.goods.get(id).name;
-      const ships = () => v.ships.map(sh => `${sh.name}(${v.T(sh).name}) 선체 ${sh.hull}/${v.T(sh).hull}`).join(' · ');
+      const ships = () => v.ships.map(sh => `${sh.name}(${v.T(sh).name}) 선체 ${sh.hull}/${v.T(sh).hull} · 포 ${v.gunsOf(sh)}`).join(' · ');
+      const spec = t => `선체 ${t.hull} · 포 ${t.guns} · 짐 ${t.cargo} · 선원 ${t.maxCrew}명까지 · 하루 ${t.speed}칸`, D = R.dock;
+      const types = [...w.shipTypes.values()].filter(t => !t.cheat || v.inv);                    // 거북선은 무적 모드에서만 보인다
+      if (mode === 'meet') {
+        const rv = this.meet, m = v.meetInfo(rv), k = v.flagRisk(rv), cnt = new Map(); for (const id of rv.ships) cnt.set(id, (cnt.get(id) || 0) + 1);
+        return { title: `해적 출현 · ${rv.name}`, rows: [['해적 선장', `${rv.captain.name} · 무력 ${rv.captain.war}`], ['해적의 배', [...cnt].map(([id, n]) => `${w.shipTypes.get(id).name} ${n}척`).join(' · ') + ` · 선원 ${rv.crew}명`],
+          ['이기면', `금 +${fmt(rv.gold)} · 선장 무력 +${R.grow.win}(일기토로 이기면 +${R.grow.win + R.grow.duel})`], ['우리', `${v.captain.name} · 무력 ${v.captain.war} · 배 ${v.ships.length}척 · 선원 ${v.crew}명${v.inv ? ' · 무적' : ''}`],
+          ['해적이 올라타면', v.inv ? '무적 모드라 선원을 잃지 않는다' : k.taken ? `해적 기함(선원 ${k.theirs}명)이 한 번에 우리 기함 선원 ${k.ours}명을 모두 쓰러뜨려 기함을 빼앗는다 · 곧 지는 것이다` : `해적 기함(선원 ${k.theirs}명)이 한 번에 우리 기함 선원 ${k.ours}명 가운데 ${k.hit}명을 쓰러뜨린다`],
+          ['달아나면', m.fast ? `우리가 더 빠르다(하루 ${m.speed}칸 대 ${m.their}칸) · 잃는 것이 없다` : `해적이 우리만큼 빠르다(하루 ${m.speed}칸 대 ${m.their}칸) · 짐 ${fmt(m.drop)}개를 버린다`],
+          ['통행료', `금 ${fmt(m.toll)}(자금의 ${R.encounter.tollPct}% · 적어도 ${fmt(v.fee(R.encounter.tollMin))})`]],
+          note: '싸우면 해전이 벌어진다. 지면 금 절반과 짐을 모두 빼앗기고 마지막 항구로 떠밀려 간다. 달아나거나 통행료를 내면 가던 길을 그대로 간다.' + this.whyNot([['통행료', m.pay]]) };
+      }
       if (mode === 'over') return { title: this.overTitle(), rows: [['바다에서 보낸 날', `${v.day}일`], ['자금', fmt(v.gold)], ['선원', `${v.crew}명`], ...(this.goalText() ? [['목표', this.goalText()]] : [])],
         note: (v.overWhy === 'gold' ? `${v.day}일 만에 자금 ${DH.josa(fmt(v.stage.gold), '을', '를')} 모았다.` : v.overWhy === 'time' ? `${v.stage.days}일이 지났다.` : '배를 몰 사람이 남지 않았다.') + ' 다시 하려면 아래 단추를 누른다.' };
       if (mode === 'port' && this.tab === 'market') {
@@ -236,25 +267,35 @@
         for (const [g, h] of v.cargo) { const q = v.quote(g); rows.push([`${gname(g)} ${h.qty}개`, `산 값 ${h.paid} · 여기서 팔면 개당 ${q.sell.ok ? q.sell.unit : '-'}`]); }
         return { title: `${here.name} 교역소`, rows, note: `${R.lot}개씩 사고판다. 사면 값이 오르고 팔면 내린다. 팔 때 수수료 ${R.price.feePct}%를 뗀다. 값은 날이 가면 제자리로 돌아온다.` + this.whyNot(sold.map(e => [gname(e.good) + ' 사기', v.quote(e.good).buy])) };
       }
-      if (mode === 'port' && this.tab === 'inn') return { title: `${here.name} 여관`, rows: [['선원', `${v.crew}/${v.maxCrew}명`], ['한 명에', `금 ${R.inn.gold}`], ['하루 보급', `식량 ${v.crew} · 물 ${v.crew}`]],
-        note: `선원을 ${R.inn.lot}명씩 모은다. 선원이 많으면 포격과 백병전이 세지고, 식량과 물이 빨리 준다.` + this.whyNot([['선원 모으기', v.can('hire')]]) };
-      if (mode === 'port' && this.tab === 'dock') return { title: `${here.name} 도크`, rows: [...v.ships.map(sh => [sh.name, `${v.T(sh).name} · 선체 ${sh.hull}/${v.T(sh).hull} · 포 ${v.T(sh).guns} · 짐 ${v.T(sh).cargo}`]),
-        ...[...w.shipTypes.values()].map(t => [`${t.name} 값`, `금 ${fmt(t.price)} · 선체 ${t.hull} · 포 ${t.guns} · 짐 ${t.cargo} · 하루 ${t.speed}칸`])],
-        note: `선체는 1마다 금 ${R.dock.repair}에 고친다. 배는 ${R.dock.maxShips}척까지 거느린다. 함대는 가장 느린 배에 맞춰 간다.` + this.whyNot([['선체 고치기', v.can('repair')], ...[...w.shipTypes.values()].map(t => [t.name + ' 사기', v.can('ship', t.id)])]) };
+      if (mode === 'port' && this.tab === 'inn') return { title: `${here.name} 여관`, rows: [['선원', `${v.crew}/${v.maxCrew}명`], ['한 명에', `금 ${R.inn.gold}`], ['하루 보급', `식량 ${v.crew} · 물 ${v.crew}`],
+        ['선장', `${v.captain.name} · 무력 ${v.captain.war}`], ['선장 수련', `금 ${fmt(R.inn.train)}에 무력 +${R.inn.trainGain} · ${R.grow.max}까지`]],
+        note: `선원을 ${R.inn.lot}명씩 모은다. 선원이 많으면 포격과 백병전이 세지고, 식량과 물이 빨리 준다. 선장의 무력은 일기토와 백병전에 쓰이고, 해전에서 이길 때마다 ${R.grow.win}씩 오른다.` + this.whyNot([['선원 모으기', v.can('hire')], ['선장 수련', v.can('train')]]) };
+      const mine = mode === 'port' && this.tab === 'dock' ? v.ships.find(sh => sh.id === this.dockShip) : null;
+      if (mine) {
+        const t0 = v.T(mine), others = types.filter(t => t.id !== mine.type), sell = v.can('sell', mine.id);
+        return { title: `${here.name} 도크 · ${mine.name}`, rows: [[v.ships[0] === mine ? '기함' : '배', `${t0.name} · 선체 ${mine.hull}/${t0.hull} · 포 ${v.gunsOf(mine)}${mine.plus ? `(보강 +${mine.plus})` : ''} · 짐 ${t0.cargo} · 하루 ${t0.speed}칸`],
+          ['포 보강', `한 번에 +${D.gunStep}문 · 금 ${fmt(D.gunGold)} · 배마다 +${D.gunMax}문까지(지금 +${mine.plus || 0})`],
+          ...others.map(t => { const c = v.can('swap', mine.id, t.id), net = t.price - Math.floor(t0.price * D.tradePct / 100); return [`${DH.ro(t.name)} 바꾸면`, `${c.ok ? (c.back ? `금 +${fmt(c.back)}` : `금 −${fmt(c.cost)}`) : `금 ${net >= 0 ? '−' + fmt(net) : '+' + fmt(-net)}`} · ${spec(t)}`]; }),
+          ['팔면', `금 +${fmt(Math.floor(t0.price * D.tradePct / 100))}`]],
+          note: `헌 배는 처음 값의 ${D.tradePct}%를 쳐준다. 바꾼 배는 선체가 새것이다. 더 단 포는 헌 배에 딸려 가니 새 배에는 다시 단다. 기함도 바꿀 수 있다.` + this.whyNot([['포 보강', v.can('gun', mine.id)], ...others.map(t => [`${DH.ro(t.name)} 바꾸기`, v.can('swap', mine.id, t.id)]), ['팔기', sell]]) };
+      }
+      if (mode === 'port' && this.tab === 'dock') return { title: `${here.name} 도크`, rows: [...v.ships.map(sh => [sh.name, `${v.T(sh).name} · 선체 ${sh.hull}/${v.T(sh).hull} · 포 ${v.gunsOf(sh)}${sh.plus ? `(보강 +${sh.plus})` : ''} · 짐 ${v.T(sh).cargo}`]),
+        ...types.map(t => [`${t.name} 값`, `금 ${fmt(t.price)} · ${spec(t)}`])],
+        note: `선체는 1마다 금 ${R.dock.repair}에 고친다. 배는 ${R.dock.maxShips}척까지 거느린다. 함대는 가장 느린 배에 맞춰 간다. 배 이름을 누르면 포를 더 달거나 다른 배로 바꾸거나 판다.` + this.whyNot([['선체 고치기', v.can('repair')], ...types.map(t => [t.name + ' 사기', v.can('ship', t.id)])]) };
       if (mode === 'port' && this.tab === 'supply') return { title: `${here.name} 보급`, rows: [['식량', `${v.foodDays}일분(${R.supply.foodMax}일분까지)`], ['물', `${v.waterDays}일분(${R.supply.waterMax}일분까지)`], ['하루에', `선원 ${v.crew}명이 식량 ${v.crew} · 물 ${v.crew}`]],
         note: `식량은 ${R.supply.lotDays}일분씩 산다. 물은 값이 없다. 바다에서 식량이나 물이 떨어지면 날마다 선원의 ${R.supply.lossPct}%를 잃는다.` + this.whyNot([['식량 사기', v.can('food')], ['물 채우기', v.can('water')]]) };
       const sel = w.ports.get(this.selected);
       if (sel) {
         const m = [...v.markets.get(sel.id).values()], sells = m.filter(e => e.refStock > 0), wants = m.filter(e => e.refStock <= 0).sort((a, b) => b.price / w.goods.get(b.good).base - a.price / w.goods.get(a.good).base).slice(0, 3);
-        const mine = [...v.cargo].map(([g, h]) => { const e = v.markets.get(sel.id).get(g); return e ? `${gname(g)} ${e.price}(산 값 ${h.paid})` : null; }).filter(Boolean);
+        const held = [...v.cargo].map(([g, h]) => { const e = v.markets.get(sel.id).get(g); return e ? `${gname(g)} ${e.price}(산 값 ${h.paid})` : null; }).filter(Boolean);
         const len = this.route && this.route.id === sel.id ? this.route.len : null;
         return { title: sel.name, rows: [['시설', sel.facilities.map(id => w.facilities[id]).join(' · ')], ['파는 것', sells.map(e => `${gname(e.good)} ${e.price}`).join(' · ') || '없음'], ['값이 좋은 것', wants.map(e => `${gname(e.good)} ${e.price}`).join(' · ')],
-          ...(mine.length ? [['실은 짐의 시세', mine.join(' · ')]] : []), ['뱃길', sel.id === v.port ? '지금 있는 항구다' : len === null ? '찾지 못했다' : `${len}칸 · 약 ${Math.ceil(len / v.speed)}일`],
+          ...(held.length ? [['실은 짐의 시세', held.join(' · ')]] : []), ['뱃길', sel.id === v.port ? '지금 있는 항구다' : len === null ? '찾지 못했다' : `${len}칸 · 약 ${Math.ceil(len / v.speed)}일`],
           ['위치', `${Math.abs(sel.lat).toFixed(1)}°${sel.lat >= 0 ? 'N' : 'S'} ${Math.abs(sel.lon).toFixed(1)}°${sel.lon >= 0 ? 'E' : 'W'}`]],
           note: sel.id === v.port ? '아래에서 교역소 · 여관 · 도크 · 보급을 고른다.' : mode === 'port' ? '출항을 누르면 이 항구로 떠난다.' : '항해 단추를 누르면 이 항구로 뱃길을 잡는다.' };
       }
       const where = here ? here.name : v.dest ? `${DH.ro(w.ports.get(v.dest).name)} 가는 바다` : v.path.length ? '찍은 곳으로 가는 바다' : v.heading ? `${WIND[v.heading]}쪽으로 가는 바다` : '바다(닻을 내렸다)';
-      return { title: v.name, rows: [['있는 곳', where], ['선장', `${v.captain.name} · 무력 ${v.captain.war}`], ['배', ships()], ['짐', this.cargoText()], ['바다에서 보낸 날', `${v.day}일`], ...(this.goalText() ? [['목표', this.goalText()]] : [])],
+      return { title: v.name, rows: [['있는 곳', where], ['선장', `${v.captain.name} · 무력 ${v.captain.war}${v.inv ? ' · 무적 모드' : ''}`], ['배', ships()], ['짐', this.cargoText()], ['바다에서 보낸 날', `${v.day}일`], ...(this.goalText() ? [['목표', this.goalText()]] : [])],
         note: mode === 'port' ? (this.spot ? '출항을 누르면 찍은 바다로 떠난다.' : '교역소 · 여관 · 도크 · 보급에서 채비를 하고, 지도에서 갈 항구나 바다를 찍은 뒤 출항한다. 항구에서는 날이 가지 않는다.')
           : `방향키로 키를 잡거나 지도의 바다를 찍으면 그리로 간다. 항구를 찍으면 시세가 보인다. 하루에 ${v.speed}칸을 가고 식량과 물이 선원 수만큼 든다.` };
     }
@@ -262,6 +303,12 @@
       const w = this.world, v = this.voyage, c = this.engine.clock, R = v.rules, mode = this.mode, back = { id: 'back', label: '돌아가기' }, gname = id => w.goods.get(id).name;
       const btn = (id, r, on, off) => ({ id, label: r.ok ? on(r) : off, disabled: !r.ok, hint: r.ok ? '' : r.why });
       if (mode === 'over') return [{ id: 'again', label: '다시 하기', primary: true }, ...VIEW];
+      if (mode === 'meet') {
+        const m = v.meetInfo(this.meet);
+        return [{ id: 'fight', label: '싸운다', primary: true, hint: '해전을 벌인다' }, { id: 'evade', label: m.fast ? '달아난다 · 따돌린다' : `달아난다 · 짐 −${fmt(m.drop)}`, hint: m.fast ? '우리 함대가 더 빠르다' : '짐의 절반을 버린다' },
+          btn('toll', m.pay, r => `통행료를 낸다 · 금 ${fmt(r.cost)}`, '통행료를 낸다')];
+      }
+      const types = [...w.shipTypes.values()].filter(t => !t.cheat || v.inv);
       const sel = w.ports.get(this.selected);
       if (mode === 'port') {
         if (this.tab === 'market') {
@@ -269,9 +316,14 @@
           return [...m.map(e => btn('buy:' + e.good, v.quote(e.good).buy, r => `${gname(e.good)} 사기 ${r.qty} · 금 ${fmt(r.cost)}`, `${gname(e.good)} 사기`)),
             ...[...v.cargo.keys()].map(g => btn('sell:' + g, v.quote(g).sell, r => `${gname(g)} 팔기 ${r.qty} · 금 +${fmt(r.income)}`, `${gname(g)} 팔기`)), back];
         }
-        if (this.tab === 'inn') return [btn('hire', v.can('hire'), r => `선원 모으기 +${r.qty} · 금 ${fmt(r.cost)}`, '선원 모으기'), back];
+        if (this.tab === 'inn') return [btn('hire', v.can('hire'), r => `선원 모으기 +${r.qty} · 금 ${fmt(r.cost)}`, '선원 모으기'), btn('train', v.can('train'), r => `선장 수련 무력 +${r.gain} · 금 ${fmt(r.cost)}`, '선장 수련'), back];
+        const mine = this.tab === 'dock' ? v.ships.find(sh => sh.id === this.dockShip) : null;
+        if (mine) return [btn('gun', v.can('gun', mine.id), r => `포 보강 +${r.qty}문 · 금 ${fmt(r.cost)}`, '포 보강'),
+          ...types.filter(t => t.id !== mine.type).map(t => btn('swap:' + t.id, v.can('swap', mine.id, t.id), r => `${DH.ro(t.name)} 바꾸기 · 금 ${r.back ? '+' + fmt(r.back) : fmt(r.cost)}`, `${DH.ro(t.name)} 바꾸기`)),
+          btn('sellship', v.can('sell', mine.id), r => `팔기 · 금 +${fmt(r.income)}`, '팔기'), back];
         if (this.tab === 'dock') return [btn('repair', v.can('repair'), r => `선체 고치기 ${r.qty} · 금 ${fmt(r.cost)}`, '선체 고치기'),
-          ...[...w.shipTypes.values()].map(t => btn('ship:' + t.id, v.can('ship', t.id), r => `${t.name} 사기 · 금 ${fmt(r.cost)}`, `${t.name} 사기`)), back];
+          ...v.ships.map(sh => ({ id: 'pick:' + sh.id, label: `${sh.name} 손보기`, hint: '포 보강 · 다른 배로 바꾸기 · 팔기' })),
+          ...types.map(t => btn('ship:' + t.id, v.can('ship', t.id), r => `${t.name} 사기 · 금 ${fmt(r.cost)}`, `${t.name} 사기`)), back];
         if (this.tab === 'supply') return [btn('food', v.can('food'), r => `식량 ${r.days}일분 · 금 ${fmt(r.cost)}`, '식량 사기'), btn('water', v.can('water'), () => '물 가득 채우기', '물 채우기'), back];
         const tabs = Object.keys(TABS).map(k => { const ok = !NEED[k] || v.has(NEED[k]); return { id: 'tab:' + k, label: TABS[k], disabled: !ok, hint: ok ? '' : `이 항구에는 ${DH.josa(TABS[k], '이', '가')} 없다` }; });
         const to = sel && sel.id !== v.port ? `${DH.ro(sel.name)} 출항` : this.spot ? '찍은 바다로 출항' : '출항';
@@ -282,7 +334,7 @@
         { id: 'pause', label: c.running ? '멈춤' : '계속', disabled: !v.moving, hint: v.moving ? '' : '방향키를 누르거나 지도를 찍으면 움직인다' }, { id: 'speed', label: `빠르기 ×${c.speed}` }, ...VIEW];
     }
 
-    render(g) { super.render(g); if (this.mode === 'over') this.drawCard(g); }
+    render(g) { super.render(g); if (this.mode === 'over') this.drawCard(g); else if (this.mode === 'meet') this.drawMeet(g); }
     drawOver(g) {
       const w = this.world, v = this.voyage, grid = this.grid, z = this.cam.zoom, mid = this.cam.x + this.cam.viewW / z / 2;
       const X = x => grid.nearX(x, mid);
@@ -304,7 +356,20 @@
       // 배
       const s = this.shipPx(), a = grid.center(this.from[0], this.from[1]), b = grid.center(v.x, v.y), dx = grid.nearX(b.x, a.x) - a.x;
       if (Math.abs(dx) > 0.5) this.face = dx < 0 ? -1 : 1;                     // 가는 쪽으로 뱃머리를 돌린다(그림에만 쓰고 저장하지 않는다)
-      DH.Hang.drawShip(g, X(s.x), s.y, 1 / z, undefined, true, this.face || 1);
+      DH.Hang.drawShip(g, X(s.x), s.y, 1 / z, undefined, true, this.face || 1, v.ships[0].type);
+    }
+    /** 해적 출현 카드: 붉은 돛의 해적 배를 척수대로 그리고 이름과 선장을 적는다. 고르는 것은 조작 창의 단추다. */
+    drawMeet(g) {
+      const W = this.engine.width, H = this.engine.height, rv = this.meet, w = 320, h = 168, x = (W - w) / 2, y = (H - h) / 2, n = rv.ships.length;
+      g.fillStyle = 'rgba(38,33,28,.45)'; g.fillRect(0, 0, W, H);
+      g.beginPath(); g.roundRect(x, y, w, h, 10); g.fillStyle = '#fbf7ef'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
+      g.fillStyle = '#c8402f'; g.fillRect(x + 1, y + 1, w - 2, 6);
+      g.fillStyle = '#9fc4d9'; g.fillRect(x + 14, y + 50, w - 28, 62); g.lineWidth = 1; g.strokeStyle = 'rgba(38,33,28,.35)'; g.strokeRect(x + 14.5, y + 50.5, w - 29, 61);
+      rv.ships.forEach((id, i) => DH.Hang.drawShip(g, W / 2 + (i - (n - 1) / 2) * 76, y + 86, 2.1, DH.Hang.LOOK.foe, i === 0, -1, id));
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = INK;
+      g.font = `800 20px ${FONT}`; g.fillText('해적 출현', W / 2, y + 30);
+      g.font = `700 13px ${FONT}`; g.fillText(`${rv.name} · ${rv.captain.name}(무력 ${rv.captain.war}) · 배 ${n}척 · 선원 ${rv.crew}명`, W / 2, y + 128, w - 24);
+      g.font = `500 12px ${FONT}`; g.fillStyle = '#6e6356'; g.fillText('싸운다 · 달아난다 · 통행료를 낸다 가운데 고른다', W / 2, y + 149, w - 24);
     }
     drawCard(g) {
       const W = this.engine.width, H = this.engine.height, v = this.voyage, won = v.over === 'won', w = 300, h = 96, x = (W - w) / 2, y = (H - h) / 2;
@@ -317,7 +382,7 @@
     // ───────── 저장과 불러오기 ─────────
     save() { return { selected: this.selected, spot: this.spot, tab: this.tab, follow: this.follow, leg: this.leg, cam: { x: this.cam.x, y: this.cam.y, zoom: this.cam.zoom } }; }
     /** 지금 저장할 수 있는지. 해전 중에는 안 된다. {ok:true} 또는 {ok:false, why} */
-    saveInfo() { return this.engine.scene !== this ? NO('해전이 끝난 뒤에 저장할 수 있다.') : { ok: true }; }
+    saveInfo() { return this.engine.scene !== this ? NO('해전이 끝난 뒤에 저장할 수 있다.') : this.meet ? NO('해적과 마주친 동안에는 저장할 수 없다. 먼저 어떻게 할지 고른다.') : { ok: true }; }
     /** 저장 묶음: 머리말 · 한 줄 요약 · 적용된 설정 목록 · 날짜 · 난수 · 탐험. JSON으로 그대로 적을 수 있다. */
     saveGame() {
       const v = this.voyage;
@@ -339,7 +404,7 @@
       while (e.scene && e.scene !== this) e.popScene();
       this.state = st; this.settings = d.settings.map(x => [...x]); this.voyage = voyage; e.restore(d);      // 난수는 판을 지은 뒤에 되돌린다(씨앗 설정이 덮지 않게)
       const v = voyage, s = d.scene || {}, c = s.cam, num = x => typeof x === 'number' && isFinite(x);
-      this.from = [v.x, v.y]; this._told = !!v.over; this.selected = null; this.spot = null; this.tab = null; this.route = null;
+      this.from = [v.x, v.y]; this._told = !!v.over; this.selected = null; this.spot = null; this.tab = null; this.route = null; this.meet = null; this.dockShip = null;
       this.follow = s.follow !== false; this.leg = Number.isInteger(s.leg) && s.leg >= 0 ? s.leg : 0;
       if (typeof s.selected === 'string' && w.ports.has(s.selected)) this.pick(s.selected);
       else if (v.port && typeof s.tab === 'string' && Object.hasOwn(TABS, s.tab) && (!NEED[s.tab] || v.has(NEED[s.tab]))) this.tab = s.tab;

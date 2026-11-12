@@ -893,6 +893,18 @@
    "hull": 120,
    "guns": 16,
    "price": 5000
+  },
+  {
+   "id": "turtle",
+   "name": "거북선",
+   "cargo": 120,
+   "minCrew": 10,
+   "maxCrew": 40,
+   "speed": 3,
+   "hull": 200,
+   "guns": 40,
+   "price": 30000,
+   "cheat": true
   }
  ],
  "fleets": [

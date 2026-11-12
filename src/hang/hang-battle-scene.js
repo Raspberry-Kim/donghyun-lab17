@@ -1,9 +1,10 @@
 /* 동현항 · 해전 장면 — hang-battle.js의 해전을 캔버스에 그리고 손으로 싸운다. 바다 장면 위에 얹는다(engine.pushScene).
  *   우리 배를 찍는다 → 갈 수 있는 칸이 노랗게 → 칸을 찍어 옮긴다 → 붉은 테의 적(사거리 안)을 찍으면 포를 쏜다.
- *   적과 맞닿아 있으면 조작 창에 '올라타기'(기함끼리는 '일기토') 단추가 뜬다.
- *   조작 창: 대기 · 차례 넘기기 · 맡기기(남은 싸움을 AI에게) · 달아나기(한 번 더 묻는다) · 올라타기(맞닿은 적이 있을 때 뒤에 붙는다).
+ *   적과 맞닿아 있으면 조작 창에 '올라타기' 단추가 뜬다. 우리 기함이 적 기함과 맞닿으면 '일기토 신청' 단추도 뜬다(해전마다 한 번).
+ *   적 선장이 일기토를 신청해 오면 싸움이 멎고 '받는다 · 물리친다'를 묻는다. 물리쳐도 잃는 것은 없다.
+ *   조작 창: 대기 · 차례 넘기기 · 맡기기(남은 싸움을 AI에게) · 달아나기(한 번 더 묻는다) · 올라타기와 일기토 신청(맞닿은 적이 있을 때 뒤에 붙는다).
  * 키보드: 방향키 칸 커서 · Enter 커서가 놓인 칸 찍기(손으로 찍는 것과 같다) · Space 아직 일을 마치지 않은 다음 우리 배 ·
- *   숫자 키 조작 창의 단추 · Esc 고른 배 놓기. 결과 카드와 달아나기를 되묻는 창에서는 Enter가 노란 단추를 누른다.
+ *   숫자 키 조작 창의 단추 · Esc 고른 배 놓기. 결과 카드 · 달아나기를 되묻는 창 · 일기토를 묻는 창에서는 Enter가 노란 단추를 누른다.
  * 끝나면 결과 카드를 보이고, 바다로 돌아가면서 onDone(result)를 부른다. 결과는 바다 쪽(Voyage.settleBattle)이 반영한다. */
 (function (root) {
   'use strict';
@@ -64,21 +65,69 @@
     '...ooooooooooo...',
     '...ww....ww......',
   ];
+  /* 거북선(무적 모드의 배): G/d 등딱지의 판과 그 그늘 · k 등의 쇠못 · D 용머리 · r 용의 입. 나머지 글자는 위와 같다. */
+  const TURTLE_BIG = [
+    '...........mFFFFF...........',
+    '...........mffffF...........',
+    '...........mffFF............',
+    '...........mFF..............',
+    '.......mmmmmmmmm............',
+    '.......oSSSmSSSo............',
+    '.......oSSSmSSSso...........',
+    '.......oSSSmSSSso...........',
+    '.......oSSSmSSSso...........',
+    '........ossmssso............',
+    '.......k.oomoo.k..k.........',
+    '......ooooomooooooo.....oo..',
+    '....koGGGdGGGdGGGdGok..oDDo.',
+    '...oGdGGGdGGGdGGGdGGGooDDoDo',
+    '..oGGGdGGGdGGGdGGGdGGGoDDDDo',
+    '.oGdGGGdGGGdGGGdGGGdGGGoDDrr',
+    'oGGGdGGGdGGGdGGGdGGGdGGoDDo.',
+    'oGdGGGdGGGdGGGdGGGdGGGdoDDo.',
+    'oLLLLLLLLLLLLLLLLLLLLLLLLLLo',
+    'oLLLLLLLLLLLLLLLLLLLLLLLLLLo',
+    'oHHHgHHHgHHHgHHHgHHHgHHHgHHo',
+    '.oHHHHHHHHHHHHHHHHHHHHHHHHo.',
+    '..ohhhhhhhhhhhhhhhhhhhhhho..',
+    '...oohhhhhhhhhhhhhhhhhhoo...',
+    '....wwwoooowwwoooowwwoo.....',
+  ];
+  const TURTLE_SMALL = [
+    '.......mFFFF.....',
+    '.......mfffF.....',
+    '.......mfFF......',
+    '.....mmmmm.......',
+    '....oSSmSSo......',
+    '....ossmsso......',
+    '.....oomoo.......',
+    '....okomoko......',
+    '...odGGGdGGo..oo.',
+    '.odGGGdGGGdGGoDDo',
+    'oGGGdGGGdGGGdoDrr',
+    'oGdGGGdGGGdGGoDo.',
+    'oLLLLLLLLLLLLLLLo',
+    'oHHHHHHHHHHHHHHHo',
+    '.oohhhhhhhhhhhoo.',
+    '...ooooooooooo...',
+    '...ww....ww......',
+  ];
   const PX = {
-    me: { o: '#2a2119', F: '#2a2119', L: '#c99a5b', H: '#8a5a33', h: '#5e3b22', g: '#2a2119', y: '#f2c75c', S: '#fbf3df', s: '#d9cdb3', m: '#4a3424', f: ACCENT, w: '#eef6fa' },
-    foe: { o: '#2a2119', F: '#2a2119', L: '#8c6f52', H: '#4a3a2c', h: '#2f251c', g: '#1c1611', y: '#e0a040', S: '#d24a35', s: '#a8342a', m: '#3a2a1e', f: ACCENT, w: '#eef6fa' },
+    me: { o: '#2a2119', F: '#2a2119', L: '#c99a5b', H: '#8a5a33', h: '#5e3b22', g: '#2a2119', y: '#f2c75c', S: '#fbf3df', s: '#d9cdb3', m: '#4a3424', f: ACCENT, w: '#eef6fa', G: '#4f7d4a', d: '#2f5a36', k: '#f2c75c', D: '#d99a2b', r: '#c8402f' },
+    foe: { o: '#2a2119', F: '#2a2119', L: '#8c6f52', H: '#4a3a2c', h: '#2f251c', g: '#1c1611', y: '#e0a040', S: '#d24a35', s: '#a8342a', m: '#3a2a1e', f: ACCENT, w: '#eef6fa', G: '#5b5a4a', d: '#3a3a30', k: '#e0a040', D: '#a8342a', r: '#f2c75c' },
   };
   LOOK.me.px = PX.me; LOOK.foe.px = PX.foe;
   /** 글자 줄을 같은 색끼리 묶어 둔다: [줄, 시작 칸, 길이, 글자] */
   const runs = rows => { const out = []; rows.forEach((r, y) => { for (let x = 0; x < r.length;) { const ch = r[x]; let n = 1; while (r[x + n] === ch) n++; if (ch !== '.') out.push([y, x, n, ch]); x += n; } }); return out; };
-  const SPRITE = { big: { w: SHIP_BIG[0].length, h: SHIP_BIG.length, runs: runs(SHIP_BIG), cell: 0.7, base: 24 }, small: { w: SHIP_SMALL[0].length, h: SHIP_SMALL.length, runs: runs(SHIP_SMALL), cell: 1, base: 16 } };
+  const sprite = (big, small) => ({ big: { w: big[0].length, h: big.length, runs: runs(big), cell: 0.7, base: 24 }, small: { w: small[0].length, h: small.length, runs: runs(small), cell: 1, base: 16 } });
+  const SPRITE = sprite(SHIP_BIG, SHIP_SMALL), SPRITES = { turtle: sprite(TURTLE_BIG, TURTLE_SMALL) };      // 배 종류 id → 그림. 없는 종류는 범선 그림을 쓴다
 
   /** 배 한 척(픽셀 그림). (x,y)가 가운데, k가 배율(물보라 줄 아래 끝이 y+5k). flag면 돛대 끝에 노란 깃발을 단다.
-   *  face가 -1이면 뱃머리가 왼쪽을 본다. k가 작으면(지도) 작은 그림을 칸 하나 1px로 그린다.
+   *  face가 -1이면 뱃머리가 왼쪽을 본다. k가 작으면(지도) 작은 그림을 칸 하나 1px로 그린다. type은 배 종류 id(거북선은 'turtle').
    *  칸 경계를 기기 픽셀에 맞춰 반올림하므로 어떤 배율에서도 칸 사이에 틈이나 번짐이 없다. */
-  function drawShip(g, x, y, k, look = LOOK.me, flag = false, face = 1) {
-    const m = g.getTransform(), sp = k < 1.6 ? SPRITE.small : SPRITE.big;
-    const c = sp === SPRITE.small ? k : k * sp.cell, pal = look.px || PX.me;
+  function drawShip(g, x, y, k, look = LOOK.me, flag = false, face = 1, type = null) {
+    const m = g.getTransform(), set = SPRITES[type] || SPRITE, tiny = k < 1.6, sp = tiny ? set.small : set.big;
+    const c = tiny ? k : k * sp.cell, pal = look.px || PX.me;
     const left = x - sp.w * c / 2, top = y + 5 * k - (sp.base + 1) * c;
     const DX = j => Math.round(m.a * (left + (face < 0 ? sp.w - j : j) * c) + m.e), DY = i => Math.round(m.d * (top + i * c) + m.f);
     g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
@@ -114,7 +163,7 @@
       else if (code === 'Enter' || code === 'NumpadEnter') {
         used();
         if (this.mode === 'result') { if (this.engine.tick - this.doneAt > 30) this.command('back'); }
-        else if (this.ask) this.layout.pressPrimary();
+        else if (this.ask || this.dare) this.layout.pressPrimary();
         else if (!this.cur) this.nextUnit(1);                      // 커서가 아직 없으면 우리 배부터 잡는다
         else if (this.myTurn) this.tapCell(this.cur);
       }
@@ -143,6 +192,8 @@
       const i = list.indexOf(this.sel), u = list[i < 0 ? (dir > 0 ? 0 : list.length - 1) : (i + dir + list.length) % list.length];
       this.ask = false; this.select(u); this.cur = { c: u.c, r: u.r }; this.curX = this.grid.center(u.c, u.r).x; this.sfx('tick'); this.refresh();
     }
+    /** 적 선장이 우리에게 신청해 답을 기다리는 일기토(맡겨 둔 싸움에서는 AI가 답한다) */
+    get dare() { const p = this.b.pending; return p && this.mode === 'fight' && !this.auto && this.unit(p.target).side === this.me ? p : null; }
     get myTurn() { return this.mode === 'fight' && !this.auto && !this.b.ended && this.b.side === this.me; }
     unit(id) { return this.b.units.find(u => u.id === id); }
 
@@ -156,8 +207,11 @@
       if (rec.type === 'fire') { this.fx.push({ kind: 'shot', a: at(u), b: at(x), t0: t }); hit(x, `선체 −${rec.hull}`); }
       else if (rec.type === 'board') { hit(x, `선원 −${rec.hit}`); if (rec.back) hit(u, `선원 −${rec.back}`); }
       else if (rec.type === 'duel') hit(rec.winner === u.side ? x : u, '일기토 패');
+      else if (rec.type === 'challenge') hit(u, '일기토 신청');
+      else if (rec.type === 'refuse') hit(x, '물리쳤다');
       if (rec.text) this.layout.log(rec.text);
-      if (rec.type === 'fire') this.sfx('cannon'); else if (rec.type === 'board') this.sfx('clash'); else if (rec.type === 'duel') { this.sfx('clash'); this.sfx('clash', 0.4); }
+      if (rec.type === 'challenge') this.sfx('alert'); else if (rec.type === 'refuse') this.sfx('swish');
+      else if (rec.type === 'fire') this.sfx('cannon'); else if (rec.type === 'board') this.sfx('clash'); else if (rec.type === 'duel') { this.sfx('clash'); this.sfx('clash', 0.4); }
       else if (rec.from && rec.to && (rec.from[0] !== rec.to[0] || rec.from[1] !== rec.to[1])) this.sfx('ship');
       if (rec.out === 'sunk') this.sfx('explode', 0.35); else if (rec.out) this.sfx('fall', 0.35);
     }
@@ -181,6 +235,7 @@
         if (b.alive(this.me).some(u => !u.done)) this.idle = 0; else if (++this.idle > 24) this.endSide();
         return;
       }
+      if (this.dare) return;                                       // 일기토의 답을 기다린다
       if (--this.wait > 0) return;
       const rec = b.aiAct();
       if (!rec) return this.endSide();
@@ -212,8 +267,10 @@
     command(id) {
       const b = this.b, [key, arg] = id.split(':');
       if (id === 'back') { if (this.mode !== 'result') return; this.engine.popScene(); return this.onDone(this.res); }
+      if (id === 'accept' || id === 'refuse') { if (!this.dare) return; this.show(b.answer(id === 'accept')); this.wait = STEP; if (b.ended) return this.finish(); return this.refresh(); }
       if (!this.myTurn) return;
       if (id === 'wait' && this.sel) { b.wait(this.sel); this.select(null); }
+      else if (key === 'duel' && this.sel) { const t = this.unit(arg); if (t && b.duelTargets(this.sel).includes(t)) { const s = this.sel; this.show(b.challenge(s, t)); if (b.ended) return this.finish(); this.select(s.done ? null : s); } }
       else if (key === 'board' && this.sel) { const t = this.unit(arg); if (t && b.boardTargets(this.sel).includes(t)) { this.show(b.board(this.sel, t)); this.select(null); if (b.ended) return this.finish(); } }
       else if (id === 'end') return this.endSide();
       else if (id === 'auto') { this.auto = true; this.select(null); this.wait = 6; this.layout.log('남은 싸움을 선원들에게 맡겼다'); }
@@ -224,10 +281,13 @@
     }
     /** 올라타면 어떻게 되는지 미리 본 글 */
     boardText(s, t) {
-      const b = this.b, F = b.fleets;
-      if (s.flag && t.flag) return `일기토 · ${F[s.side].captain.name}(무력 ${F[s.side].captain.war}) 대 ${F[t.side].captain.name}(무력 ${F[t.side].captain.war})`;
-      const hit = Math.min(t.crew, Math.floor(s.crew * b.S.boardPct / 100)), left = t.crew - hit, back = left > 0 ? Math.min(s.crew, Math.floor(left * b.S.backPct / 100)) : 0;
-      return `적 선원 −${hit}${left <= 0 ? '(배를 빼앗는다)' : ` → 되받아 우리 선원 −${back}`}`;
+      const { hit, left, back } = this.b.boardPreview(s, t);
+      return `적 선원 −${hit}${left <= 0 ? (t.flag ? '(기함을 빼앗아 이긴다)' : '(배를 빼앗는다)') : ` → 되받아 우리 선원 −${back}`}`;
+    }
+    /** 일기토를 미리 본 글: 두 선장의 무력과 한 합에 깎는 기력의 범위 */
+    duelText() {
+      const b = this.b, F = b.fleets, D = b.S.duel, swing = (side, safe) => (safe ? '0(무적)' : `${Math.floor(b.war(side) * D.minPct / 100)}~${Math.floor(b.war(side) * D.maxPct / 100)}`);
+      return `${F.me.captain.name}(무력 ${b.war('me')}) 대 ${F.foe.captain.name}(무력 ${b.war('foe')}) · 기력 ${D.hp}에서 한 합에 우리가 ${swing('me', F.foe.invincible)} · 적이 ${swing('foe', F.me.invincible)}씩 깎는다`;
     }
     title() { const r = this.res; return !r ? '해전' : r.fled ? '달아났다' : r.winner === 'me' ? '이겼다' : r.winner === 'foe' ? '졌다' : '갈라졌다'; }
 
@@ -236,28 +296,35 @@
       L.setInfo([{ label: '곳', value: b.place }, { label: '턴', value: `${b.turn}/${S.turns}` }, { label: '차례', value: this.mode === 'result' ? '끝' : `${SIDE[b.side]} 함대` },
         { label: '우리', value: `선체 ${b.hullOf('me')} · ${b.crewOf('me')}명` }, { label: '적', value: `선체 ${b.hullOf('foe')} · ${b.crewOf('foe')}명` }]);
       const ship = u => (u.out ? (u.out === 'sunk' ? '가라앉았다' : '빼앗겼다') : `${u.kind} · 선체 ${u.hull}/${u.maxHull} · 선원 ${u.crew}/${u.maxCrew} · 포 ${u.guns}`);
-      const rows = [['우리 선장', `${F.me.captain.name} · 무력 ${F.me.captain.war}`], ...b.units.filter(u => u.side === 'me').map(u => [`우리 ${u.name}${u.flag ? '(기함)' : ''}`, ship(u)]),
+      const rows = [['우리 선장', `${F.me.captain.name} · 무력 ${F.me.captain.war}${F.me.invincible ? ' · 무적' : ''}`], ...b.units.filter(u => u.side === 'me').map(u => [`우리 ${u.name}${u.flag ? '(기함)' : ''}`, ship(u)]),
         ['적 선장', `${F.foe.captain.name} · 무력 ${F.foe.captain.war}`], ...b.units.filter(u => u.side === 'foe').map(u => [`적 ${u.name}`, ship(u)])];
       let note;
       if (this.mode === 'result') {
         const r = this.res; rows.push(['결과', `${this.title()} · ${r.reason}`]); if (r.loot) rows.push(['얻은 금', fmt(r.loot)]);
         note = '바다로 돌아가면 결과가 반영된다.';
+      } else if (this.dare) {
+        rows.push(['일기토 신청', `${DH.josa(F.foe.captain.name, '이', '가')} 선장끼리 겨루자고 한다`], ['겨루면', this.duelText()]);
+        note = '받으면 선장끼리 겨루고, 진 쪽이 해전을 진다. 물리치면 잃는 것 없이 싸움이 그대로 이어진다.';
       } else if (s) {
         const sh = b.shot(s); rows.push(['고른 배', `${s.name} · 포격 한 번에 선체 −${sh.hull} · 선원 −${sh.crew}`]);
         for (const t of b.boardTargets(s)) rows.push([`${t.name}에 백병전`, this.boardText(s, t)]);
-        note = (s.moved ? '붉은 테의 적을 찍으면 포를 쏜다.' : '노란 칸을 찍으면 옮긴다. 붉은 테의 적은 바로 쏠 수 있다.') + ` 포격 = 포 ${s.guns} × ${S.gunHull} × 선원 ${s.crew} ÷ 정원 ${s.maxCrew}.` + (b.boardTargets(s).length ? ' 맞닿은 적에는 아래 단추로 올라탄다.' : ' 적과 맞닿으면 올라탈 수 있다.');
+        if (b.duelTargets(s).length) rows.push(['일기토', this.duelText()]);
+        note = (s.moved ? '붉은 테의 적을 찍으면 포를 쏜다.' : '노란 칸을 찍으면 옮긴다. 붉은 테의 적은 바로 쏠 수 있다.') + ` 포격 = 포 ${s.guns} × ${S.gunHull} × 선원 ${s.crew} ÷ 정원 ${s.maxCrew}.` + (b.boardTargets(s).length ? ' 맞닿은 적에는 아래 단추로 올라탄다.' : ' 적과 맞닿으면 올라탈 수 있다.')
+          + (b.duelTargets(s).length ? ' 일기토는 해전마다 한 번 신청할 수 있고, 적 선장이 물리치면 이 배는 이어서 다른 일을 한다.' : '');
       } else if (this.look) {
         const u = b.unitAt(this.look.c, this.look.r); rows.push(['찍은 칸', b.isRock(this.look.c, this.look.r) ? '암초 · 들어갈 수 없다' : '바다']);
         if (u) rows.push(['그 배', `${SIDE[u.side]} ${u.name} · ${ship(u)}`]);
         note = '우리 배를 찍으면 갈 수 있는 칸이 보인다.';
-      } else note = this.auto ? '선원들이 알아서 싸우는 중이다.' : this.myTurn ? `우리 배를 찍으면 갈 수 있는 칸이 보인다. 한 턴에 ${S.mp}칸을 가고, ${S.range}칸 안의 적에게 포를 쏜다. 적의 기함을 가라앉히거나 빼앗으면 이긴다. ${S.turns}턴이 지나면 승부 없이 갈라진다.` : '적 함대가 움직이는 중이다.';
+      } else note = this.auto ? '선원들이 알아서 싸우는 중이다. 적 선장의 일기토 신청은 우리 선장의 무력이 적 선장 이상일 때만 받는다.' : this.myTurn ? `우리 배를 찍으면 갈 수 있는 칸이 보인다. 한 턴에 ${S.mp}칸을 가고, ${S.range}칸 안의 적에게 포를 쏜다. 적의 기함을 가라앉히거나 빼앗으면 이긴다. ${S.turns}턴이 지나면 승부 없이 갈라진다.` : '적 함대가 움직이는 중이다.';
       L.setDetail({ title: this.mode === 'result' ? `해전 · ${this.title()}` : `${DH.josa(F.foe.name, '과', '와')}의 해전`, rows, note });
       const off = !this.myTurn, pick = id => this.command(id);
       if (this.mode === 'result') L.setMenu([{ id: 'back', label: '바다로 돌아가기', primary: true }], pick);
+      else if (this.dare) L.setMenu([{ id: 'accept', label: '일기토를 받는다', hint: '선장끼리 겨룬다. 진 쪽이 해전을 진다' }, { id: 'refuse', label: '물리친다', primary: true, hint: '싸움이 그대로 이어진다' }], pick);
       else if (this.ask) L.setMenu([{ id: 'yes', label: '정말 달아난다', hint: '짐의 절반을 버리고 빠져나간다' }, { id: 'no', label: '돌아가기', primary: true }], pick);
       else L.setMenu([{ id: 'wait', label: '대기', disabled: off || !s, hint: '고른 배가 그 턴 일을 마친다' }, { id: 'end', label: '차례 넘기기', primary: true, disabled: off },      // 1~4는 늘 같은 자리, 올라타기는 5부터
         { id: 'auto', label: '맡기기', disabled: off, hint: '남은 싸움을 AI가 대신 싸운다' }, { id: 'flee', label: '달아나기', disabled: off, hint: '짐의 절반을 버리고 빠져나간다' },
-        ...(s && !off ? b.boardTargets(s).map(t => ({ id: 'board:' + t.id, label: s.flag && t.flag ? `${DH.josa(F.foe.captain.name, '과', '와')} 일기토` : `${t.name}에 올라타기` })) : [])], pick);
+        ...(s && !off ? b.boardTargets(s).map(t => ({ id: 'board:' + t.id, label: `${t.name}에 올라타기` })) : []),
+        ...(s && !off ? b.duelTargets(s).map(t => ({ id: 'duel:' + t.id, label: `${F.foe.captain.name}에게 일기토 신청`, hint: '받아들이면 선장끼리 겨뤄 진 쪽이 해전을 진다' })) : [])], pick);
     }
 
     render(g) {
@@ -296,7 +363,7 @@
         const p = grid.center(u.c, u.r), dim = this.mode === 'fight' && u.side === b.side && u.done;
         g.globalAlpha = dim ? 0.6 : 1;
         if (u === s) { g.beginPath(); grid.trace(g, u.c, u.r); g.strokeStyle = ACCENT; g.lineWidth = 3; g.stroke(); }
-        drawShip(g, p.x, p.y - 2, 2.1, LOOK[u.side], u.flag, u.side === 'foe' ? -1 : 1);   // 서로 마주 본다
+        drawShip(g, p.x, p.y - 2, 2.1, LOOK[u.side], u.flag, u.side === 'foe' ? -1 : 1, u.type);   // 서로 마주 본다
         const label = `${u.hull}·${u.crew}`; g.font = `800 10px ${FONT}`; g.lineWidth = 3; g.strokeStyle = 'rgba(251,247,239,.95)'; g.strokeText(label, p.x, p.y + 15); g.fillStyle = u.side === 'me' ? INK : '#8a2416'; g.fillText(label, p.x, p.y + 15);
         g.globalAlpha = 1;
       }
@@ -325,5 +392,5 @@
     save() { return { turn: this.b.turn, side: this.b.side }; }
   }
 
-  DH.Hang = Object.assign(DH.Hang || {}, { HangBattleScene, drawShip });
+  DH.Hang = Object.assign(DH.Hang || {}, { HangBattleScene, drawShip, LOOK });
 })(typeof globalThis !== 'undefined' ? globalThis : this);

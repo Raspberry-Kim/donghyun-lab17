@@ -4,7 +4,7 @@
  *   goods[]     {id, name, base}
  *   facilities  {id: 이름}
  *   ports[]     {id, name, lon, lat, x, y(항구 칸·육지), anchor:[x,y](정박 칸·바다), market:[{good, price, stock}], facilities:[id…]}
- *   shipTypes[] {id, name, cargo, minCrew, maxCrew, speed(하루에 가는 칸), hull(선체), guns(포), price(도크에서 사는 값)}
+ *   shipTypes[] {id, name, cargo, minCrew, maxCrew, speed(하루에 가는 칸), hull(선체), guns(포), price(도크에서 사는 값), cheat?(true면 무적 모드에서만 고른다)}
  *   fleets[]    {id, name, x, y, port(항구 id|null), crew, food · water(선원 모두가 먹고 마시는 날 수), gold, captain:{name, war(무력 1~100)},
  *                ships:[{id, type, name, hold:[{good, qty, paid}]}]}   첫 배가 기함이다
  *   rivals[]    {id, name, captain:{name, war}, ships:[배 종류 id…], crew, gold}   바다에서 만나는 적 함대. 첫 배가 기함이다
@@ -90,7 +90,7 @@
     const shipTypes = chk.index(json.shipTypes, 'shipTypes');
     for (const t of shipTypes.values()) {
       const w = `shipTypes.${t.id}`;
-      chk.str(t.name, w + '.name'); chk.int(t.cargo, w + '.cargo', 0); chk.int(t.speed, w + '.speed', 1); chk.int(t.hull, w + '.hull', 1); chk.int(t.guns, w + '.guns', 0); chk.int(t.price, w + '.price', 0);
+      chk.str(t.name, w + '.name'); chk.int(t.cargo, w + '.cargo', 0); chk.int(t.speed, w + '.speed', 1); chk.int(t.hull, w + '.hull', 1); chk.int(t.guns, w + '.guns', 0); chk.int(t.price, w + '.price', 0); chk.ok(t.cheat === undefined || typeof t.cheat === 'boolean', w + '.cheat', 'true나 false여야 한다');
       if (chk.int(t.minCrew, w + '.minCrew', 1) && chk.int(t.maxCrew, w + '.maxCrew', 1)) chk.ok(t.minCrew <= t.maxCrew, w, '최소 선원이 최대보다 많다');
     }
     const cargoCap = f => f.ships.reduce((s, sh) => s + (shipTypes.get(sh.type)?.cargo || 0), 0);
