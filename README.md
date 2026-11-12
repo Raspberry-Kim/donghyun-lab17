@@ -1,4 +1,4 @@
-# 동현항 v0.06
+# 동현항 v0.07
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24106054.svg)](https://doi.org/10.5281/zenodo.24106054)
 
@@ -245,7 +245,7 @@ Layout   DOM. setInfo(위 띠) · setDetail(설명) · setMenu(단추) · log(�
 
 ```js
 { format: 'donghyunhang-save', version: 1,   // 어느 게임의 몇 번째 형식인지
-  lab: '0.06', savedAt: '2026-11-10T03:19:00.000Z',
+  lab: '0.07', savedAt: '2026-11-10T03:19:00.000Z',
   summary: { title: '리스본', date: '1522년 5월 1일', line: '자금 1,000 · 선원 28명' },   // 메뉴에 보이는 한 줄
   settings: [[3, 5000], [10, 20]],           // 저장될 때 적용돼 있던 동현랭 설정 [번호, 값…]
   engine, tick, clock, rng, scene,           // Engine.snapshot()

@@ -16,13 +16,77 @@
   const ARROW = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
   const digit = code => { const m = /^(?:Digit|Numpad)([1-9])$/.exec(code); return m ? Number(m[1]) : 0; };
 
-  /** 배 한 척(직접 그린 도형). (x,y)가 가운데, k가 배율. flag면 돛대 끝에 노란 깃발을 단다. */
-  function drawShip(g, x, y, k, look = LOOK.me, flag = false) {
-    g.save(); g.translate(x, y); g.scale(k, k); g.lineJoin = 'round'; g.lineWidth = 1; g.strokeStyle = INK;
-    g.beginPath(); g.moveTo(-6, 1); g.lineTo(6, 1); g.lineTo(4, 5); g.lineTo(-4, 5); g.closePath(); g.fillStyle = look.hull; g.fill(); g.stroke();
-    g.beginPath(); g.moveTo(0, -8); g.lineTo(5, 0); g.lineTo(0, 0); g.closePath(); g.fillStyle = look.sail; g.fill(); g.stroke();
-    g.beginPath(); g.moveTo(0, -8); g.lineTo(0, 1); g.stroke();
-    if (flag) { g.beginPath(); g.moveTo(0, -8); g.lineTo(-4.5, -9.5); g.lineTo(0, -11); g.closePath(); g.fillStyle = ACCENT; g.fill(); g.lineWidth = 0.7; g.stroke(); }
+  /* 배 그림(픽셀): 칸 하나가 글자 하나다. o 테두리 · L/H/h 선체 밝은·가운데·어두운 나무 · g 포문 · y 고물 창 · S/s 돛과 그늘 ·
+   * m 돛대·활대 · f 깃발과 F 그 테두리(기함만) · w 물보라. 뱃머리가 오른쪽을 본다. 큰 그림은 해전, 작은 그림은 세계 지도에 쓴다. */
+  const SHIP_BIG = [
+    '............mFFFFF..........',
+    '............mffffF..........',
+    '............mffFF...........',
+    '............mFF.............',
+    '........mmmmmmmmm...........',
+    '........oSSSmSSSo...........',
+    '........oSSSmSSSso..........',
+    '........oSSSmSSSso..........',
+    '.....m...ossmssso...........',
+    '....om....oomooo............',
+    '...oSmmmmmmmmmmmmmm....m....',
+    '..oSsmoSSSSSmSSSSSo....m....',
+    '..oSsmoSSSSSmSSSSSsommmmmmm.',
+    '.oSSsmoSSSSSmSSSSSsooSSmSSo.',
+    'oSSSsmoSSSSSmSSSSSsooSSmSSso',
+    'ossssm.oSSSSmSSSSso.oSSmSSso',
+    '.oooomo.osssmsssso...osmssom',
+    'oLLLLLLo.ooomoooo.....omoom.',
+    'oHHyHyHooooomoooooooooLmLLLo',
+    'oLLLLLLLLLLLLLLLLLLLLLLLLLLo',
+    'oHHHHHHHHgHHHgHHHgHHHgHHHHHo',
+    '.oHHHHHHHHHHHHHHHHHHHHHHHHo.',
+    '..ohhhhhhhhhhhhhhhhhhhhhho..',
+    '...oohhhhhhhhhhhhhhhhhhoo...',
+    '....wwwoooowwwoooowwwoo.....',
+  ];
+  const SHIP_SMALL = [
+    '........mFFFF....',
+    '........mfffF....',
+    '........mfFF.....',
+    '.....mmmmmmm.....',
+    '.....oSSmSSo.....',
+    '.....ossmsso.....',
+    '...mmmmmmmmmm....',
+    '..omSSSSmSSSo....',
+    '.oSmSSSSmSSSsomo.',
+    'oSsmosssmsssoSmSo',
+    'ossm.ooomoooosmso',
+    'oLLLoooomooooomo.',
+    'oLLLLLLLLLLLLLLLo',
+    'oHHHHHHHHHHHHHHHo',
+    '.oohhhhhhhhhhhoo.',
+    '...ooooooooooo...',
+    '...ww....ww......',
+  ];
+  const PX = {
+    me: { o: '#2a2119', F: '#2a2119', L: '#c99a5b', H: '#8a5a33', h: '#5e3b22', g: '#2a2119', y: '#f2c75c', S: '#fbf3df', s: '#d9cdb3', m: '#4a3424', f: ACCENT, w: '#eef6fa' },
+    foe: { o: '#2a2119', F: '#2a2119', L: '#8c6f52', H: '#4a3a2c', h: '#2f251c', g: '#1c1611', y: '#e0a040', S: '#d24a35', s: '#a8342a', m: '#3a2a1e', f: ACCENT, w: '#eef6fa' },
+  };
+  LOOK.me.px = PX.me; LOOK.foe.px = PX.foe;
+  /** 글자 줄을 같은 색끼리 묶어 둔다: [줄, 시작 칸, 길이, 글자] */
+  const runs = rows => { const out = []; rows.forEach((r, y) => { for (let x = 0; x < r.length;) { const ch = r[x]; let n = 1; while (r[x + n] === ch) n++; if (ch !== '.') out.push([y, x, n, ch]); x += n; } }); return out; };
+  const SPRITE = { big: { w: SHIP_BIG[0].length, h: SHIP_BIG.length, runs: runs(SHIP_BIG), cell: 0.7, base: 24 }, small: { w: SHIP_SMALL[0].length, h: SHIP_SMALL.length, runs: runs(SHIP_SMALL), cell: 1, base: 16 } };
+
+  /** 배 한 척(픽셀 그림). (x,y)가 가운데, k가 배율(물보라 줄 아래 끝이 y+5k). flag면 돛대 끝에 노란 깃발을 단다.
+   *  face가 -1이면 뱃머리가 왼쪽을 본다. k가 작으면(지도) 작은 그림을 칸 하나 1px로 그린다.
+   *  칸 경계를 기기 픽셀에 맞춰 반올림하므로 어떤 배율에서도 칸 사이에 틈이나 번짐이 없다. */
+  function drawShip(g, x, y, k, look = LOOK.me, flag = false, face = 1) {
+    const m = g.getTransform(), sp = k < 1.6 ? SPRITE.small : SPRITE.big;
+    const c = sp === SPRITE.small ? k : k * sp.cell, pal = look.px || PX.me;
+    const left = x - sp.w * c / 2, top = y + 5 * k - (sp.base + 1) * c;
+    const DX = j => Math.round(m.a * (left + (face < 0 ? sp.w - j : j) * c) + m.e), DY = i => Math.round(m.d * (top + i * c) + m.f);
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+    for (const [r, x0, n, ch] of sp.runs) {
+      if ((ch === 'f' || ch === 'F') && !flag) continue;
+      const a = DX(x0), b = DX(x0 + n), y0 = DY(r), y1 = DY(r + 1);
+      g.fillStyle = pal[ch] || INK; g.fillRect(Math.min(a, b), y0, Math.abs(b - a), y1 - y0);
+    }
     g.restore();
   }
 
@@ -232,7 +296,7 @@
         const p = grid.center(u.c, u.r), dim = this.mode === 'fight' && u.side === b.side && u.done;
         g.globalAlpha = dim ? 0.6 : 1;
         if (u === s) { g.beginPath(); grid.trace(g, u.c, u.r); g.strokeStyle = ACCENT; g.lineWidth = 3; g.stroke(); }
-        drawShip(g, p.x, p.y - 4, 2.1, LOOK[u.side], u.flag);
+        drawShip(g, p.x, p.y - 2, 2.1, LOOK[u.side], u.flag, u.side === 'foe' ? -1 : 1);   // 서로 마주 본다
         const label = `${u.hull}·${u.crew}`; g.font = `800 10px ${FONT}`; g.lineWidth = 3; g.strokeStyle = 'rgba(251,247,239,.95)'; g.strokeText(label, p.x, p.y + 15); g.fillStyle = u.side === 'me' ? INK : '#8a2416'; g.fillText(label, p.x, p.y + 15);
         g.globalAlpha = 1;
       }
