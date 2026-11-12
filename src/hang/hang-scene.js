@@ -302,7 +302,9 @@
         if (z >= 1.5 || hot) { g.lineWidth = 2.4 / z; g.strokeStyle = 'rgba(251,247,239,.92)'; g.strokeText(p.name, x, c.y + 4.5 / z); g.fillStyle = INK; g.fillText(p.name, x, c.y + 4.5 / z); }
       }
       // 배
-      const s = this.shipPx(); DH.Hang.drawShip(g, X(s.x), s.y, 1 / z, undefined, true);
+      const s = this.shipPx(), a = grid.center(this.from[0], this.from[1]), b = grid.center(v.x, v.y), dx = grid.nearX(b.x, a.x) - a.x;
+      if (Math.abs(dx) > 0.5) this.face = dx < 0 ? -1 : 1;                     // 가는 쪽으로 뱃머리를 돌린다(그림에만 쓰고 저장하지 않는다)
+      DH.Hang.drawShip(g, X(s.x), s.y, 1 / z, undefined, true, this.face || 1);
     }
     drawCard(g) {
       const W = this.engine.width, H = this.engine.height, v = this.voyage, won = v.over === 'won', w = 300, h = 96, x = (W - w) / 2, y = (H - h) / 2;
