@@ -337,11 +337,11 @@ ok('동현항 선장의 성장: 해전을 이기면 무력 +1 · 일기토로 �
   const full = V(); full.leave(); const b = full.openBattle(full.rivals.get('redsail')); b.units[1].c = 2; b.units[1].r = 4; const d = b.challenge(b.units[0], b.units[1]); assert.strictEqual(d.type, 'duel'); const o = full.settleBattle(b.result());
   assert.strictEqual(full.captain.war, d.winner === 'me' ? 73 : 70); assert.ok(d.winner !== 'me' || / · 선장 무력 70 → 73$/.test(o.text)); assert.strictEqual(full.openBattle(full.rivals.get('redsail')).fleets.me.captain.war, full.captain.war, '오른 무력으로 다음 해전을 치른다');
 });
-ok('동현항 거북선: 짐 120 · 선원 10~40 · 속도 3 · 선체 200 · 포 40문 · 값 30,000 · 어느 탐험에서나 사고 바꾼다 · cheat로 적은 자료에서만 무적 모드로 막힌다 · 포 한 번에 선체 −84', () => {
-  const t = hw().shipTypes.get('turtle'); assert.deepStrictEqual(t, { id: 'turtle', name: '거북선', cargo: 120, minCrew: 10, maxCrew: 40, speed: 3, hull: 200, guns: 40, price: 30000 });
+ok('동현항 거북선: 짐 120 · 선원 10~40 · 속도 3 · 선체 200 · 포 40문 · 값 8,000 · 어느 탐험에서나 사고 바꾼다 · cheat로 적은 자료에서만 무적 모드로 막힌다 · 포 한 번에 선체 −84', () => {
+  const t = hw().shipTypes.get('turtle'); assert.deepStrictEqual(t, { id: 'turtle', name: '거북선', cargo: 120, minCrew: 10, maxCrew: 40, speed: 3, hull: 200, guns: 40, price: 8000 });
   const all = [...hw().shipTypes.values()]; assert.deepStrictEqual(all.map(x => x.id), ['caravel', 'carrack', 'turtle']); assert.ok(all.every(x => x.id === 'turtle' || (x.speed < t.speed && x.guns < t.guns && !x.cheat)), '가장 빠르고 포가 가장 많다'); assert.strictEqual(t.cargo, all[0].cargo, '짐은 캐러벨만큼');
   let v = V(); assert.deepStrictEqual([v.inv, v.can('ship', 'turtle').why, v.can('swap', 's1', 'turtle').why], [false, '금이 모자란다', '금이 모자란다']);
-  v.gold = 30000; assert.deepStrictEqual([v.can('ship', 'turtle'), v.can('swap', 's1', 'turtle')], [{ ok: true, cost: 30000 }, { ok: true, cost: 29000, back: 0, trade: 1000, off: 0 }], '30,000 · 캐러벨에서 바꾸면 30,000 − 1,000');
+  v.gold = 7999; assert.strictEqual(v.can('ship', 'turtle').why, '금이 모자란다'); v.gold = 8000; assert.deepStrictEqual([v.can('ship', 'turtle'), v.can('swap', 's1', 'turtle')], [{ ok: true, cost: 8000 }, { ok: true, cost: 7000, back: 0, trade: 1000, off: 0 }], '8,000 · 캐러벨에서 바꾸면 8,000 − 1,000');
   assert.ok(v.swapShip('s1', 'turtle').ok !== false); assert.deepStrictEqual([v.ships[0].type, v.gold, v.speed], ['turtle', 1000, 3], '무적 모드가 아니어도 거북선으로 바꾼다');
   v = new H.Voyage(cheatW(), { rng: new DH.RNG(3) }); v.gold = 99999; assert.deepStrictEqual([v.can('ship', 'turtle').why, v.can('swap', 's1', 'turtle').why], ['무적 모드에서만 고를 수 있다', '무적 모드에서만 고를 수 있다']);
   const st = H.newState(); st.rules.invincible = 1; st.start.ship = 'turtle'; v = V({ state: st }); assert.deepStrictEqual([v.ships[0].type, v.ships[0].hull, v.speed, v.cargoCap, v.maxCrew, v.crew, v.cargoUsed], ['turtle', 200, 3, 120, 40, 28, 60], '설정으로 시작 기함을 바꾼다');
