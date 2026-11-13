@@ -903,8 +903,7 @@
    "speed": 3,
    "hull": 200,
    "guns": 40,
-   "price": 30000,
-   "cheat": true
+   "price": 30000
   }
  ],
  "fleets": [

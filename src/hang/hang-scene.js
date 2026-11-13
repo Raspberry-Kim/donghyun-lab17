@@ -250,7 +250,7 @@
       const w = this.world, v = this.voyage, R = v.rules, mode = this.mode, here = v.here, gname = id => w.goods.get(id).name;
       const ships = () => v.ships.map(sh => `${sh.name}(${v.T(sh).name}) 선체 ${sh.hull}/${v.T(sh).hull} · 포 ${v.gunsOf(sh)}`).join(' · ');
       const spec = t => `선체 ${t.hull} · 포 ${t.guns} · 짐 ${t.cargo} · 선원 ${t.maxCrew}명까지 · 하루 ${t.speed}칸`, D = R.dock;
-      const types = [...w.shipTypes.values()].filter(t => !t.cheat || v.inv);                    // 거북선은 무적 모드에서만 보인다
+      const types = [...w.shipTypes.values()].filter(t => !t.cheat || v.inv);                    // cheat로 적힌 배만 무적 모드에서 보인다(샘플 자료에는 없다)
       if (mode === 'meet') {
         const rv = this.meet, m = v.meetInfo(rv), k = v.flagRisk(rv), cnt = new Map(); for (const id of rv.ships) cnt.set(id, (cnt.get(id) || 0) + 1);
         return { title: `해적 출현 · ${rv.name}`, rows: [['해적 선장', `${rv.captain.name} · 무력 ${rv.captain.war}`], ['해적의 배', [...cnt].map(([id, n]) => `${w.shipTypes.get(id).name} ${n}척`).join(' · ') + ` · 선원 ${rv.crew}명`],
