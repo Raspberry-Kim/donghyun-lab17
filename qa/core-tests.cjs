@@ -269,7 +269,7 @@ ok('동현항 해전 AI · 끝: AI끼리 싸우면 언제나 끝난다 · 20턴�
 ok('동현항 해전 뒤: 이기면 적의 금 · 달아나면 짐 절반 · 지면 금 절반과 짐을 잃고 마지막 항구로 · 배를 잃으면 넘치는 짐이 가라앉는다', () => {
   const R = (winner, ships, o = {}) => ({ winner, fled: o.fled || null, reason: '시험', turns: 3, loot: o.loot || 0, duel: null, me: { ships }, foe: { ships: [] } });
   let v = V(); v.sailTo('seville'); v.stepDay(); let out = v.settleBattle(R('me', [{ ref: 's1', hull: 41, crew: 20, out: null }], { loot: 400 }));
-  assert.deepStrictEqual([out.text, v.gold, v.crew, v.ships[0].hull, v.cargoUsed, v.port, v.moving, v.sinceLand], ['해전에서 이겼다 · 금 +400 · 선원 28 → 20명 · 선장 무력 70 → 71', 1400, 20, 41, 60, null, true, 0]); assert.strictEqual(v.foodDays, 120, '사람이 줄면 남은 식량의 날 수가 는다(120일분까지)');
+  assert.deepStrictEqual([out.text, v.gold, v.crew, v.ships[0].hull, v.cargoUsed, v.port, v.moving, v.sinceLand], ['해전에서 이겼다 · 금 +400 · 식량·물 5일분 약탈(각 보급 상한까지) · 선원 28 → 20명 · 선장 무력 70 → 71', 1400, 20, 41, 60, null, true, 0]); assert.strictEqual(v.foodDays, 120, '사람이 줄면 남은 식량의 날 수가 는다(120일분까지)');
   v = V(); v.leave(); out = v.settleBattle(R(null, [{ ref: 's1', hull: 60, crew: 28, out: null }], { fled: 'me' })); assert.deepStrictEqual([out.text, out.fled, [...v.cargo].map(([g, h]) => [g, h.qty]), v.gold], ['짐 30개를 버리고 달아났다 · 선원 28 → 28명', true, [['wine', 30]], 1000]);
   v = V(); v.sailTo('seville'); v.stepDay(); out = v.settleBattle(R('foe', [{ ref: 's1', hull: 0, crew: 0, out: 'sunk' }]));
   assert.deepStrictEqual([out.text, v.gold, v.crew, v.cargoUsed, v.port, v.ships.length, v.ships[0].hull, v.moving, [v.x, v.y]], ['해전에서 졌다 · 금 500과 짐을 모두 빼앗기고 리스본으로 떠밀려 왔다 · 선원 28 → 5명', 500, 5, 0, 'lisbon', 1, 15, false, [170, 33]]);
@@ -333,10 +333,10 @@ ok('동현항 일기토 신청: 해전마다 쪽마다 한 번 · 적은 15까�
 });
 ok('동현항 선장의 성장: 해전을 이기면 무력 +1 · 일기토로 이겼으면 2 더 · 100까지 · 지거나 갈라지면 그대로', () => {
   const R = (winner, duel) => ({ winner, fled: null, loot: 0, duel, me: { ships: [{ ref: 's1', hull: 60, crew: 28, out: null }] } });
-  const v = V(); v.leave(); assert.deepStrictEqual([v.settleBattle(R('me', { winner: 'me' })).text, v.captain.war], ['해전에서 이겼다 · 금 +0 · 선원 28 → 28명 · 선장 무력 70 → 73', 73]);
+  const v = V(); v.leave(); assert.deepStrictEqual([v.settleBattle(R('me', { winner: 'me' })).text, v.captain.war], ['해전에서 이겼다 · 금 +0 · 식량·물 5일분 약탈(각 보급 상한까지) · 선원 28 → 28명 · 선장 무력 70 → 73', 73]);
   assert.deepStrictEqual([v.settleBattle(R(null, null)).text, v.captain.war], ['승부가 나지 않아 두 함대가 갈라졌다 · 선원 28 → 28명', 73]);
-  v.captain.war = 99; assert.deepStrictEqual([v.settleBattle(R('me', { winner: 'me' })).text, v.captain.war], ['해전에서 이겼다 · 금 +0 · 선원 28 → 28명 · 선장 무력 99 → 100', 100]);
-  assert.deepStrictEqual([v.settleBattle(R('me', null)).text, v.captain.war], ['해전에서 이겼다 · 금 +0 · 선원 28 → 28명', 100]);
+  v.captain.war = 99; assert.deepStrictEqual([v.settleBattle(R('me', { winner: 'me' })).text, v.captain.war], ['해전에서 이겼다 · 금 +0 · 식량·물 5일분 약탈(각 보급 상한까지) · 선원 28 → 28명 · 선장 무력 99 → 100', 100]);
+  assert.deepStrictEqual([v.settleBattle(R('me', null)).text, v.captain.war], ['해전에서 이겼다 · 금 +0 · 식량·물 5일분 약탈(각 보급 상한까지) · 선원 28 → 28명', 100]);
   const w = V(); w.sailTo('seville'); w.stepDay(); w.settleBattle(R('foe', { winner: 'foe' })); assert.strictEqual(w.captain.war, 70);
   const full = V(); full.leave(); const b = full.openBattle(full.rivals.get('redsail')); b.units[1].c = 2; b.units[1].r = 4; const d = b.challenge(b.units[0], b.units[1]); assert.strictEqual(d.type, 'duel'); const o = full.settleBattle(b.result());
   assert.strictEqual(full.captain.war, d.winner === 'me' ? 73 : 70); assert.ok(d.winner !== 'me' || / · 선장 무력 70 → 73( · 빼앗은 배 \d척)?$/.test(o.text)); assert.strictEqual(full.openBattle(full.rivals.get('redsail')).fleets.me.captain.war, full.captain.war, '오른 무력으로 다음 해전을 치른다');
@@ -469,7 +469,7 @@ ok('동현항 저장: 탐험을 적었다가 되살리면 똑같다(뱃길 · �
   const v = s.voyage, j = J(v); assert.ok(!v.port && v.moving && j.path.length > 0 && j.dest === 'genoa', '바다 한가운데');
   const h = DH.Hang.Voyage.restore(k.world, j, { rng: new DH.RNG(1), state: s.state });
   assert.deepStrictEqual(J(h), j); assert.deepStrictEqual([h.moving, h.cargoUsed, h.cargoCap, h.maxCrew, h.foodDays, h.speed], [true, v.cargoUsed, v.cargoCap, v.maxCrew, v.foodDays, v.speed]);
-  assert.deepStrictEqual(Object.keys(j), ['gold', 'crew', 'food', 'water', 'x', 'y', 'port', 'lastPort', 'day', 'sinceLand', 'path', 'dest', 'heading', 'over', 'overWhy', 'war', 'ships', 'cargo', 'markets', 'rest', 'prizes', 'contracts', 'taken']);
+  assert.deepStrictEqual(Object.keys(j), ['gold', 'crew', 'food', 'water', 'x', 'y', 'port', 'lastPort', 'day', 'sinceLand', 'path', 'dest', 'heading', 'over', 'overWhy', 'war', 'ships', 'cargo', 'markets', 'rest', 'prizes', 'contracts', 'taken', 'visits', 'visitsKnown', 'trafficAttempt']);
   assert.deepStrictEqual([j.markets.length, j.cargo.map(c => c[0]), Object.keys(j.ships[0])], [45, [...v.cargo.keys()], ['id', 'type', 'name', 'hull']]);
   const lis = j.markets.find(m => m[0] === 'lisbon')[1], base = k.world.ports.get('lisbon').market; assert.ok(lis.some((e, i) => e[1] !== base[i].price) && lis.some((e, i) => e[2] !== base[i].stock), '사고팔아 움직인 값과 재고가 적힌다(날마다 제자리로 돌아가는 중이다)');
   assert.deepStrictEqual([...h.markets.get('lisbon').values()].map(e => [e.good, e.price, e.stock]), lis);

@@ -1,0 +1,10 @@
+<div class="math-grid">
+  <article>
+    <h3><span class="math-num">10</span>승리 보급과 작은 인사</h3>
+    <p>전투 뒤 남은 선원을 <math><mi>C</mi></math>, 현재 식량 또는 물을 <math><mi>A</mi></math>라고 하자. 적이 처음에 __LARGE_SHIPS__척 이상이면 __LARGE_DAYS__일분, 아니면 __SMALL_DAYS__일분을 얻는다. 보급 단위 하나는 한 사람의 하루치다.</p>
+    <div class="eq"><span class="eq-run"><math display="block"><mrow><mi>A</mi><mo>←</mo><mi>max</mi><mo>(</mo><mi>A</mi><mo>,</mo><mi>min</mi><mo>(</mo><mi>A</mi><mo>+</mo><mi>C</mi><mi>d</mi><mo>,</mo><mi>C</mi><mi>M</mi><mo>)</mo><mo>)</mo></mrow></math></span></div>
+    <p><math><mi>d</mi></math>는 얻는 일수이고, 상한 <math><mi>M</mi></math>은 식량 __FOOD_MAX__일·물 __WATER_MAX__일이다. 예를 들어 선원 20명이 적 한 척을 이기면 각 보급에 20 × __SMALL_DAYS__ = __SMALL_EXAMPLE__을 더한다. 남은 자리가 모자라면 그만큼만 받는다. 옛 저장이나 특수 설정으로 이미 상한보다 많이 싣고 있다면 추가하지 않되 원래 양을 줄이지도 않는다.</p>
+    <p>지나는 배의 인사는 <math><mrow><mi>r</mi><mo>=</mo><mo>⌊</mo><mi>t</mi><mo>/</mo><mn>__TRAFFIC_EVERY__</mn><mo>⌋</mo></mrow></math>번째 항해일 묶음마다 한 번만 추첨한다(<math><mi>t</mi></math>는 바다에서 보낸 날). 이 묶음과 탐험대 이름의 별도 해시를 100으로 나눈 나머지가 __TRAFFIC_CHANCE__보다 작으면 식량 또는 물 __TRAFFIC_DAYS__일분을 얻는다. 마지막 추첨 묶음도 저장하며, 같은 묶음·이름이면 장소를 바꿔도 결과가 같다. 이 해시는 항해와 전투의 난수를 쓰지 않는다.</p>
+    <p class="math-source">코드: <code>RULES.salvage</code> · <code>RULES.traffic</code> · <code>RULES.supply</code> · <code>Voyage.addSupply</code> · <code>Voyage.greetTraffic</code>. 위 상수는 빌드할 때 실제 규칙에서 읽는다.</p>
+  </article>
+</div>

@@ -32,6 +32,8 @@
     dock: { repair: 2, maxShips: 3, tradePct: 50, gunStep: 2, gunMax: 8, gunGold: 400 },   // tradePct: 헌 배를 쳐주는 값(처음 값의 %) · 포 보강 한 번에 gunStep문, 배마다 gunMax문까지
     encounter: { percent: 5, grace: 3, tollPct: 20, tollMin: 100, rest: 60, scareGuns: 200, scareCrew: 100 },   // 통행료 = 자금의 tollPct%(적어도 tollMin) · rest: 진 무리가 쉬는 날 · scare: 포가 해적의 200%, 선원이 100% 이상이면 위협으로 물러난다
     prize: { pct: 25, hullPct: 25 },                                            // 빼앗은 배: 팔면 처음 값의 pct% · 함대에 넣으면 선체가 적어도 hullPct%
+    salvage: { smallDays: 5, largeDays: 10, largeShips: 2 },                     // 승리 뒤 양쪽 보급. 싸우기 전 적 함대가 두 척 이상이면 큰 함대
+    traffic: { every: 10, chance: 25, days: 5 },                                // 장식 배: 10항해일마다 한 번 추첨, 25%, 물 또는 식량 5일분
     guild: { offers: 3, every: 30, lot: 10, minLots: 2, maxLots: 6, bonusPct: 30, days: 90, reach: 70, max: 3 },   // 조합 의뢰: 30일마다 세 건 · 20~60개 · 그곳 값의 130% · 90일 안에 · 가로세로 70칸 안의 항구 · 세 건까지
     grow: { win: 1, duel: 2, max: 100 },                                        // 해전에서 이기면 선장 무력 +win, 일기토로 이겼으면 +duel 더. max까지
     invincible: 0,                                                              // 1이면 무적 모드
@@ -40,6 +42,7 @@
   const SHIP_NAMES = ['흰구름호', '새벽별호', '물보라호'];
   const fmt = n => Number(n).toLocaleString('ko-KR');
   const NO = why => ({ ok: false, why });
+  const artHash = text => { let h = 2166136261; for (const c of String(text)) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; };
   const DIRS = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] };
 
   class Voyage {
@@ -66,6 +69,8 @@
       this.rest = new Map();                                                    // 해적 무리 id → 이 날까지 쉰다(해전에서 진 무리)
       this.prizes = [];                                                         // 해전에서 빼앗은 배 [{type, hull}] · 함대에 넣거나 판다
       this.contracts = []; this.taken = [];                                     // 받은 조합 의뢰 · 이번 차례에 받은 의뢰 id
+      this.visits = new Map(f.port ? [[f.port, 1]] : []); this.visitsKnown = true;
+      this.trafficAttempt = -1;                                                 // 마지막으로 선물 추첨을 한 10항해일 묶음(저장)
       this.fighting = null;
       this.checkStage();
     }
@@ -126,7 +131,7 @@
     }
     stop() { this.path = []; this.dest = null; this.heading = null; }
     leave() { if (this.port) { this.lastPort = this.port; this.port = null; this.sinceLand = 0; } }
-    enter(pid) { const p = this.world.ports.get(pid); this.stop(); this.port = pid; this.lastPort = pid; this.x = p.anchor[0]; this.y = p.anchor[1]; this.sinceLand = 0; }
+    enter(pid) { const p = this.world.ports.get(pid); if (this.port !== pid) this.visits.set(pid, Math.min(1e7, (this.visits.get(pid) || 0) + 1)); this.stop(); this.port = pid; this.lastPort = pid; this.x = p.anchor[0]; this.y = p.anchor[1]; this.sinceLand = 0; }
     anchorAt(c, r) { for (const p of this.world.ports.values()) if (p.anchor[0] === c && p.anchor[1] === r) return p; return null; }
 
     /** 하루를 보낸다(바다에서만). 이동 → 보급 → 시세 → 입항 → 만남 순서다.
@@ -394,6 +399,22 @@
     }
 
     // ───────── 해전 ─────────
+    /** 화면의 일수와 같은 단위로 더한다. 기존 상한을 넘지 않으며, 실제 받은 양을 돌려준다. */
+    addSupply(kind, days) {
+      const before = this[kind], cap = this.crew * this.rules.supply[kind + 'Max'];
+      this[kind] = Math.max(before, Math.min(cap, before + this.crew * days));
+      return this[kind] - before;
+    }
+    /** 장식 배를 눌렀을 때 한 번만 추첨. 별도 해시라 전투·항해의 난수를 소비하지 않는다. */
+    greetTraffic() {
+      const R = this.rules.traffic, slot = Math.floor(this.day / R.every);
+      if (this.over || this.trafficAttempt >= slot) return { gift: false, text: '손을 흔들며 지나간다. 전투나 교역은 하지 않는다.' };
+      this.trafficAttempt = slot;
+      const h = artHash(`${slot}:${this.name}`);
+      if (h % 100 >= R.chance) return { gift: false, text: '서로 손을 흔들며 안전한 항해를 빈다.' };
+      const kind = (h >>> 8) % 2 ? 'food' : 'water', amount = this.addSupply(kind, R.days), name = kind === 'food' ? '식량' : '물';
+      return { gift: amount > 0, kind, amount, text: amount ? `${name} ${R.days}일분을 나누어 주었다${amount < this.crew * R.days ? '(보급 상한까지만 받았다)' : ''}.` : `${name}을 나누려 했지만 이미 가득하다.` };
+    }
     /** 만난 적 함대와의 해전을 연다. 우리 선원은 배의 정원에 맞춰 나눠 탄다. */
     /** 해전에서 배마다 타는 선원: {mine 우리 배 형, mc 우리 배마다 선원, theirs 해적 배 형, tc 해적 배마다 선원}. 정원에 비례해 나누고 남는 선원은 앞 배부터 채운다. */
     crewSplit(rival) {
@@ -432,9 +453,11 @@
         if (res.winner === 'me') {
           const G = this.rules.grow, was = this.captain.war, up = Math.min(G.max, was + G.win + (res.duel && res.duel.winner === 'me' ? G.duel : 0));
           this.gold += res.loot; this.captain.war = Math.max(was, up);
+          const S = this.rules.salvage, supplyDays = ((res.foe && res.foe.ships) || []).length >= S.largeShips ? S.largeDays : S.smallDays;
+          this.addSupply('food', supplyDays); this.addSupply('water', supplyDays);
           if (this.fighting && this.rivals.has(this.fighting)) this.rest.set(this.fighting, this.day + this.rules.encounter.rest);   // 진 무리는 한동안 나오지 않는다
           const P = this.rules.prize; this.prizes = ((res.foe && res.foe.ships) || []).filter(s => s.out === 'taken' && s.type && this.world.shipTypes.has(s.type)).map(s => ({ type: s.type, hull: Math.max(s.hull, Math.ceil(this.world.shipTypes.get(s.type).hull * P.hullPct / 100)) }));
-          text = `해전에서 이겼다 · 금 +${fmt(res.loot)} · 선원 ${before} → ${this.crew}명` + (this.captain.war > was ? ` · 선장 무력 ${was} → ${this.captain.war}` : '') + (this.prizes.length ? ` · 빼앗은 배 ${this.prizes.length}척` : '');
+          text = `해전에서 이겼다 · 금 +${fmt(res.loot)} · 식량·물 ${supplyDays}일분 약탈(각 보급 상한까지) · 선원 ${before} → ${this.crew}명` + (this.captain.war > was ? ` · 선장 무력 ${was} → ${this.captain.war}` : '') + (this.prizes.length ? ` · 빼앗은 배 ${this.prizes.length}척` : '');
         }
         else if (res.fled) { const cut = this.trimCargo(Math.floor(this.cargoUsed * (100 - this.rules.flee.cargoPct) / 100)); text = `짐 ${fmt(cut)}개를 버리고 달아났다 · 선원 ${before} → ${this.crew}명`; }
         else text = `승부가 나지 않아 두 함대가 갈라졌다 · 선원 ${before} → ${this.crew}명`;
@@ -474,7 +497,8 @@
         ships: this.ships.map(sh => ({ id: sh.id, type: sh.type, name: sh.name, hull: sh.hull, ...(sh.plus ? { plus: sh.plus } : {}), ...(sh.won ? { won: 1 } : {}) })),      // plus(보강한 포)는 있을 때만 적는다
         cargo: [...this.cargo].map(([good, h]) => [good, h.qty, h.paid]),                       // 실은 순서를 지킨다(버릴 때 뒤에서부터 버린다)
         markets: [...this.markets].map(([pid, m]) => [pid, [...m.values()].map(e => [e.good, e.price, e.stock])]),
-        rest: [...this.rest], prizes: this.prizes.map(p => ({ ...p })), contracts: this.contracts.map(c => ({ ...c })), taken: [...this.taken] };   // v0.13부터(그전 저장에는 없다)
+        rest: [...this.rest], prizes: this.prizes.map(p => ({ ...p })), contracts: this.contracts.map(c => ({ ...c })), taken: [...this.taken],
+        visits: [...this.visits], visitsKnown: this.visitsKnown, trafficAttempt: this.trafficAttempt };
     }
     /** toJSON()이 적은 것으로 탐험을 되살린다. 자료와 맞지 않으면 까닭을 담아 던진다(아무것도 바꾸지 않는다).
      *  @param world 자료 @param d toJSON()의 결과 @param {{rng?:DH.RNG, state?:object}} o */
@@ -497,6 +521,9 @@
       need(d.prizes === undefined || (Array.isArray(d.prizes) && d.prizes.length <= 3 && d.prizes.every(p => p && w.shipTypes.has(p.type) && I(p.hull, 0, w.shipTypes.get(p.type).hull))), '빼앗은 배 정보가 맞지 않는다.');
       need(d.contracts === undefined || (Array.isArray(d.contracts) && d.contracts.length <= RULES.guild.max && d.contracts.every(c => c && S(c.id) && w.ports.has(c.from) && w.ports.has(c.to) && w.goods.has(c.good) && I(c.qty, 1, 1e6) && I(c.reward, 0, 1e9) && I(c.due, 0, 1e7))), '의뢰 정보가 맞지 않는다.');
       need(d.taken === undefined || (Array.isArray(d.taken) && d.taken.length <= 100 && d.taken.every(S)), '의뢰 정보가 맞지 않는다.');
+      need(d.visits === undefined || (Array.isArray(d.visits) && d.visits.length <= w.ports.size && new Set(d.visits.map(e => e && e[0])).size === d.visits.length && d.visits.every(e => Array.isArray(e) && e.length === 2 && w.ports.has(e[0]) && I(e[1], 1, 1e7))), '방문 기록이 맞지 않는다.');
+      need(d.visitsKnown === undefined || typeof d.visitsKnown === 'boolean', '방문 기록이 맞지 않는다.');
+      need(d.trafficAttempt === undefined || I(d.trafficAttempt, -1, Math.floor(d.day / RULES.traffic.every)), '지나는 배 기록이 맞지 않는다.');
       const v = new Voyage(world, o);
       Object.assign(v, { gold: d.gold, crew: d.crew, food: d.food, water: d.water, x: d.x, y: d.y, port: d.port, lastPort: d.lastPort, day: d.day, sinceLand: d.sinceLand, path: d.path.map(p => [p[0], p[1]]), dest: d.dest, heading: d.heading, over: d.over, overWhy: d.overWhy });
       v.ships = d.ships.map(sh => ({ id: sh.id, type: sh.type, name: sh.name, hull: sh.hull, plus: sh.plus || 0, ...(sh.won ? { won: 1 } : {}) }));
@@ -504,9 +531,12 @@
       v.cargo = new Map(d.cargo.map(([good, qty, paid]) => [good, { qty, paid }]));
       for (const [pid, list] of d.markets) for (const [good, price, stock] of list) Object.assign(v.markets.get(pid).get(good), { price, stock });
       v.rest = new Map(d.rest || []); v.prizes = (d.prizes || []).map(p => ({ type: p.type, hull: p.hull })); v.contracts = (d.contracts || []).map(c => ({ ...c })); v.taken = [...(d.taken || [])];
+      v.visits = new Map(d.visits || (d.port || d.lastPort ? [[d.port || d.lastPort, 1]] : []));
+      v.visitsKnown = d.visits !== undefined && d.visitsKnown !== false;
+      v.trafficAttempt = d.trafficAttempt ?? -1;
       return v;
     }
   }
 
-  DH.Hang = Object.assign(DH.Hang || {}, { Voyage, RULES });
+  DH.Hang = Object.assign(DH.Hang || {}, { Voyage, RULES, artHash });
 })(typeof globalThis !== 'undefined' ? globalThis : this);
