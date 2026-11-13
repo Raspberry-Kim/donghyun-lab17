@@ -5,14 +5,18 @@
  *   보급   하루에 식량과 물을 선원 수만큼 쓴다. 모자라면 그날 선원의 10%(적어도 1명)가 준다. 식량과 물이 다 없으면 두 번 준다.
  *   입항   뱃길의 끝이 항구면 그 항구에, 키로 가다가 정박 칸에 닿으면 그 항구에 든다. 항구에서는 날이 멎는다.
  *   교역소 10개씩 사고판다. 사면 그 값으로 치르고 값이 한 단(그 항구 처음 값의 3%) 오른다. 팔면 값이 먼저 한 단 내리고 그 값에서 수수료 10%를 뗀다.
- *          날이 갈 때마다 값은 그 항구의 처음 값 쪽으로 차이의 10%씩, 재고는 5씩 되돌아온다.
+ *          날이 갈 때마다 값은 그 항구의 처음 값 쪽으로 차이의 10%씩, 재고는 5씩 되돌아온다. '살 수 있는 만큼'(buyMax)과 '모두 팔기'(sellAll)는 10개씩을 되풀이한다.
  *   여관   선원을 5명씩 모은다(한 명에 금 10) · 선장이 수련한다(금 300에 무력 +1, 100까지).
  *   도크   선체를 고친다(1마다 금 2) · 배를 산다(세 척까지) · 포를 보강한다(금 400에 +2문, 배마다 +8문까지) ·
- *          배를 다른 배로 바꾼다(기함도 된다. 헌 배는 처음 값의 50%를 쳐준다) · 배를 판다(마지막 한 척은 못 판다).
+ *          배를 다른 배로 바꾼다(기함도 된다. 헌 배는 처음 값의 50%, 빼앗은 배(won)는 25%를 쳐준다) · 배를 판다(마지막 한 척은 못 판다).
  *   보급   식량 10일분을 산다(한 사람 하루치 금 0.1) · 물은 값 없이 채운다. 식량은 120일분, 물은 60일분까지 싣는다.
- *   만남   항구를 떠나 3일이 지나면 날마다 5% 확률로 해적을 만난다. 만나면 셋 가운데 고른다(meetInfo):
+ *   조합   30일마다 의뢰 세 건: 이 항구의 교역품 20~60개를 90일 안에 다른 항구로 가져가면 수량 × 그곳 기준 값의 130%를 받는다. 세 건까지 받는다.
+ *   짐칸   갈래별로 실은 양을 보고(cargoByKind), 바다에서도 짐을 버릴 수 있다(dump).
+ *   만남   항구를 떠나 3일이 지나면 날마다 5% 확률로 그 바다에 다니는 해적을 만난다(roamers: areas가 있는 무리는 그 바다에만, 진 무리는 60일 쉰다). 다섯 가운데 고른다(meetInfo):
  *          싸운다 → 해전(hang-battle.js) → settleBattle()로 결과를 반영한다. 이기면 선장의 무력이 1 오른다(일기토로 이겼으면 2 더).
+ *            사로잡은 배는 prizes에 들어가 함대에 넣거나(takePrize, won: 1이 붙는다) 처음 값의 25%에 판다(sellPrize).
  *          달아난다 → 우리 함대가 더 빠르면 그냥 따돌리고, 아니면 짐의 절반을 버린다.   통행료 → 자금의 20%(적어도 금 100)를 내고 지나간다.
+ *          짐으로 치른다 → 기준 값이 높은 교역품부터 통행료만큼 내준다(payCargo).   위협한다 → 포가 해적의 200%, 선원이 100% 이상이면 해적이 물러난다(scareOff).
  *   무적   rules.invincible이 1이면(동현랭 설정 15) 금을 내지 않고, 식량과 물이 줄지 않고, 해전에서 우리 배가 다치지 않고, 선장이 일기토에서 지지 않는다.
  *          자료에 cheat로 적힌 배는 이때만 고를 수 있다(샘플 자료에는 없다).
  * 저장: toJSON()이 탐험에서 바뀌는 것만 적고, Voyage.restore()가 자료에 비춰 검사한 뒤 되살린다. */
@@ -26,7 +30,9 @@
     supply: { lotDays: 10, foodMax: 120, waterMax: 60, perGold: 10, lossPct: 10 },   // perGold: 금 1로 사는 식량(한 사람 하루치의 수)
     inn: { lot: 5, gold: 10, train: 300, trainGain: 1 },                        // train: 선장 수련 한 번의 값 · trainGain: 그때 오르는 무력
     dock: { repair: 2, maxShips: 3, tradePct: 50, gunStep: 2, gunMax: 8, gunGold: 400 },   // tradePct: 헌 배를 쳐주는 값(처음 값의 %) · 포 보강 한 번에 gunStep문, 배마다 gunMax문까지
-    encounter: { percent: 5, grace: 3, tollPct: 20, tollMin: 100 },             // 통행료 = 자금의 tollPct%(적어도 tollMin)
+    encounter: { percent: 5, grace: 3, tollPct: 20, tollMin: 100, rest: 60, scareGuns: 200, scareCrew: 100 },   // 통행료 = 자금의 tollPct%(적어도 tollMin) · rest: 진 무리가 쉬는 날 · scare: 포가 해적의 200%, 선원이 100% 이상이면 위협으로 물러난다
+    prize: { pct: 25, hullPct: 25 },                                            // 빼앗은 배: 팔면 처음 값의 pct% · 함대에 넣으면 선체가 적어도 hullPct%
+    guild: { offers: 3, every: 30, lot: 10, minLots: 2, maxLots: 6, bonusPct: 30, days: 90, reach: 70, max: 3 },   // 조합 의뢰: 30일마다 세 건 · 20~60개 · 그곳 값의 130% · 90일 안에 · 가로세로 70칸 안의 항구 · 세 건까지
     grow: { win: 1, duel: 2, max: 100 },                                        // 해전에서 이기면 선장 무력 +win, 일기토로 이겼으면 +duel 더. max까지
     invincible: 0,                                                              // 1이면 무적 모드
     defeat: { goldPct: 50, hullPct: 25, crewMin: 5 }, flee: { cargoPct: 50 }
@@ -57,6 +63,10 @@
       for (const [id, war] of (st && st.rivals) || []) { const v = this.rivals.get(id); if (v) v.captain.war = war; }
       this.markets = new Map([...world.ports.values()].map(p => [p.id, new Map(p.market.map(e => [e.good, { good: e.good, price: e.price, ref: e.price, stock: e.stock, refStock: e.stock }]))]));
       this.day = 0; this.sinceLand = 0; this.path = []; this.dest = null; this.heading = null; this.over = null; this.overWhy = null;
+      this.rest = new Map();                                                    // 해적 무리 id → 이 날까지 쉰다(해전에서 진 무리)
+      this.prizes = [];                                                         // 해전에서 빼앗은 배 [{type, hull}] · 함대에 넣거나 판다
+      this.contracts = []; this.taken = [];                                     // 받은 조합 의뢰 · 이번 차례에 받은 의뢰 id
+      this.fighting = null;
       this.checkStage();
     }
     // ───────── 지금 형편 ─────────
@@ -78,6 +88,9 @@
     get damage() { return this.ships.reduce((n, sh) => n + this.T(sh).hull - sh.hull, 0); }
     get moving() { return !this.port && !this.over && (this.path.length > 0 || this.heading !== null); }
     get here() { return this.port ? this.world.ports.get(this.port) : null; }
+    get gunsTotal() { return this.ships.reduce((n, sh) => n + this.gunsOf(sh), 0); }
+    /** 갈래별 짐 수: Map<갈래, 수> (자료에 갈래가 없으면 '기타') */
+    cargoByKind() { const m = new Map(); for (const [g, h] of this.cargo) { const k = this.world.goods.get(g).kind || 'etc'; m.set(k, (m.get(k) || 0) + h.qty); } return m; }
     held(good) { const h = this.cargo.get(good); return h ? h.qty : 0; }
     load(good, qty, price) { const h = this.cargo.get(good) || { qty: 0, paid: 0 }; h.paid = Math.round((h.paid * h.qty + price * qty) / (h.qty + qty)); h.qty += qty; this.cargo.set(good, h); }
     has(fac) { return !!this.here && this.here.facilities.includes(fac); }
@@ -142,9 +155,11 @@
       if (arrived) { this.enter(arrived); ev.push(`${this.here.name}에 닿았다`); }
       else if (!this.path.length && !this.heading && moved) ev.push('찍은 바다에 닿아 닻을 내렸다');
       this.checkStage();
-      let encounter = null;                                                    // ⑤ 만남
-      if (!arrived && !this.over && this.rivals.size && this.sinceLand > R.encounter.grace && R.encounter.percent > 0 && this.rng.next() * 100 < R.encounter.percent) {
-        encounter = this.rng.pick([...this.rivals.values()]); this.sinceLand = 0; ev.push(`해적 출현 · ${DH.josa(encounter.name, '과', '와')} 마주쳤다`);
+      for (const c of this.contracts.filter(c => this.day > c.due)) ev.push(`의뢰 기한이 지났다 · ${this.world.goods.get(c.good).name} ${c.qty}개 → ${this.world.ports.get(c.to).name}`);
+      this.contracts = this.contracts.filter(c => this.day <= c.due);          // 기한이 지난 의뢰는 사라진다(물어 낼 것은 없다)
+      let encounter = null; const pool = arrived || this.over ? [] : this.roamers();   // ⑤ 만남: 이 바다에 다니는 무리 가운데서
+      if (pool.length && this.sinceLand > R.encounter.grace && R.encounter.percent > 0 && this.rng.next() * 100 < R.encounter.percent) {
+        encounter = this.rng.pick(pool); this.sinceLand = 0; ev.push(`해적 출현 · ${DH.josa(encounter.name, '과', '와')} 마주쳤다`);
       }
       return { ok: true, from, moved, events: ev, arrived, encounter };
     }
@@ -169,6 +184,65 @@
       const sell = !this.has('market') ? NO('교역소가 없다') : m <= 0 ? NO('실은 것이 없다') : { ok: true, qty: m, price: down, unit, income: unit * m };
       return { good, name: g.name, price: e.price, ref: e.ref, stock: e.stock, sells: e.refStock > 0, held: this.held(good), paid: this.cargo.get(good)?.paid ?? 0, buy, sell };
     }
+    /** 칸 가운데의 경위도 [경도, 위도] */
+    lonLat(x = this.x, y = this.y) { const m = this.world.map, o = m.origin || { lon: -180, lat: 72 }, k = m.degPerTile || 1; let lon = o.lon + (x + 0.5) * k; if (lon >= 180) lon -= 360; return [lon, o.lat - (y + 0.5) * k]; }
+    /** 그 칸의 바다에 다니는 해적 무리(쉬는 무리는 뺀다). areas가 없는 무리는 어디에나 다닌다. */
+    roamers(x = this.x, y = this.y) {
+      const [lon, lat] = this.lonLat(x, y);
+      return [...this.rivals.values()].filter(v => !(this.rest.get(v.id) > this.day) && (!v.areas || v.areas.some(a => lon >= a[0] && lon <= a[2] && lat >= a[1] && lat <= a[3])));
+    }
+    /** 여러 번 사고판다: 할 수 없을 때까지 lot씩 되풀이한다. 한 번도 못 하면 그 까닭을 돌려준다. */
+    repeat(fn, good, verb) {
+      const e = this.entry(good), before = e ? e.price : 0; let qty = 0, gold = 0, last = null;
+      for (let i = 0; i < 10000; i++) { const r = fn.call(this, good); if (!r.ok) { if (!qty) return r; break; } qty += r.qty; gold += r.cost ?? r.income; last = r; }
+      const name = this.world.goods.get(good).name;
+      return { ok: true, type: last.type, good, qty, [verb === '샀다' ? 'cost' : 'income']: gold, text: `${name} ${fmt(qty)}개를 ${verb} · ${verb === '샀다' ? this.paid(gold) : '금 +' + fmt(gold)} · 값 ${before} → ${e.price}` };
+    }
+    /** 실을 수 있는 만큼, 금이 닿는 만큼, 재고가 있는 만큼 산다. */
+    buyMax(good) { return this.repeat(this.buy, good, '샀다'); }
+    /** 실은 것을 모두 판다(한 번 팔 때마다 값이 한 단 내린다). */
+    sellAll(good) { return this.repeat(this.sell, good, '팔았다'); }
+    /** 짐을 버린다(바다나 항구 어디서나). 자리를 비울 때 쓴다. */
+    dump(good, qty = this.rules.lot) {
+      if (this.over) return NO('탐험이 끝났다');
+      const h = this.cargo.get(good); if (!h) return NO('실은 것이 없다');
+      const n = Math.min(qty, h.qty); h.qty -= n; if (h.qty <= 0) this.cargo.delete(good);
+      return { ok: true, type: 'dump', good, qty: n, text: `${this.world.goods.get(good).name} ${n}개를 버렸다 · 짐 ${this.cargoUsed}/${this.cargoCap}` };
+    }
+
+    // ───────── 조합 의뢰 ─────────
+    /** 이 항구 조합의 의뢰. 그 항구에서 파는 교역품을, 그것이 나지 않는 가까운 항구에 가져다주는 일이다. 30일마다 바뀌고, 같은 날이면 늘 같다(난수를 쓰지 않는다). */
+    offers(pid = this.port) {
+      const p = this.world.ports.get(pid), G = this.rules.guild; if (!p || !p.facilities.includes('guild')) return [];
+      const round = Math.floor(this.day / G.every); let h = 2166136261; for (const ch of pid + ':' + round) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
+      const rng = new DH.RNG(h), m = this.world.map, local = [...this.markets.get(pid).values()].filter(e => e.refStock > 0).map(e => e.good), out = [];
+      const near = q => { let dx = Math.abs(q.x - p.x); if (m.wrapX) dx = Math.min(dx, m.cols - dx); return dx <= G.reach && Math.abs(q.y - p.y) <= G.reach; };
+      for (let i = 0; local.length && i < G.offers * 6 && out.length < G.offers; i++) {
+        const good = rng.pick(local), dests = [...this.world.ports.values()].filter(q => q.id !== pid && near(q) && q.facilities.includes('market') && this.markets.get(q.id).get(good).refStock === 0);
+        if (!dests.length) continue; const to = rng.pick(dests); if (out.some(o => o.to === to.id || o.good === good)) continue;
+        const qty = G.lot * (G.minLots + rng.int(G.maxLots - G.minLots + 1)), reward = Math.round(qty * this.markets.get(to.id).get(good).ref * (100 + G.bonusPct) / 100);
+        out.push({ id: `${pid}-${round}-${out.length}`, from: pid, good, to: to.id, qty, reward, days: G.days });
+      }
+      return out.filter(o => !this.taken.includes(o.id) && !this.contracts.some(c => c.id === o.id));
+    }
+    /** 의뢰를 받는다. 물건은 따로 사서 싣는다. */
+    accept(id) {
+      if (this.over) return NO('탐험이 끝났다');
+      if (!this.has('guild')) return NO('이 항구에는 조합이 없다');
+      const o = this.offers().find(x => x.id === id); if (!o) return NO('그런 의뢰가 없다');
+      if (this.contracts.length >= this.rules.guild.max) return NO(`의뢰는 ${this.rules.guild.max}건까지 받는다`);
+      const c = { ...o, due: this.day + o.days }; delete c.days; this.contracts.push(c); this.taken = [...this.taken.filter(t => t.split('-')[1] == Math.floor(this.day / this.rules.guild.every)), id];
+      return { ok: true, type: 'accept', text: `의뢰를 받았다 · ${this.world.goods.get(c.good).name} ${c.qty}개를 ${o.days}일 안에 ${DH.ro(this.world.ports.get(c.to).name)} · 보수 금 ${fmt(c.reward)}` };
+    }
+    /** 지금 넘길 수 있는지 */
+    canDeliver(c) { return !this.port || c.to !== this.port ? NO(`${DH.ro(this.world.ports.get(c.to).name)} 가져가야 한다`) : this.held(c.good) < c.qty ? NO(`${DH.josa(this.world.goods.get(c.good).name, '이', '가')} ${c.qty - this.held(c.good)}개 모자란다`) : { ok: true }; }
+    deliver(id) {
+      const c = this.contracts.find(x => x.id === id); if (!c) return NO('그런 의뢰가 없다'); const k = this.canDeliver(c); if (!k.ok) return k;
+      const h = this.cargo.get(c.good); h.qty -= c.qty; if (h.qty <= 0) this.cargo.delete(c.good); this.gold += c.reward; this.contracts = this.contracts.filter(x => x !== c);
+      this.checkStage();
+      return { ok: true, type: 'deliver', income: c.reward, text: `의뢰를 마쳤다 · ${this.world.goods.get(c.good).name} ${c.qty}개를 넘겼다 · 금 +${fmt(c.reward)}` };
+    }
+
     /** 산다: 지금 값으로 치르고, 재고가 줄고, 값이 한 단 오른다. */
     buy(good) {
       if (this.over) return NO('탐험이 끝났다');
@@ -214,7 +288,7 @@
         const sh = this.ships.find(x => x.id === arg), D = R.dock;
         if (!this.has('shipyard')) return NO('이 항구에는 도크가 없다');
         if (!sh) return NO('그런 배는 없다');
-        const old = this.T(sh), trade = Math.floor(old.price * D.tradePct / 100);
+        const old = this.T(sh), trade = Math.floor(old.price * (sh.won ? R.prize.pct : D.tradePct) / 100);   // 빼앗은 배(won)는 도크에서도 빼앗은 배 값으로 친다
         if (what === 'gun') {
           const n = Math.min(D.gunStep, D.gunMax - (sh.plus || 0)), cost = this.fee(D.gunGold);
           return n <= 0 ? NO(`포는 배마다 ${D.gunMax}문까지 더 단다`) : this.gold < cost ? NO('금이 모자란다') : { ok: true, qty: n, guns: this.gunsOf(sh) + n, cost };
@@ -264,7 +338,7 @@
     /** 배 바꾸기(도크): 그 배를 다른 종류로 바꾼다. 기함도 된다. 선체는 새것이 되고, 더 단 포는 헌 배에 딸려 가서 새 배는 보강 0문부터다. 자리가 줄면 선원이 내린다. */
     swapShip(id, type) {
       const c = this.can('swap', id, type); if (!c.ok) return c; const sh = this.ships.find(x => x.id === id), old = this.T(sh), t = this.world.shipTypes.get(type);
-      sh.type = type; sh.hull = t.hull; sh.plus = 0; this.gold += c.back - c.cost; if (c.off) this.setCrew(this.crew - c.off);
+      sh.type = type; sh.hull = t.hull; sh.plus = 0; delete sh.won; this.gold += c.back - c.cost; if (c.off) this.setCrew(this.crew - c.off);
       this.checkStage();
       return { ok: true, type: 'swap', ...c, text: `${DH.josa(sh.name, '을', '를')} ${old.name}에서 ${DH.ro(t.name)} 바꿨다 · 헌 배 값 금 ${fmt(c.trade)} · ${c.back ? '금 +' + fmt(c.back) : this.paid(c.cost)}${c.off ? ` · 선원 ${c.off}명이 내렸다` : ''}` };
     }
@@ -284,7 +358,29 @@
       const E = this.rules.encounter, their = Math.min(...rival.ships.map(id => this.world.shipTypes.get(id).speed)), fast = this.speed > their;
       const drop = fast ? 0 : this.cargoUsed - Math.floor(this.cargoUsed * (100 - this.rules.flee.cargoPct) / 100);
       const toll = this.fee(Math.max(E.tollMin, Math.ceil(this.gold * E.tollPct / 100)));
-      return { fast, speed: this.speed, their, drop, toll, pay: this.gold >= toll ? { ok: true, cost: toll } : NO('금이 모자란다') };
+      const T = id => this.world.shipTypes.get(id), guns = rival.ships.reduce((n, id) => n + T(id).guns, 0), needGuns = Math.ceil(guns * E.scareGuns / 100), needCrew = Math.ceil(rival.crew * E.scareCrew / 100);
+      const scare = this.inv || (this.gunsTotal >= needGuns && this.crew >= needCrew) ? { ok: true } : NO(`포 ${needGuns}문 · 선원 ${needCrew}명은 있어야 물러난다(우리 포 ${this.gunsTotal}문 · 선원 ${this.crew}명)`);
+      return { fast, speed: this.speed, their, drop, toll, pay: this.gold >= toll ? { ok: true, cost: toll } : NO('금이 모자란다'), barter: this.barterPlan(toll), scare, guns, needGuns, needCrew };
+    }
+    /** 통행료 대신 짐으로 치를 때 해적이 가져갈 것: 기준 값이 높은 교역품부터, 기준 값으로 쳐서 통행료만큼. */
+    barterPlan(toll) {
+      const list = [...this.cargo].map(([g, h]) => ({ g, qty: h.qty, base: this.world.goods.get(g).base })).sort((a, b) => b.base - a.base || (a.g < b.g ? -1 : 1));
+      if (!list.length) return NO('실은 짐이 없다');
+      const take = []; let value = 0;
+      for (const e of list) { if (value >= toll) break; const n = Math.min(e.qty, Math.ceil((toll - value) / e.base)); take.push([e.g, n]); value += n * e.base; }
+      return value < toll ? NO(`짐을 모두 쳐도 금 ${fmt(value)}이라 통행료에 못 미친다`) : { ok: true, take, value, qty: take.reduce((n, [, q]) => n + q, 0) };
+    }
+    /** 통행료를 짐으로 치르고 지나간다. */
+    payCargo(rival) {
+      const m = this.meetInfo(rival); if (!m.barter.ok) return m.barter;
+      for (const [g, n] of m.barter.take) { const h = this.cargo.get(g); h.qty -= n; if (h.qty <= 0) this.cargo.delete(g); }
+      this.sinceLand = 0;
+      return { ok: true, type: 'barter', qty: m.barter.qty, text: `${rival.name}에게 짐으로 통행료를 치렀다 · ${m.barter.take.map(([g, n]) => `${this.world.goods.get(g).name} ${n}`).join(' · ')}` };
+    }
+    /** 포와 선원으로 위협한다. 우리 쪽이 넉넉히 세면 해적이 물러난다(잃는 것도 얻는 것도 없다). */
+    scareOff(rival) {
+      const m = this.meetInfo(rival); if (!m.scare.ok) return m.scare; this.sinceLand = 0;
+      return { ok: true, type: 'scare', text: `포 ${this.gunsTotal}문을 늘어세우자 ${DH.josa(rival.name, '이', '가')} 뱃머리를 돌렸다` };
     }
     /** 싸우지 않고 달아난다. 우리가 더 빠르면 잃는 것이 없고, 아니면 짐의 절반을 버린다. */
     evade(rival) {
@@ -313,7 +409,7 @@
       return { ours: mc[0], theirs: tc[0], hit, taken: !this.inv && hit >= mc[0] };
     }
     openBattle(rival) {
-      const { mine, mc, theirs, tc } = this.crewSplit(rival);
+      const { mine, mc, theirs, tc } = this.crewSplit(rival); this.fighting = rival.id;
       return new DH.Hang.SeaBattle({ seed: (this.day * 131 + this.x * 17 + this.y) >>> 0, rng: this.rng, rules: this.seaRules, place: `${this.day}일째 바다`,
         me: { name: this.name, captain: this.captain, invincible: this.inv, ships: this.ships.map((sh, i) => ({ ref: sh.id, type: sh.type, name: sh.name, kind: mine[i].name, hull: sh.hull, maxHull: mine[i].hull, crew: mc[i], maxCrew: mine[i].maxCrew, guns: this.gunsOf(sh) })) },
         foe: { id: rival.id, name: rival.name, captain: rival.captain, gold: rival.gold, ships: theirs.map((t, i) => ({ ref: 'f' + i, type: t.id, name: i === 0 ? '기함' : `${i + 1}번함`, kind: t.name, hull: t.hull, maxHull: t.hull, crew: tc[i], maxCrew: t.maxCrew, guns: t.guns })) } });
@@ -336,14 +432,30 @@
         if (res.winner === 'me') {
           const G = this.rules.grow, was = this.captain.war, up = Math.min(G.max, was + G.win + (res.duel && res.duel.winner === 'me' ? G.duel : 0));
           this.gold += res.loot; this.captain.war = Math.max(was, up);
-          text = `해전에서 이겼다 · 금 +${fmt(res.loot)} · 선원 ${before} → ${this.crew}명` + (this.captain.war > was ? ` · 선장 무력 ${was} → ${this.captain.war}` : '');
+          if (this.fighting && this.rivals.has(this.fighting)) this.rest.set(this.fighting, this.day + this.rules.encounter.rest);   // 진 무리는 한동안 나오지 않는다
+          const P = this.rules.prize; this.prizes = ((res.foe && res.foe.ships) || []).filter(s => s.out === 'taken' && s.type && this.world.shipTypes.has(s.type)).map(s => ({ type: s.type, hull: Math.max(s.hull, Math.ceil(this.world.shipTypes.get(s.type).hull * P.hullPct / 100)) }));
+          text = `해전에서 이겼다 · 금 +${fmt(res.loot)} · 선원 ${before} → ${this.crew}명` + (this.captain.war > was ? ` · 선장 무력 ${was} → ${this.captain.war}` : '') + (this.prizes.length ? ` · 빼앗은 배 ${this.prizes.length}척` : '');
         }
         else if (res.fled) { const cut = this.trimCargo(Math.floor(this.cargoUsed * (100 - this.rules.flee.cargoPct) / 100)); text = `짐 ${fmt(cut)}개를 버리고 달아났다 · 선원 ${before} → ${this.crew}명`; }
         else text = `승부가 나지 않아 두 함대가 갈라졌다 · 선원 ${before} → ${this.crew}명`;
         const over = this.trimCargo(this.cargoCap); if (over) text += ` · 배를 잃어 짐 ${fmt(over)}개가 가라앉았다`;
       }
-      this.checkStage();
-      return { ok: true, winner: res.winner, fled: !!res.fled, text };
+      this.fighting = null; this.checkStage();
+      return { ok: true, winner: res.winner, fled: !!res.fled, prizes: this.prizes.length, text };
+    }
+    /** 빼앗은 배를 함대에 넣는다(세 척까지). 선원은 지금 선원이 나눠 탄다. */
+    takePrize(i) {
+      const pz = this.prizes[i]; if (!pz) return NO('빼앗은 배가 없다'); if (this.ships.length >= this.rules.dock.maxShips) return NO(`배는 ${this.rules.dock.maxShips}척까지다`);
+      const t = this.world.shipTypes.get(pz.type), name = SHIP_NAMES.find(n => !this.ships.some(sh => sh.name === n)) || `${this.ships.length + 1}번함`;
+      let k = this.ships.length + 1; while (this.ships.some(sh => sh.id === 's' + k)) k++;
+      this.ships.push({ id: 's' + k, type: pz.type, name, hull: pz.hull, plus: 0, won: 1 }); this.prizes.splice(i, 1);
+      return { ok: true, type: 'prize', text: `빼앗은 ${t.name}에 ${DH.josa(name, '이', '라')}는 이름을 붙여 함대에 넣었다 · 선체 ${pz.hull}/${t.hull} · 배 ${this.ships.length}척` };
+    }
+    /** 빼앗은 배를 판다(처음 값의 25%). */
+    sellPrize(i) {
+      const pz = this.prizes[i]; if (!pz) return NO('빼앗은 배가 없다'); const t = this.world.shipTypes.get(pz.type), g = Math.floor(t.price * this.rules.prize.pct / 100);
+      this.gold += g; this.prizes.splice(i, 1); this.checkStage();
+      return { ok: true, type: 'prize-sell', income: g, text: `빼앗은 ${DH.josa(t.name, '을', '를')} 팔았다 · 금 +${fmt(g)}` };
     }
     /** 선원 수를 바꾼다. 식량과 물은 실은 양 그대로다(사람이 줄면 날 수가 는다). 정한 양보다 넘치면 잘라 낸다. */
     setCrew(n) { this.crew = n; const S = this.rules.supply; this.food = Math.min(this.food, n * S.foodMax); this.water = Math.min(this.water, n * S.waterMax); }
@@ -359,9 +471,10 @@
     toJSON() {
       const { gold, crew, food, water, x, y, port, lastPort, day, sinceLand, dest, heading, over, overWhy } = this;
       return { gold, crew, food, water, x, y, port, lastPort, day, sinceLand, path: this.path.map(p => [p[0], p[1]]), dest, heading, over, overWhy, war: this.captain.war,
-        ships: this.ships.map(sh => ({ id: sh.id, type: sh.type, name: sh.name, hull: sh.hull, ...(sh.plus ? { plus: sh.plus } : {}) })),      // plus(보강한 포)는 있을 때만 적는다
+        ships: this.ships.map(sh => ({ id: sh.id, type: sh.type, name: sh.name, hull: sh.hull, ...(sh.plus ? { plus: sh.plus } : {}), ...(sh.won ? { won: 1 } : {}) })),      // plus(보강한 포)는 있을 때만 적는다
         cargo: [...this.cargo].map(([good, h]) => [good, h.qty, h.paid]),                       // 실은 순서를 지킨다(버릴 때 뒤에서부터 버린다)
-        markets: [...this.markets].map(([pid, m]) => [pid, [...m.values()].map(e => [e.good, e.price, e.stock])]) };
+        markets: [...this.markets].map(([pid, m]) => [pid, [...m.values()].map(e => [e.good, e.price, e.stock])]),
+        rest: [...this.rest], prizes: this.prizes.map(p => ({ ...p })), contracts: this.contracts.map(c => ({ ...c })), taken: [...this.taken] };   // v0.13부터(그전 저장에는 없다)
     }
     /** toJSON()이 적은 것으로 탐험을 되살린다. 자료와 맞지 않으면 까닭을 담아 던진다(아무것도 바꾸지 않는다).
      *  @param world 자료 @param d toJSON()의 결과 @param {{rng?:DH.RNG, state?:object}} o */
@@ -373,17 +486,24 @@
       need([null, 'won', 'lost'].includes(d.over) && [null, 'gold', 'time', 'crew'].includes(d.overWhy) && (d.over === null) === (d.overWhy === null) && (d.over !== null || d.crew > 0), '진행 정보가 맞지 않는다.');
       need(cell([d.x, d.y]) && port(d.port) && port(d.lastPort) && port(d.dest) && (d.heading === null || Object.hasOwn(DIRS, d.heading)) && d.path.length <= 4000 && d.path.every(cell), '배의 자리가 지도와 맞지 않는다.');
       if (d.port) { const a = w.ports.get(d.port).anchor; need(a[0] === d.x && a[1] === d.y && !d.path.length && d.heading === null && d.dest === null, '배의 자리가 지도와 맞지 않는다.'); }
-      need(d.ships.length >= 1 && d.ships.length <= 12 && new Set(d.ships.map(sh => sh && sh.id)).size === d.ships.length && d.ships.every(sh => sh && typeof sh.id === 'string' && sh.id.length <= 12 && typeof sh.name === 'string' && sh.name.length <= 24 && w.shipTypes.has(sh.type) && I(sh.hull, 0, w.shipTypes.get(sh.type).hull) && (sh.plus === undefined || I(sh.plus, 0, RULES.dock.gunMax))), '배 정보가 자료와 맞지 않는다.');
+      need(d.ships.length >= 1 && d.ships.length <= 12 && new Set(d.ships.map(sh => sh && sh.id)).size === d.ships.length && d.ships.every(sh => sh && typeof sh.id === 'string' && sh.id.length <= 12 && typeof sh.name === 'string' && sh.name.length <= 24 && w.shipTypes.has(sh.type) && I(sh.hull, 0, w.shipTypes.get(sh.type).hull) && (sh.plus === undefined || I(sh.plus, 0, RULES.dock.gunMax)) && (sh.won === undefined || sh.won === 1)), '배 정보가 자료와 맞지 않는다.');
       need(d.war === undefined || I(d.war, 1, 100), '선장 정보가 맞지 않는다.');                // v0.07까지의 저장에는 war · plus가 없다(그때는 설정 값 · 0)
       need(new Set(d.cargo.map(h => h && h[0])).size === d.cargo.length && d.cargo.every(h => Array.isArray(h) && h.length === 3 && w.goods.has(h[0]) && I(h[1], 1, 1e6) && I(h[2], 0, 1e9)), '짐 정보가 자료와 맞지 않는다.');
-      need(d.markets.length === w.ports.size && new Set(d.markets.map(m => m && m[0])).size === d.markets.length && d.markets.every(m => { const p = Array.isArray(m) && m.length === 2 && w.ports.get(m[0]), list = p && m[1];
-        return p && Array.isArray(list) && list.length === p.market.length && list.every((e, i) => Array.isArray(e) && e.length === 3 && e[0] === p.market[i].good && I(e[1], 1, 1e9) && I(e[2], 0, 1e9)); }), '시세 정보가 자료와 맞지 않는다.');
+      // v0.10까지의 저장은 항구 20곳 · 교역품 12가지만 적었다. 적힌 항구와 교역품은 자료에 있어야 하고, 적히지 않은 것은 자료의 처음 시세로 연다.
+      need(d.markets.length <= w.ports.size && new Set(d.markets.map(m => m && m[0])).size === d.markets.length && d.markets.every(m => { const p = Array.isArray(m) && m.length === 2 && w.ports.get(m[0]), list = p && m[1], has = p && new Set(p.market.map(e => e.good));
+        return p && Array.isArray(list) && list.length <= p.market.length && new Set(list.map(e => e && e[0])).size === list.length && list.every(e => Array.isArray(e) && e.length === 3 && has.has(e[0]) && I(e[1], 1, 1e9) && I(e[2], 0, 1e9)); }), '시세 정보가 자료와 맞지 않는다.');
+      const S = x => typeof x === 'string' && x.length <= 40;
+      need(d.rest === undefined || (Array.isArray(d.rest) && d.rest.every(e => Array.isArray(e) && e.length === 2 && w.rivals.has(e[0]) && I(e[1], 0, 1e7))), '해적 정보가 맞지 않는다.');
+      need(d.prizes === undefined || (Array.isArray(d.prizes) && d.prizes.length <= 3 && d.prizes.every(p => p && w.shipTypes.has(p.type) && I(p.hull, 0, w.shipTypes.get(p.type).hull))), '빼앗은 배 정보가 맞지 않는다.');
+      need(d.contracts === undefined || (Array.isArray(d.contracts) && d.contracts.length <= RULES.guild.max && d.contracts.every(c => c && S(c.id) && w.ports.has(c.from) && w.ports.has(c.to) && w.goods.has(c.good) && I(c.qty, 1, 1e6) && I(c.reward, 0, 1e9) && I(c.due, 0, 1e7))), '의뢰 정보가 맞지 않는다.');
+      need(d.taken === undefined || (Array.isArray(d.taken) && d.taken.length <= 100 && d.taken.every(S)), '의뢰 정보가 맞지 않는다.');
       const v = new Voyage(world, o);
       Object.assign(v, { gold: d.gold, crew: d.crew, food: d.food, water: d.water, x: d.x, y: d.y, port: d.port, lastPort: d.lastPort, day: d.day, sinceLand: d.sinceLand, path: d.path.map(p => [p[0], p[1]]), dest: d.dest, heading: d.heading, over: d.over, overWhy: d.overWhy });
-      v.ships = d.ships.map(sh => ({ id: sh.id, type: sh.type, name: sh.name, hull: sh.hull, plus: sh.plus || 0 }));
+      v.ships = d.ships.map(sh => ({ id: sh.id, type: sh.type, name: sh.name, hull: sh.hull, plus: sh.plus || 0, ...(sh.won ? { won: 1 } : {}) }));
       if (d.war !== undefined) v.captain.war = d.war;
       v.cargo = new Map(d.cargo.map(([good, qty, paid]) => [good, { qty, paid }]));
       for (const [pid, list] of d.markets) for (const [good, price, stock] of list) Object.assign(v.markets.get(pid).get(good), { price, stock });
+      v.rest = new Map(d.rest || []); v.prizes = (d.prizes || []).map(p => ({ type: p.type, hull: p.hull })); v.contracts = (d.contracts || []).map(c => ({ ...c })); v.taken = [...(d.taken || [])];
       return v;
     }
   }

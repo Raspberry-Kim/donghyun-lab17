@@ -144,7 +144,7 @@ def h_land(c,r):
 grid=[[('#' if h_land(c,r) else '~') for c in range(H_COLS)] for r in range(H_ROWS)]
 # 1° 칸으로는 닫혀 버리는 좁은 해협을 물로 튼다(실제로 배가 지나는 곳만).
 CARVE=[('지브롤터 해협',[(174,36)]),('도버 해협',[(181,21)]),('다르다넬스·마르마라·보스포루스',[(206,31),(207,31),(208,31)]),
-       ('말라카 해협',[(281,70),(283,70)])]
+       ('말라카 해협',[(281,70),(283,70)]),('바브엘만데브 해협',[(222,59)])]
 def sea_steps(c,r):
     """배가 한 걸음에 갈 수 있는 바다 칸. 엔진 길 찾기와 같은 규칙: 대각 걸음은 모서리를 낀 두 칸이 모두 땅이면 못 간다."""
     out=[]
@@ -184,23 +184,45 @@ def place(lon,lat):
             d=(c+0.5+H_LON0-lon)**2+(H_LAT0-r-0.5-lat)**2
             if best is None or d<best[0]: best=(d,c,r,min(sea,key=lambda n:(n[0]+0.5+H_LON0-lon)**2+(H_LAT0-n[1]-0.5-lat)**2))
     assert best,(lon,lat); return best[1],best[2],best[3]
-GOODS=[('wine','포도주',30),('olive','올리브유',24),('wool','모직물',40),('glass','유리구슬',36),('gold','금',300),('ivory','상아',120),
-('pepper','후추',60),('cotton','면직물',45),('silk','비단',160),('porcelain','도자기',110),('clove','정향',140),('sugar','설탕',50)]
-ORIGIN={'wine':['iberia','med'],'olive':['med','iberia'],'wool':['europe_n'],'glass':['venice'],'gold':['wafrica','sofala'],'ivory':['eafrica','wafrica'],
-'pepper':['india'],'cotton':['india'],'silk':['eastasia'],'porcelain':['canton'],'clove':['malacca'],'sugar':['america']}
+# id, 이름, 기준 값, 갈래. 기준 값은 놀이 균형을 맞춘 시험 값이다(1522년 시세를 옮긴 것이 아니다).
+GOODS=[('wine','포도주',30,'drink'),('olive','올리브유',24,'food'),('wool','모직물',40,'craft'),('glass','유리구슬',36,'craft'),('gold','금',300,'gem'),('ivory','상아',120,'gem'),
+('pepper','후추',60,'spice'),('cotton','면직물',45,'craft'),('silk','비단',160,'craft'),('porcelain','도자기',110,'craft'),('clove','정향',140,'spice'),('sugar','설탕',50,'food'),
+('silver','은',200,'gem'),('jjampong','짬뽕',16,'food'),('castella','카스텔라',40,'food'),('tea','차',70,'drink'),('sapphire','사파이어',230,'gem'),('ruby','루비',250,'gem'),
+('cinnamon','계피',90,'spice'),('ginseng','인삼',170,'herb'),('jade','옥',140,'gem'),('pizza','피자',14,'food'),('sculpture','조각품',160,'art'),('art','미술품',190,'art'),
+('timber','목재',20,'raw'),('beer','맥주',18,'drink'),('feather','타조깃털',75,'raw'),('salt','암염',22,'raw'),('nutmeg','육두구',150,'spice'),('soap','비누',32,'craft'),
+('grain','곡물',12,'food'),('pearl','진주',210,'gem'),('agarwood','침향',180,'herb'),('herring','청어',15,'food'),('coral','산호',120,'gem'),('pimiento','피망',20,'food')]
+KINDS=dict(food='식료',drink='술·차',spice='향신료',herb='약재·향',craft='직물·공예',gem='보석·귀금속',art='미술품',raw='원자재')
+# 처음 열두 가지는 권역 꼬리표로, 새로 넣은 것은 항구 id로 산지를 적는다(둘 다 꼬리표처럼 맞춰 본다).
+ORIGIN={'wine':['iberia','med'],'olive':['med','iberia'],'wool':['europe_n'],'glass':['venice'],'gold':['wafrica','sofala','mozambique','butuan','capetown'],'ivory':['eafrica','wafrica'],
+'pepper':['india','java'],'cotton':['india'],'silk':['eastasia'],'porcelain':['canton'],'clove':['malacca','ternate'],'sugar':['america'],
+'silver':['nagasaki','jemulpo','dongnae'],'jjampong':['nagasaki'],'castella':['nagasaki'],'tea':['ceylon'],'sapphire':['ceylon'],'ruby':['ceylon'],'cinnamon':['ceylon'],
+'ginseng':['jemulpo'],'jade':['dongnae'],'pizza':['naples'],'sculpture':['athens'],'art':['pisa','mecca'],'timber':['oslo','pernambuco'],'beer':['hamburg'],
+'feather':['tripoli'],'salt':['tripoli'],'nutmeg':['ambon'],'soap':['marseille'],'grain':['valencia','cebu','guatemala'],'pearl':['sulu'],'agarwood':['hongkong'],
+'herring':['copenhagen'],'coral':['santodomingo'],'pimiento':['veracruz']}
+# 산지와 상관없이 값을 더 쳐주는 곳(역사에서 은은 명나라 쪽에서 값이 높았다). 배수는 시험 값이다.
+DEMAND={('silver','canton'):1.3,('silver','hongkong'):1.3,('silver','malacca'):1.15}
 FAC=dict(harbor='항구',market='교역소',shipyard='도크',inn='주점',guild='조합',palace='왕궁',lodge='여관')
 BIG=['harbor','market','shipyard','inn','guild','palace','lodge']; MID=['harbor','market','shipyard','inn','lodge']; SMALL=['harbor','market','inn','lodge']   # 작은 항구에는 도크가 없다
-# id, 이름, 경도, 위도, 권역 꼬리표, 시설
-PORTS=[('lisbon','리스본',-9.14,38.72,['iberia'],BIG),('seville','세비야',-5.98,37.39,['iberia'],BIG),('london','런던',-0.12,51.50,['europe_n'],BIG),
-('amsterdam','암스테르담',4.90,52.37,['europe_n'],MID),('genoa','제노바',8.93,44.41,['med'],MID),('venice','베네치아',12.33,45.44,['med','venice'],BIG),
-('istanbul','이스탄불',28.98,41.01,['med'],BIG),('alexandria','알렉산드리아',29.92,31.20,['med'],MID),('elmina','엘미나',-1.35,5.08,['wafrica'],SMALL),
-('sofala','소팔라',34.85,-20.15,['eafrica','sofala'],SMALL),('mombasa','몸바사',39.67,-4.05,['eafrica'],SMALL),('aden','아덴',45.03,12.78,['arabia'],MID),
-('hormuz','호르무즈',56.45,27.10,['arabia'],MID),('goa','고아',73.83,15.50,['india'],MID),('calicut','캘리컷',75.78,11.25,['india'],MID),
-('malacca','말라카',102.25,2.20,['sea','malacca'],MID),('canton','광저우',113.26,23.13,['eastasia','canton'],BIG),('hakata','하카타',130.40,33.60,['eastasia'],MID),
-('santodomingo','산토도밍고',-69.90,18.47,['america'],SMALL),('veracruz','베라크루스',-96.13,19.20,['america'],SMALL)]
+# id, 이름, 경도, 위도, 권역 꼬리표, 시설, 깃발(오늘날 그 땅의 나라 · 1522년의 나라가 아니다)
+PORTS=[('lisbon','리스본',-9.14,38.72,['iberia'],BIG,'PT'),('seville','세비야',-5.98,37.39,['iberia'],BIG,'ES'),('london','런던',-0.12,51.50,['europe_n'],BIG,'GB'),
+('amsterdam','암스테르담',4.90,52.37,['europe_n'],MID,'NL'),('genoa','제노바',8.93,44.41,['med'],MID,'IT'),('venice','베네치아',12.33,45.44,['med','venice'],BIG,'IT'),
+('istanbul','이스탄불',28.98,41.01,['med'],BIG,'TR'),('alexandria','알렉산드리아',29.92,31.20,['med'],MID,'EG'),('elmina','엘미나',-1.35,5.08,['wafrica'],SMALL,'GH'),
+('sofala','소팔라',34.85,-20.15,['eafrica','sofala'],SMALL,'MZ'),('mombasa','몸바사',39.67,-4.05,['eafrica'],SMALL,'KE'),('aden','아덴',45.03,12.78,['arabia'],MID,'YE'),
+('hormuz','호르무즈',56.45,27.10,['arabia'],MID,'IR'),('goa','고아',73.83,15.50,['india'],MID,'IN'),('calicut','캘리컷',75.78,11.25,['india'],MID,'IN'),
+('malacca','말라카',102.25,2.20,['sea','malacca'],MID,'MY'),('canton','광저우',113.26,23.13,['eastasia','canton'],BIG,'CN'),('hakata','하카타',130.40,33.60,['eastasia'],MID,'JP'),
+('santodomingo','산토도밍고',-69.90,18.47,['america','santodomingo'],SMALL,'DO'),('veracruz','베라크루스',-96.13,19.20,['america','veracruz'],SMALL,'MX'),
+# 새로 넣은 25곳. 꼬리표는 제 항구 id 하나뿐이라 처음 열두 교역품의 산지는 그대로다(금·후추·정향만 ORIGIN에 따로 적었다).
+('nagasaki','나가사키',129.87,32.75,[],MID,'JP'),('ceylon','실론',79.86,6.93,[],MID,'LK'),('jemulpo','제물포',126.62,37.47,[],SMALL,'KR'),('dongnae','동래',129.04,35.10,[],SMALL,'KR'),
+('naples','나폴리',14.27,40.85,[],MID,'IT'),('athens','아테네',23.64,37.94,[],SMALL,'GR'),('pisa','피사',10.40,43.72,[],SMALL,'IT'),('oslo','오슬로',10.75,59.91,[],SMALL,'NO'),
+('hamburg','함부르크',9.99,53.55,[],MID,'DE'),('tripoli','트리폴리',13.19,32.89,[],MID,'LY'),('mozambique','모잠비크',40.74,-15.03,[],SMALL,'MZ'),('java','자바',106.83,-6.12,[],MID,'ID'),
+('ternate','테르나테',127.38,0.79,[],SMALL,'ID'),('ambon','암본',128.18,-3.70,[],SMALL,'ID'),('marseille','마르세유',5.37,43.30,[],MID,'FR'),('valencia','발렌시아',-0.38,39.47,[],MID,'ES'),
+('pernambuco','페르남부쿠',-34.88,-8.05,[],SMALL,'BR'),('butuan','부투안',125.54,8.95,[],SMALL,'PH'),('cebu','세부',123.89,10.32,[],SMALL,'PH'),('sulu','술루',121.0,6.05,[],SMALL,'PH'),
+('hongkong','홍콩',114.17,22.30,[],SMALL,'HK'),('capetown','케이프타운',18.42,-33.92,[],SMALL,'ZA'),('mecca','메카',39.17,21.49,[],SMALL,'SA'),('copenhagen','코펜하겐',12.57,55.68,[],MID,'DK'),
+('guatemala','과테말라',-88.6,15.72,[],SMALL,'GT')]
 pos={}
-for pid,name,lon,lat,tags,fac in PORTS: pos[pid]=place(lon,lat)
-assert len({(c,r) for c,r,_ in pos.values()})==20, '항구 칸이 겹친다'
+for pid,name,lon,lat,tags,fac,flag in PORTS: pos[pid]=place(lon,lat)
+for pid,(c,r,_) in pos.items(): print(' ',pid,(c,r),'%.1f°'%math.hypot(c+0.5+H_LON0-[p for p in PORTS if p[0]==pid][0][2],H_LAT0-r-0.5-[p for p in PORTS if p[0]==pid][0][3]))
+assert len({(c,r) for c,r,_ in pos.values()})==len(PORTS)==45, '항구 칸이 겹친다'
 def sea_dist(src):
     d={src:0}; q=collections.deque([src])
     while q:
@@ -212,31 +234,43 @@ DIST={pid:sea_dist(pos[pid][2]) for pid in pos}
 for a in pos:
     for b in pos: assert pos[b][2] in DIST[a],(a,b,'바닷길이 끊겼다')
 ports=[]
-for pid,name,lon,lat,tags,fac in PORTS:
+for pid,name,lon,lat,tags,fac,flag in PORTS:
     c,r,an=pos[pid]; market=[]
-    for gid,gname,base in GOODS:
-        makers=[q for q,_,_,_,t,_ in PORTS if set(t)&set(ORIGIN[gid])]
+    for gid,gname,base,kind in GOODS:
+        makers=[q for q,_,_,_,t,_,_ in PORTS if (set(t)|{q})&set(ORIGIN[gid])]
+        assert makers,(gid,'산지가 없다')
         if pid in makers: price,stock=round(base*0.6),200
         else:
-            d=min(DIST[m][an] for m in makers); price,stock=round(base*(1+min(1.4,d/120))),0   # 산지에서 뱃길이 멀수록 비싸다(시험 식)
+            d=min(DIST[m][an] for m in makers); price,stock=round(base*(1+min(1.4,d/120))*DEMAND.get((gid,pid),1)),0   # 산지에서 뱃길이 멀수록 비싸다(시험 식)
         market.append(dict(good=gid,price=price,stock=stock))
-    ports.append(dict(id=pid,name=name,lon=lon,lat=lat,x=c,y=r,anchor=list(an),market=market,facilities=fac))
+    ports.append(dict(id=pid,name=name,lon=lon,lat=lat,x=c,y=r,anchor=list(an),flag=flag,market=market,facilities=fac))
 lis=pos['lisbon'][2]
 hang=dict(format='donghyun-hang-data',version=1,
  meta=dict(title='동현항 샘플 자료',start=dict(year=1522,month=5,day=1),
-  note='항구 20곳은 1522년에 이미 교역하던 실제 항구다. 좌표는 실제 경위도에서 1° 칸으로 옮겼고, 항구 칸은 큰 바다와 맞닿은 가장 가까운 육지 칸이다(세비야는 실제로는 강 안쪽이라 바닷가로 나와 있다). 시세·시설·배 수치는 시험 값이다. 원작 수치를 옮긴 것이 아니다. 해안선은 오늘날 기준이다.',
+  note='항구 45곳은 실제 지명이다. 1522년에 아직 열리지 않았거나 세워지지 않은 곳(나가사키 · 제물포 · 케이프타운 등)과 그때 없던 교역품(짬뽕 · 피자 · 실론 차 등)도 놀이로 넣었다(README의 역사 확인 표). 깃발은 오늘날 그 땅의 나라 깃발을 줄인 것이다. 좌표는 실제 경위도에서 1° 칸으로 옮겼고, 항구 칸은 큰 바다와 맞닿은 가장 가까운 육지 칸이다(세비야 · 함부르크는 실제로는 강 안쪽이라 바닷가로 나와 있고, 술루 · 암본처럼 1° 칸에 땅이 없는 작은 섬은 가장 가까운 땅에 있다. 메카는 항구인 지다 자리에 둔다). 시세·시설·배 수치는 시험 값이다. 원작 수치를 옮긴 것이 아니다. 해안선은 오늘날 기준이다.',
   sources=['Natural Earth 110m land (public domain) https://www.naturalearthdata.com/']),
  map=dict(grid='square',cols=H_COLS,rows=H_ROWS,wrapX=True,origin=dict(lon=H_LON0,lat=H_LAT0),degPerTile=1,tiles={'~':'sea','#':'land'},carved=carved,rle=[rle(''.join(x)) for x in grid]),
- goods=[dict(id=i,name=n,base=b) for i,n,b in GOODS], facilities=FAC, ports=ports,
- shipTypes=[dict(id='caravel',name='캐러벨',cargo=120,minCrew=10,maxCrew=40,speed=2,hull=60,guns=8,price=2000),dict(id='carrack',name='캐럭',cargo=320,minCrew=30,maxCrew=120,speed=1,hull=120,guns=16,price=5000),
-  # 거북선: 어느 탐험에서나 도크에서 사고 시작 기함으로도 고른다. 짐은 캐러벨만큼 싣고, 가장 빠르고, 포가 가장 세다(지어낸 시험 값).
-  dict(id='turtle',name='거북선',cargo=120,minCrew=10,maxCrew=40,speed=3,hull=200,guns=40,price=8000)],
+ goods=[dict(id=i,name=n,base=b,kind=k) for i,n,b,k in GOODS], kinds=KINDS, facilities=FAC, ports=ports,
+ shipTypes=[dict(id='caravel',name='캐러벨',cargo=200,minCrew=10,maxCrew=40,speed=2,hull=60,guns=8,price=2000),dict(id='carrack',name='캐럭',cargo=480,minCrew=30,maxCrew=120,speed=1,hull=120,guns=16,price=5000),
+  # 거북선: 어느 탐험에서나 도크에서 사고 시작 기함으로도 고른다. 짐은 캐러벨보다 조금 더 싣고, 가장 빠르고, 포가 가장 세다(지어낸 시험 값).
+  dict(id='turtle',name='거북선',cargo=240,minCrew=10,maxCrew=40,speed=3,hull=200,guns=40,price=8000)],
  fleets=[dict(id='player',name='포동이 탐험대',x=lis[0],y=lis[1],port='lisbon',crew=28,food=90,water=60,gold=1000,captain=dict(name='포동이',war=70),
    ships=[dict(id='s1',type='caravel',name='꼬리바람호',hold=[dict(good='wine',qty=40,paid=18),dict(good='olive',qty=20,paid=14)])])],
- # 바다에서 만나는 적 함대(지어낸 이름). 첫 배가 기함이다.
+ # 바다에서 만나는 적 함대. 이름과 선장은 지어냈다. areas가 있는 무리는 그 바다(경위도 네모)에서만 나온다. 첫 배가 기함이다.
+ # 지역 무리는 그 바다에서 실제로 해적·사략선이 다니던 일을 본떴다(note). 세기는 처음 세 무리 사이에 두었다(어렵게 하지 않는다).
  rivals=[dict(id='redsail',name='붉은 돛 해적단',captain=dict(name='붉은수염',war=55),ships=['caravel'],crew=24,gold=400),
   dict(id='blackreef',name='검은 암초 해적단',captain=dict(name='외눈 선장',war=72),ships=['caravel','caravel'],crew=56,gold=900),
-  dict(id='storm',name='폭풍 사략 함대',captain=dict(name='폭풍 제독',war=86),ships=['carrack','caravel'],crew=110,gold=1800)])
+  dict(id='storm',name='폭풍 사략 함대',captain=dict(name='폭풍 제독',war=86),ships=['carrack','caravel'],crew=110,gold=1800),
+  dict(id='barbary',name='바르바리 해적선',captain=dict(name='알제의 노잡이 두목',war=66),ships=['caravel','caravel'],crew=50,gold=1000,areas=[[-6,30,36,46]],
+   note='북아프리카 항구를 근거로 지중해 뱃길을 털던 해적을 본떴다(1516년 무렵부터 알제가 근거지였다).'),
+  dict(id='corsair',name='옹플뢰르 사략선',captain=dict(name='노르망디 선장',war=68),ships=['carrack'],crew=80,gold=1500,areas=[[-40,30,-5,52],[-100,8,-58,30]],
+   note='프랑스 왕의 허가장을 들고 에스파냐·포르투갈 배를 노리던 사략선을 본떴다(1522년에 코르테스의 보물선이 대서양에서 털렸다).'),
+  dict(id='malabar',name='말라바르 쾌속선단',captain=dict(name='쾌속선 두목',war=60),ships=['caravel','caravel'],crew=44,gold=900,areas=[[60,0,85,25]],
+   note='캘리컷 둘레 바다에서 포르투갈 배를 막아서던 쾌속선 무리를 본떴다.'),
+  dict(id='sulusea',name='술루 바다 약탈선',captain=dict(name='산호초 두목',war=58),ships=['caravel'],crew=30,gold=700,areas=[[115,-10,135,15]],
+   note='술루해와 몰루카 바다의 섬 사이로 숨어 다니던 약탈선을 본떴다.'),
+  dict(id='wokou',name='왜구 선단',captain=dict(name='해협의 두목',war=64),ships=['caravel','caravel'],crew=48,gold=1100,areas=[[115,20,135,42]],
+   note='한반도·중국 바닷가를 털던 왜구를 본떴다(1523년 닝보에서 일본 사절끼리 싸운 뒤 더 늘었다).')])
 
 def dump(path,obj):
     s=json.dumps(obj,ensure_ascii=False,indent=1)
