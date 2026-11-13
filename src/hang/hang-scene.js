@@ -18,7 +18,15 @@
   const MAP = { shallow: '#b5d6e2', sea: '#9fc4d9', deep: '#93bcd4', m: '#ece2c7', t: '#e2dfb6', p: '#ecebe3', rim: '#c9b48a' };   // 지도 기본 색(동현삼과 같은 바다) · 뭍은 온대(m) · 열대(t) · 한대(p)
   const fmt = n => Number(n).toLocaleString('ko-KR');
   const KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }, WIND = { left: '서', right: '동', up: '북', down: '남' };
-  const VIEW = [{ id: 'follow', label: '배 따라가기' }, { id: 'zin', label: '확대', key: '+' }, { id: 'zout', label: '축소', key: '−' }];
+  const VIEW = [{ id: 'follow', label: '배 따라가기' }, { id: 'zin', label: '확대', key: '+' }, { id: 'zout', label: '축소', key: '−' }, { id: 'traffic', label: '지나는 배', key: 'T' }];
+  const CIVIL = {
+    fishing: { name: '연안 고깃배', region: '이 고장의 어민', text: '작은 돛과 그물을 실은 주민의 고깃배다.', more: '해안 가까이에서 천천히 고기를 잡는다.' },
+    junk: { name: '동아시아 정크 상선', region: '동아시아 바다', text: '가로 살이 들어간 돛을 펼친 목조 상선이다.', more: '동아시아 정크의 선형을 작게 줄여 그렸다.' },
+    dhow: { name: '인도양 다우 상선', region: '아라비아·인도양', text: '비스듬한 활대에 삼각 돛을 단 상선이다.', more: '교역과 어업에 쓰인 다우에서 모양을 빌렸다.' },
+    canoe: { name: '섬마을 돛단배', region: '섬과 섬 사이', text: '노와 작은 돛으로 움직이는 가벼운 배다.', more: '연안과 섬 사이를 다니던 배를 단순화했다.' },
+    merchant: { name: '유럽 캐럭 상선', region: '유럽·대서양 항로', text: '둥근 선체와 넓은 돛에 화물을 싣는 상선이다.', more: '15~16세기 캐럭을 바탕으로 작게 그렸다.' },
+    explorer: { name: '대양의 캐러벨 탐험선', region: '먼바다의 탐험가', text: '먼 수평선을 향해 항해하는 작은 범선이다.', more: '초기 대서양 탐험에 쓰인 캐러벨에서 따왔다.' }
+  };
   const ARROW = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }, PAN = { KeyA: 'ArrowLeft', KeyD: 'ArrowRight', KeyW: 'ArrowUp', KeyS: 'ArrowDown' };
   const digit = code => { const m = /^(?:Digit|Numpad)([1-9])$/.exec(code); return m ? Number(m[1]) : 0; };
   const TABS = { market: '교역소', inn: '여관', dock: '도크', supply: '보급', guild: '조합', hold: '짐칸' }, NEED = { market: 'market', guild: 'guild', inn: 'lodge', dock: 'shipyard' };
@@ -32,6 +40,7 @@
       this.state = DH.Hang.newState();                            // globalState: 기본값. 동현랭 설정이 오면 새로 지어 덮어쓴다
       this.selected = null; this.spot = null; this.tab = null; this.route = null; this.follow = true; this.leg = 0;
       this.meet = null; this.dockShip = null;                     // 마주친 해적(카드가 떠 있는 동안) · 도크에서 손보려고 고른 배 id
+      this.civil = []; this.civilKey = null; this.civilCard = null;
       this.voyage = this.newVoyage(); this.from = [this.voyage.x, this.voyage.y];
       this.settings = [];                                          // 지금 탐험에 적용된 동현랭 설정 [[번호, 값…]] (저장할 때 함께 적는다)
     }
@@ -56,6 +65,7 @@
       Object.assign(c, { year: s.year, month: s.month || 1, day: s.day || 1, serial: 0, _acc: 0, running: false });
       this.voyage = this.newVoyage(); this.from = [this.voyage.x, this.voyage.y];
       this.selected = null; this.spot = null; this.tab = null; this.route = null; this.follow = true; this.leg = 0; this.meet = null; this.dockShip = null;
+      this.civil = []; this.civilKey = null; this.civilCard = null;
       this.centerOnFleet(); this.hello(); this.refresh();
     }
     hello() {
@@ -83,6 +93,7 @@
         return Array.from({ length: grid.cols }, (_, c) => { const d = depth[r * grid.cols + c]; return d > 0 ? (d <= 1 ? 's1' : d <= 4 ? 's2' : 's3') : belt + (grid.neighbors(c, r).some(([nc, nr]) => !land(nc, nr)) ? 'c' : ''); });
       });
       const styles = { s1: { fill: MAP.shallow }, s2: { fill: MAP.sea }, s3: { fill: MAP.deep }, default: { fill: MAP.m } };
+      this.depth = depth;
       for (const b of ['p', 'm', 't']) { styles[b] = { fill: MAP[b] }; styles[b + 'c'] = { fill: DH.mixColor(MAP[b], MAP.rim, 0.3) }; }
       return { styles, tileAt: (c, r) => kind[r][c] };
     }
@@ -110,7 +121,7 @@
     /** 해전 화면을 얹는다. 끝나면 결과를 탐험대에 반영하고 돌아온다. */
     openBattle(rival) {
       const v = this.voyage, b = v.openBattle(rival); this.sfx('alert'); this.refresh();
-      this.engine.pushScene(new DH.Hang.HangBattleScene(this.engine, this.layout, b, { onDone: res => {
+      this.engine.pushScene(new DH.Hang.HangBattleScene(this.engine, this.layout, b, { artSeed: this.pirateSeed(rival), salvage: v.rules.salvage, onDone: res => {
         const out = v.settleBattle(res); this.layout.log(out.text);
         this.from = [v.x, v.y]; if (v.port) { this.selected = null; this.spot = null; this.tab = null; this.route = null; }
         this.follow = true; this.centerOnFleet(); this.settled();
@@ -118,7 +129,57 @@
     }
     settled() { const v = this.voyage; if (v.over && !this._told) { this._told = true; this.engine.clock.running = false; this.layout.log(this.overTitle()); this.sfx(v.overWhy === 'gold' ? 'win' : 'lose', 0.6); } if (!v.over) this._told = false; this.refresh(); }
     overTitle() { const v = this.voyage; return v.overWhy === 'gold' ? '목표한 자금을 모았다' : v.overWhy === 'time' ? '기한이 다 되었다' : '선원을 모두 잃었다'; }
-    update() { if (this.follow && this.engine.clock.running) this.centerOnFleet(); if (this.engine.tick % 6 === 0) this.refreshInfo(); }
+    update() { if (this.follow && this.engine.clock.running) this.centerOnFleet(); if (!this.civilCard) this.updateCivil(); if (this.engine.tick % 6 === 0) this.refreshInfo(); }
+    pirateSeed(rival) { return DH.Hang.artHash(`${rival.id}:${this.voyage.day}:${this.voyage.x}:${this.voyage.y}`); }
+    /** 별도 장식 경로. 바다 칸만 잇고 게임 난수·경로·충돌에는 손대지 않는다. */
+    updateCivil() {
+      if (!this.grid || this.mode === 'meet' || this.mode === 'prize' || this.mode === 'over') return;
+      const g = this.grid, z = this.cam.zoom, cx = this.cam.x + this.engine.width / z / 2, cy = this.cam.y + this.engine.height / z / 2;
+      const key = `${Math.floor(cx * z / 80)}:${Math.floor(cy * z / 64)}:${Math.round(z * 2)}`;
+      const visible=this.civil.filter(s=>{const p=this.cam.toScreen(g.nearX(s.x,cx),s.y);return p.x>8&&p.x<this.engine.width-8&&p.y>8&&p.y<this.engine.height-8;}).length;
+      if (key !== this.civilKey || (this.civil.length>=2&&visible<2)) {
+        this.civilKey = key; this.civil = [];
+        const seed = DH.Hang.artHash(key), m = this.world.map;
+        for (let i = 0; i < 3; i++) {
+          const tx = this.cam.x + this.engine.width / z * [.23,.73,.48][i], ty = this.cam.y + this.engine.height / z * [.32,.63,.79][i];
+          let best = null, score = Infinity;
+          const range = g.range(this.cam.x + 18/z, this.cam.y + 18/z, this.cam.x + (this.engine.width-18)/z, this.cam.y + (this.engine.height-18)/z);
+          for (let r=range.r0;r<=range.r1;r++) for(let c=range.c0;c<=range.c1;c++) {
+            const nc=g.normC(c); if(!m.isSea(nc,r)) continue;
+            const p=g.center(c,r), depth=this.depth[r*g.cols+nc];
+            if (this.civil.some(s=>Math.hypot(p.x-s.x,p.y-s.y)<28/z)) continue;
+            if ([...this.world.ports.values()].some(q=>Math.hypot(g.nearX(q.x*TILE+TILE/2,p.x)-p.x,q.y*TILE+TILE/2-p.y)<17/z)) continue;
+            const d=Math.hypot(p.x-tx,p.y-ty)+(i===0?Math.max(0,depth-2)*8:0);
+            if(d<score){score=d;best=[c,r];}
+          }
+          if(!best) continue;
+          const path=[best]; let prev=null;
+          for(let j=0;j<14;j++) {
+            const [c,r]=path.at(-1), opts=[[c+1,r],[c,r+1],[c-1,r],[c,r-1]].filter(([a,b])=>{
+              const p=g.center(a,b),screen=this.cam.toScreen(p.x,p.y);
+              return m.isSea(g.normC(a),b)&&(!prev||a!==prev[0]||b!==prev[1])&&Math.abs(a-best[0])<10&&Math.abs(b-best[1])<7&&screen.x>10&&screen.x<this.engine.width-10&&screen.y>10&&screen.y<this.engine.height-10;
+            });
+            if(!opts.length) break;
+            prev=[c,r]; path.push(opts[DH.Hang.artHash(`${seed}:${i}:${j}`)%opts.length]);
+          }
+          if(path.length<2) continue;
+          const norm=g.normC(best[0]), lon=(m.origin?.lon??-180)+(norm+.5)*(m.degPerTile||1), dep=this.depth[best[1]*g.cols+norm];
+          const type=i===0&&dep<6?'fishing':dep>12?'explorer':lon>=95&&lon<=145?'junk':lon>=30&&lon<95?'dhow':lon>145||lon < -65?'canoe':'merchant';
+          const p=g.center(...best); this.civil.push({id:i,type,path,x:p.x,y:p.y,face:1,t0:this.engine.tick,pace:75+i*23});
+        }
+      }
+      for (const s of this.civil) {
+        const end=s.path.length-1, q=((this.engine.tick-s.t0)/s.pace)%(end*2), t=q>end?end*2-q:q, j=Math.min(end-1,Math.floor(t)), f=t-j;
+        const a=g.center(...s.path[j]), b=g.center(...s.path[j+1]);s.x=a.x+(b.x-a.x)*f;s.y=a.y+(b.y-a.y)*f;
+        if(b.x!==a.x)s.face=Math.sign(b.x-a.x)*(q>end?-1:1);
+      }
+    }
+    openCivil(s) {
+      if (!s || this.civilCard || !['port','sea'].includes(this.mode)) return;
+      const c=this.engine.clock, gift=this.voyage.greetTraffic(); this.civilCard={...s, ...CIVIL[s.type], gift, resume:c.running}; c.running=false;
+      if(gift.gift){this.layout.log(gift.text);this.sfx('bell');}else this.sfx('tick');this.refresh();
+    }
+    closeCivil() { if(!this.civilCard)return; const resume=this.civilCard.resume;this.civilCard=null;this.engine.clock.running=resume&&this.voyage.moving;this.refresh(); }
 
     /** 뱃길을 잡고 떠난다. target: 항구 id 또는 바다 칸 [c, r] */
     sail(target) {
@@ -134,10 +195,13 @@
       this.route = { id: pid, len: path ? path.length : null };
     }
     onTap(x, y) {
+      if (this.civilCard) { if(x>90&&x<390&&y>240&&y<280)this.closeCivil(); return; }
       if (this.mode === 'over' || this.mode === 'meet' || this.mode === 'prize') return;
-      const w = this.world, wpt = this.cam.toWorld(x, y), g = this.grid; let best = null, bd = 14 / this.cam.zoom + TILE;
-      for (const p of w.ports.values()) { const c = g.center(p.x, p.y), d = Math.hypot(g.nearX(c.x, wpt.x) - wpt.x, c.y - wpt.y); if (d < bd) { bd = d; best = p.id; } }
+      const w = this.world, wpt = this.cam.toWorld(x, y), g = this.grid, z=this.cam.zoom, mid=this.cam.x+this.engine.width/z/2; let best = null, bd = 11 / z;
+      for (const p of this.portPositions(z, a=>g.nearX(a,mid))) { const d = Math.hypot(p.x-wpt.x,p.y-wpt.y); if (d < bd) { bd = d; best = p.id; } }
       if (best) { this.pick(best); return this.refresh(); }
+      const civilian=this.civil.find(s=>Math.hypot(g.nearX(s.x,wpt.x)-wpt.x,s.y-wpt.y)<9/z);
+      if(civilian)return this.openCivil(civilian);
       const cell = this.cellAt(x, y), sea = cell && w.map.isSea(cell.c, cell.r);
       this.selected = null; this.route = null; this.tab = null; this.spot = sea ? [cell.c, cell.r] : null;
       if (sea && this.mode === 'sea') return this.sail(this.spot);                // 바다에서는 찍은 곳으로 바로 간다
@@ -146,6 +210,8 @@
     /** 키보드. 바다에서는 방향키가 키이고, 항구에서는 방향키로 그쪽 항구를 고른다. 숫자 키와 Enter는 조작 창의 단추를 누른다. */
     onKey(code, ev) {
       if (ev && (ev.ctrlKey || ev.metaKey || ev.altKey)) return;
+      if(this.civilCard){if(['Escape','Enter','NumpadEnter','Digit1'].includes(code)){ev&&ev.preventDefault();this.closeCivil();}return;}
+      if(code==='KeyT'&&['port','sea'].includes(this.mode)){ev&&ev.preventDefault();return this.command('traffic');}
       const v = this.voyage, c = this.engine.clock, dir = KEYS[code], shift = !!(ev && ev.shiftKey), n = digit(code), used = () => { if (ev) ev.preventDefault(); };
       if (this.mode === 'meet' || this.mode === 'prize') {                        // 해적 출현 카드 · 빼앗은 배 카드: 숫자 키와 Enter로만 고른다
         if (ev && ev.repeat) return;
@@ -203,6 +269,7 @@
     say(r, ok) { this.layout.log(r.ok ? r.text : r.why); if (!r.ok) this.sfx('buzz'); else if (ok) this.sfx(ok); }
     command(id) {
       const v = this.voyage, c = this.engine.clock, [key, arg] = id.split(':');
+      if(this.civilCard){if(id==='civil-close')this.closeCivil();return;}
       if (id === 'zin') return this.zoomBy(1.25);
       if (id === 'zout') return this.zoomBy(0.8);
       if (id === 'follow') { this.follow = true; return this.centerOnFleet(); }
@@ -220,6 +287,8 @@
         else if (id === 'psellall') { let r = null; while (v.prizes.length) r = v.sellPrize(0); if (r) this.say(r, 'coin'); }
         return this.settled();
       }
+      if(id==='traffic'){this.updateCivil();this.tab='traffic';return this.refresh();}
+      if(key==='civil'){this.openCivil(this.civil.find(s=>s.id===Number(arg)));return;}
       if (key === 'tab' && AT_SEA[arg] && !v.port) { this.tab = arg; this.selected = null; this.route = null; return this.refresh(); }
       if (key === 'dump') { this.say(v.dump(arg), 'swish'); return this.refresh(); }
       if (id === 'back' && !v.port) { this.tab = null; return this.refresh(); }
@@ -271,13 +340,15 @@
 
     detail() {
       const w = this.world, v = this.voyage, R = v.rules, mode = this.mode, here = v.here, gname = id => w.goods.get(id).name;
+      if(this.civilCard){const s=this.civilCard;return {title:s.name,rows:[['바다',s.region],['이 배',s.text],['모양',s.more],['인사',s.gift.text]],note:'싸우거나 부딪히지 않는 작은 배다. 닫으면 하던 항해를 이어 간다.'};}
+      if(this.tab==='traffic'&&['port','sea'].includes(mode))return {title:'지나는 배',rows:this.civil.map(s=>[CIVIL[s.type].name,CIVIL[s.type].region]),note:'배를 누르거나 목록에서 골라 이야기를 읽는다. 선물은 10항해일마다 한 번, 25% 확률로 물이나 식량 5일분이다.'};
       const ships = () => v.ships.map(sh => `${sh.name}(${v.T(sh).name}) 선체 ${sh.hull}/${v.T(sh).hull} · 포 ${v.gunsOf(sh)}`).join(' · ');
       const spec = t => `선체 ${t.hull} · 포 ${t.guns} · 짐 ${t.cargo} · 선원 ${t.maxCrew}명까지 · 하루 ${t.speed}칸`, D = R.dock;
       const types = [...w.shipTypes.values()].filter(t => !t.cheat || v.inv);                    // cheat로 적힌 배만 무적 모드에서 보인다(샘플 자료에는 없다)
       if (mode === 'meet') {
         const rv = this.meet, m = v.meetInfo(rv), k = v.flagRisk(rv), cnt = new Map(); for (const id of rv.ships) cnt.set(id, (cnt.get(id) || 0) + 1);
         return { title: `해적 출현 · ${rv.name}`, rows: [['해적 선장', `${rv.captain.name} · 무력 ${rv.captain.war}`], ['해적의 배', [...cnt].map(([id, n]) => `${w.shipTypes.get(id).name} ${n}척`).join(' · ') + ` · 선원 ${rv.crew}명`],
-          ['이기면', `금 +${fmt(rv.gold)} · 선장 무력 +${R.grow.win}(일기토로 이기면 +${R.grow.win + R.grow.duel})`], ['우리', `${v.captain.name} · 무력 ${v.captain.war} · 배 ${v.ships.length}척 · 선원 ${v.crew}명${v.inv ? ' · 무적' : ''}`],
+          ['이기면', `금 +${fmt(rv.gold)} · 식량·물 각 ${rv.ships.length>=R.salvage.largeShips?R.salvage.largeDays:R.salvage.smallDays}일분(상한까지) · 선장 무력 +${R.grow.win}(일기토로 +${R.grow.win + R.grow.duel})`], ['우리', `${v.captain.name} · 무력 ${v.captain.war} · 배 ${v.ships.length}척 · 선원 ${v.crew}명${v.inv ? ' · 무적' : ''}`],
           ['해적이 올라타면', v.inv ? '무적 모드라 선원을 잃지 않는다' : k.taken ? `해적 기함(선원 ${k.theirs}명)이 한 번에 우리 기함 선원 ${k.ours}명을 모두 쓰러뜨려 기함을 빼앗는다 · 곧 지는 것이다` : `해적 기함(선원 ${k.theirs}명)이 한 번에 우리 기함 선원 ${k.ours}명 가운데 ${k.hit}명을 쓰러뜨린다`],
           ['달아나면', m.fast ? `우리가 더 빠르다(하루 ${m.speed}칸 대 ${m.their}칸) · 잃는 것이 없다` : `해적이 우리만큼 빠르다(하루 ${m.speed}칸 대 ${m.their}칸) · 짐 ${fmt(m.drop)}개를 버린다`],
           ['통행료', `금 ${fmt(m.toll)}(자금의 ${R.encounter.tollPct}% · 적어도 ${fmt(v.fee(R.encounter.tollMin))})`],
@@ -337,7 +408,8 @@
         const len = this.route && this.route.id === sel.id ? this.route.len : null;
         return { title: sel.name, rows: [['시설', sel.facilities.map(id => w.facilities[id]).join(' · ')], ['파는 것', sells.map(e => `${gname(e.good)} ${e.price}`).join(' · ') || '없음'], ['값이 좋은 것', wants.map(e => `${gname(e.good)} ${e.price}`).join(' · ')],
           ...(held.length ? [['실은 짐의 시세', held.join(' · ')]] : []), ['뱃길', sel.id === v.port ? '지금 있는 항구다' : len === null ? '찾지 못했다' : `${len}칸 · 약 ${Math.ceil(len / v.speed)}일`],
-          ['위치', `${Math.abs(sel.lat).toFixed(1)}°${sel.lat >= 0 ? 'N' : 'S'} ${Math.abs(sel.lon).toFixed(1)}°${sel.lon >= 0 ? 'E' : 'W'}`]],
+          ['위치', `${Math.abs(sel.lat).toFixed(1)}°${sel.lat >= 0 ? 'N' : 'S'} ${Math.abs(sel.lon).toFixed(1)}°${sel.lon >= 0 ? 'E' : 'W'}`],
+          ['방문', this.visitText(sel.id)]],
           note: sel.id === v.port ? '아래에서 교역소 · 여관 · 도크 · 보급을 고른다.' : mode === 'port' ? '출항을 누르면 이 항구로 떠난다.' : '항해 단추를 누르면 이 항구로 뱃길을 잡는다.' };
       }
       const where = here ? here.name : v.dest ? `${DH.ro(w.ports.get(v.dest).name)} 가는 바다` : v.path.length ? '찍은 곳으로 가는 바다' : v.heading ? `${WIND[v.heading]}쪽으로 가는 바다` : '바다(닻을 내렸다)';
@@ -347,8 +419,10 @@
     }
     menu() {
       const w = this.world, v = this.voyage, c = this.engine.clock, R = v.rules, mode = this.mode, back = { id: 'back', label: '돌아가기' }, gname = id => w.goods.get(id).name;
+      if(this.civilCard)return [{id:'civil-close',label:'이야기 닫기',primary:true,key:'Esc'}];
+      if(this.tab==='traffic'&&['port','sea'].includes(mode))return [...this.civil.map(s=>({id:'civil:'+s.id,label:CIVIL[s.type].name})),back];
       const btn = (id, r, on, off) => ({ id, label: r.ok ? on(r) : off, disabled: !r.ok, hint: r.ok ? '' : r.why });
-      if (mode === 'over') return [{ id: 'again', label: '다시 하기', primary: true }, ...VIEW];
+      if (mode === 'over') return [{ id: 'again', label: '다시 하기', primary: true }, ...VIEW.filter(b=>b.id!=='traffic')];
       if (mode === 'meet') {
         const m = v.meetInfo(this.meet);
         return [{ id: 'fight', label: '싸운다', primary: true, hint: '해전을 벌인다' }, { id: 'evade', label: m.fast ? '달아난다 · 따돌린다' : `달아난다 · 짐 −${fmt(m.drop)}`, hint: m.fast ? '우리 함대가 더 빠르다' : '짐의 절반을 버린다' },
@@ -391,10 +465,48 @@
         { id: 'pause', label: c.running ? '멈춤' : '계속', disabled: !v.moving, hint: v.moving ? '' : '방향키를 누르거나 지도를 찍으면 움직인다' }, { id: 'speed', label: `빠르기 ×${c.speed}` }, { id: 'tab:hold', label: '짐칸' }, ...VIEW];
     }
 
-    render(g) { super.render(g); if (this.mode === 'over') this.drawCard(g); else if (this.mode === 'meet') this.drawMeet(g); else if (this.mode === 'prize') this.drawPrize(g); }
+    render(g) { super.render(g); if (this.mode === 'over') this.drawCard(g); else if (this.mode === 'meet') this.drawMeet(g); else if (this.mode === 'prize') this.drawPrize(g); else if(this.civilCard)this.drawCivilCard(g); }
+    /** 기존 육지 격자를 그대로 따라 모서리만 깎고 윗면의 빛과 아랫면의 그늘을 얹는다. */
+    softCoast(g) {
+      const grid=this.grid,z=this.cam.zoom,R=grid.range(this.cam.x,this.cam.y,this.cam.x+this.engine.width/z,this.cam.y+this.engine.height/z),m=this.world.map;
+      for(let r=R.r0;r<=R.r1;r++)for(let c=R.c0;c<=R.c1;c++){
+        if(m.isSea(grid.normC(c),r))continue;
+        const x=c*TILE,y=r*TILE,sea=(a,b)=>b>=0&&b<grid.rows&&m.isSea(grid.normC(a),b),top=sea(c,r-1),bottom=sea(c,r+1),left=sea(c-1,r),right=sea(c+1,r),rad=1.25;
+        if(!top&&!bottom&&!left&&!right)continue;
+        const color=(this.tiles.styles[this.tiles.tileAt(grid.normC(c),r)]||this.tiles.styles.default).fill;
+        for(const [dx,dy,yes,angle] of [[0,0,top&&left,Math.PI],[TILE-rad,0,top&&right,Math.PI*1.5],[TILE-rad,TILE-rad,bottom&&right,0],[0,TILE-rad,bottom&&left,Math.PI*.5]]){
+          if(!yes)continue;
+          g.fillStyle=MAP.shallow;g.fillRect(x+dx,y+dy,rad,rad);
+          const cx=x+(dx===0?rad:TILE-rad),cy=y+(dy===0?rad:TILE-rad);
+          g.beginPath();g.moveTo(cx,cy);g.arc(cx,cy,rad,angle,angle+Math.PI/2);g.closePath();g.fillStyle=color;g.fill();
+        }
+        g.lineCap='round';g.lineWidth=.5;
+        if(top){g.beginPath();g.moveTo(x+(left?rad:0),y+.4);g.lineTo(x+TILE-(right?rad:0),y+.4);g.strokeStyle='rgba(255,250,226,.74)';g.stroke();}
+        if(bottom){g.beginPath();g.moveTo(x+(left?rad:0),y+TILE-.3);g.lineTo(x+TILE-(right?rad:0),y+TILE-.3);g.strokeStyle='rgba(143,116,73,.23)';g.stroke();}
+      }
+      // 대양의 드문 잔물결. 항로와 지형 판정에는 쓰지 않는다.
+      g.lineWidth=.5/z;g.strokeStyle='rgba(244,250,245,.24)';
+      for(let r=R.r0;r<=R.r1;r+=1)for(let c=R.c0;c<=R.c1;c+=1){
+        if((c*7+r*13)%53!==0||this.depth[r*grid.cols+grid.normC(c)]<5)continue;
+        const x=c*TILE,y=r*TILE;g.beginPath();g.moveTo(x-1.8,y);g.quadraticCurveTo(x,y+.8,x+1.8,y);g.stroke();
+      }
+    }
+    visitText(id) { const n=this.voyage.visits.get(id)||0; return n ? `${n}회${n>=3?' · 자주 찾은 항구':''}${!this.voyage.visitsKnown?' (확인된 방문만)':''}` : this.voyage.visitsKnown?'아직 가보지 않았다':'옛 저장에 방문 기록이 없다'; }
+    drawCivilCard(g) {
+      const s=this.civilCard,x=80,y=73,w=320,h=211;
+      g.fillStyle='rgba(38,33,28,.38)';g.fillRect(0,0,this.engine.width,this.engine.height);
+      g.beginPath();g.roundRect(x,y,w,h,14);g.fillStyle='#fbf7ef';g.fill();g.lineWidth=1.4;g.strokeStyle=INK;g.stroke();
+      g.save();g.beginPath();g.roundRect(x+12,y+12,w-24,69,10);g.clip();g.fillStyle=MAP.sea;g.fillRect(x+12,y+12,w-24,69);
+      DH.Hang.drawCivilShip(g,240,y+66,2.6,s.type);g.restore();
+      g.textAlign='center';g.textBaseline='middle';g.fillStyle=INK;g.font=`800 16px ${FONT}`;g.fillText(s.name,240,y+99,w-24);
+      g.font=`500 11px ${FONT}`;g.fillText(s.text,240,y+123,w-26);g.fillStyle='#706455';g.fillText(s.gift.text,240,y+144,w-26);
+      g.beginPath();g.roundRect(99,248,282,25,8);g.fillStyle='#f0dfb4';g.fill();g.fillStyle=INK;g.font=`700 12px ${FONT}`;g.fillText('이야기 닫기 · Enter / Esc',240,261);
+    }
     drawOver(g) {
       const w = this.world, v = this.voyage, grid = this.grid, z = this.cam.zoom, mid = this.cam.x + this.cam.viewW / z / 2;
       const X = x => grid.nearX(x, mid);
+      this.softCoast(g);
+      for(const s of this.civil)DH.Hang.drawCivilShip(g,X(s.x),s.y,.46/z,s.type,s.face);
       // 남은 뱃길
       if (v.path.length) {
         g.beginPath(); const prev = this.shipPx(); g.moveTo(X(prev.x), prev.y); let px = X(prev.x);
@@ -407,6 +519,9 @@
       const fs = 9 / z; g.font = `700 ${fs}px ${FONT}`; g.lineJoin = 'round';
       for (const L of this.portMarks(g, z, X)) {
         DH.Hang.drawFlag(g, L.flag, L.x, L.y, L.k, L.hot);
+        const n=v.visits.get(L.id)||0,mark=n>=3?'★':n>0?'·':v.visitsKnown?'○':'?';
+        g.save();g.font=`800 ${6.5/z}px ${FONT}`;g.textAlign='center';g.textBaseline='middle';
+        const bx=L.x+5.4/z,by=L.y-5.2/z;g.beginPath();g.arc(bx,by,3.5/z,0,Math.PI*2);g.fillStyle='#fbf7ef';g.fill();g.fillStyle=n>=3?'#a66b19':'#514a3e';g.fillText(mark,bx,by);g.restore();
         if (!L.text) continue;
         g.textAlign = L.text.align; g.textBaseline = L.text.base; g.lineWidth = 2.4 / z; g.strokeStyle = 'rgba(251,247,239,.92)';
         g.strokeText(L.name, L.text.x, L.text.y); g.fillStyle = INK; g.fillText(L.name, L.text.x, L.text.y);
@@ -418,15 +533,19 @@
     }
     /** 항구 표식의 자리: 깃발이 겹치면 좌우로 벌리고, 이름은 아래 → 위 → 오른쪽 → 왼쪽 가운데 빈 곳에 둔다(깃발과 우리 배를 피한다). 빈 곳이 없으면 이름을 빼고(고른 항구는 늘 적는다), 확대하면 다시 보인다.
      *  g.font가 정해진 뒤에 부른다. X는 동서로 이어진 지도에서 화면 쪽 x를 고른다. @returns [{name, flag, x, y, k, hot, text: {x, y, align, base} | null}] (그리는 순서) */
-    portMarks(g, z, X = x => x) {
-      const w = this.world, v = this.voyage, grid = this.grid, fs = 9 / z, pad = 0.8 / z, showAll = z >= 1.5;
-      const L = [...w.ports.values()].map(p => { const c = grid.center(p.x, p.y), hot = p.id === this.selected || p.id === v.dest || p.id === v.port, k = (hot ? 1.3 : 1) / z;
-        return { id: p.id, name: p.name, flag: p.flag, x: X(c.x), y: c.y, k, hot, w: 9 * k, h: 6 * k, text: null }; });
-      for (let pass = 0; pass < 4; pass++) for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) {   // 깃발끼리 겹치면 좌우로 벌린다
-        const a = L[i], b = L[j], need = (a.w + b.w) / 2 + pad, dx = b.x - a.x;
-        if (Math.abs(a.y - b.y) >= (a.h + b.h) / 2 || Math.abs(dx) >= need) continue;
-        const d = (need - Math.abs(dx)) / 2, sgn = dx > 0 || (dx === 0 && i < j) ? 1 : -1; a.x -= sgn * d; b.x += sgn * d;
+    portPositions(z, X = x => x) {
+      const v=this.voyage,L=[...this.world.ports.values()].map(p=>{const c=this.grid.center(p.x,p.y),hot=p.id===this.selected||p.id===v.dest||p.id===v.port,k=(hot?1.2:1)/z;
+        return {id:p.id,name:p.name,flag:p.flag,x:X(c.x),y:c.y,k,hot,w:14/z,h:14/z,text:null};});
+      for(let pass=0;pass<20;pass++)for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){
+        const a=L[i],b=L[j];let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),need=23/z;
+        if(d>=need)continue;if(d<.001){dx=1;dy=.5;d=Math.hypot(dx,dy);}
+        const k=(need-d)/2/d;a.x-=dx*k;a.y-=dy*k;b.x+=dx*k;b.y+=dy*k;
       }
+      return L;
+    }
+    portMarks(g, z, X = x => x) {
+      const v = this.voyage, fs = 9 / z, showAll = z >= 1.5;
+      const L = this.portPositions(z,X);
       const boxes = L.map(a => [a.x - a.w / 2, a.y - a.h / 2, a.x + a.w / 2, a.y + a.h / 2]);
       const sp = this.shipPx(), sx = X(sp.x), ship = [sx - 8 / z, sp.y - 11 / z, sx + 8 / z, sp.y + 6 / z]; boxes.push(ship);   // 배 그림에도 이름을 얹지 않는다
       const hit = (r, own) => boxes.some((q, i) => i !== own && r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1]);
@@ -453,7 +572,7 @@
       g.beginPath(); g.roundRect(x, y, w, h, 10); g.fillStyle = '#fbf7ef'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
       g.fillStyle = '#c8402f'; g.fillRect(x + 1, y + 1, w - 2, 6);
       g.fillStyle = '#9fc4d9'; g.fillRect(x + 14, y + 50, w - 28, 62); g.lineWidth = 1; g.strokeStyle = 'rgba(38,33,28,.35)'; g.strokeRect(x + 14.5, y + 50.5, w - 29, 61);
-      rv.ships.forEach((id, i) => DH.Hang.drawShip(g, W / 2 + (i - (n - 1) / 2) * 76, y + 86, 2.1, DH.Hang.LOOK.foe, i === 0, -1, id));
+      rv.ships.forEach((id, i) => DH.Hang.drawShip(g, W / 2 + (i - (n - 1) / 2) * 76, y + 86, 2.1, DH.Hang.LOOK.foe, i === 0, -1, id, (this.pirateSeed(rv)+i)%DH.Hang.PIRATE_NAMES.length));
       g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = INK;
       g.font = `800 20px ${FONT}`; g.fillText('해적 출현', W / 2, y + 30);
       g.font = `700 13px ${FONT}`; g.fillText(`${rv.name} · ${rv.captain.name}(무력 ${rv.captain.war}) · 배 ${n}척 · 선원 ${rv.crew}명`, W / 2, y + 128, w - 24);
@@ -504,6 +623,7 @@
       this.state = st; this.settings = d.settings.map(x => [...x]); this.voyage = voyage; e.restore(d);      // 난수는 판을 지은 뒤에 되돌린다(씨앗 설정이 덮지 않게)
       const v = voyage, s = d.scene || {}, c = s.cam, num = x => typeof x === 'number' && isFinite(x);
       this.from = [v.x, v.y]; this._told = !!v.over; this.selected = null; this.spot = null; this.tab = null; this.route = null; this.meet = null; this.dockShip = null;
+      this.civil=[];this.civilKey=null;this.civilCard=null;
       this.follow = s.follow !== false; this.leg = Number.isInteger(s.leg) && s.leg >= 0 ? s.leg : 0;
       if (typeof s.selected === 'string' && w.ports.has(s.selected)) this.pick(s.selected);
       else if ((v.port || AT_SEA[s.tab]) && typeof s.tab === 'string' && Object.hasOwn(TABS, s.tab) && (!NEED[s.tab] || v.has(NEED[s.tab]))) this.tab = s.tab;
