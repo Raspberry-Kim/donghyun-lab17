@@ -159,7 +159,7 @@
     flee(side) { if (!this.ended) { this.fled = side; this.finish(null, `${DH.josa(this.fleets[side].name, '이', '가')} 달아났다`); } }
     finish(winner, reason) { if (this.ended) return; this.ended = true; this.winner = winner; this.reason = reason; this.log.push(reason); }
     result() {
-      const pack = side => ({ crew: this.crewOf(side), ships: this.units.filter(u => u.side === side).map(u => ({ ref: u.ref, name: u.name, hull: u.hull, crew: u.crew, out: u.out })) });
+      const pack = side => ({ crew: this.crewOf(side), ships: this.units.filter(u => u.side === side).map(u => ({ ref: u.ref, type: u.type, name: u.name, hull: u.hull, crew: u.crew, out: u.out })) });
       return { winner: this.winner, fled: this.fled, reason: this.reason, turns: this.turn, loot: this.winner === 'me' ? this.fleets.foe.gold : 0, duel: this.duel, me: pack('me'), foe: pack('foe') };
     }
 

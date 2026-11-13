@@ -1,21 +1,22 @@
 /* 동현항 · 자료 파서 — donghyun_hang_data.json을 읽어 검사하고 게임이 쓰는 꼴로 바꾼다.
  * 규격(version 1)
  *   map         {grid:'square', cols, rows, wrapX, tiles:{글자:이름}, rle:[줄…]}   한 칸 = 경위도 1°
- *   goods[]     {id, name, base}
+ *   goods[]     {id, name, base, kind?(kinds의 열쇠)}     kinds?  {열쇠: 갈래 이름}   짐칸과 교역소가 갈래별로 묶어 보인다
  *   facilities  {id: 이름}
- *   ports[]     {id, name, lon, lat, x, y(항구 칸·육지), anchor:[x,y](정박 칸·바다), market:[{good, price, stock}], facilities:[id…]}
+ *   ports[]     {id, name, lon, lat, x, y(항구 칸·육지), anchor:[x,y](정박 칸·바다), flag?(깃발 표식 두 글자), market:[{good, price, stock}], facilities:[id…]}
  *   shipTypes[] {id, name, cargo, minCrew, maxCrew, speed(하루에 가는 칸), hull(선체), guns(포), price(도크에서 사는 값), cheat?(true면 무적 모드에서만 고른다)}
  *   fleets[]    {id, name, x, y, port(항구 id|null), crew, food · water(선원 모두가 먹고 마시는 날 수), gold, captain:{name, war(무력 1~100)},
  *                ships:[{id, type, name, hold:[{good, qty, paid}]}]}   첫 배가 기함이다
- *   rivals[]    {id, name, captain:{name, war}, ships:[배 종류 id…], crew, gold}   바다에서 만나는 적 함대. 첫 배가 기함이다
- * 검사: 항구 20곳 · 항구 칸은 육지, 정박 칸은 그 옆 바다 · 시세가 교역품마다 꼭 하나 · 시설 이름 · 모든 정박 칸이 한 바다로 이어졌는지 ·
+ *   rivals[]    {id, name, captain:{name, war}, ships:[배 종류 id…], crew, gold, areas?:[[서경, 남위, 동경, 북위]…], note?}   바다에서 만나는 적 함대. 첫 배가 기함이다.
+ *                areas가 없으면 어느 바다에서나, 있으면 그 네모 안 바다에서만 나온다
+ * 검사: 항구 수(opt.ports를 주면 그 수) · 항구 칸은 육지, 정박 칸은 그 옆 바다 · 시세가 교역품마다 꼭 하나 · 시설 이름 · 모든 정박 칸이 한 바다로 이어졌는지 ·
  *       탐험대 자리(바다) · 선원 수가 배의 최소~최대 안 · 짐이 적재량을 넘지 않는지 · 선장 무력 · 적 함대의 배 종류와 선원 수. */
 (function (root) {
   'use strict';
   const DH = root.DH = root.DH || {};
 
   function parse(json, opt = {}) {
-    const expect = opt.ports ?? 20;
+    const expect = opt.ports;                                                  // 주면 항구 수까지 맞춰 본다
     const chk = new DH.Checker('동현항 자료');
     DH.Data.header(json, 'donghyun-hang-data', 1, chk); chk.done();
 
@@ -33,15 +34,17 @@
     chk.done();
 
     const goods = chk.index(json.goods, 'goods');
-    for (const g of goods.values()) { chk.str(g.name, `goods.${g.id}.name`); chk.int(g.base, `goods.${g.id}.base`, 1); }
+    const kinds = json.kinds && typeof json.kinds === 'object' ? json.kinds : {};
+    for (const g of goods.values()) { chk.str(g.name, `goods.${g.id}.name`); chk.int(g.base, `goods.${g.id}.base`, 1); chk.ok(g.kind === undefined || g.kind in kinds, `goods.${g.id}.kind`, `갈래 ${g.kind}가 kinds에 없다`); }
     const fac = json.facilities || {};
 
-    chk.arr(json.ports, 'ports', expect);
+    if (chk.arr(json.ports, 'ports', expect)) chk.ok(json.ports.length > 0, 'ports', '항구가 없다');
     const ports = chk.index(json.ports, 'ports');
     const byTile = new Map();
     for (const p of ports.values()) {
       const w = `ports.${p.id}`;
       chk.str(p.name, w + '.name'); chk.num(p.lon, w + '.lon', -180, 180); chk.num(p.lat, w + '.lat', -90, 90);
+      chk.ok(p.flag === undefined || (typeof p.flag === 'string' && /^[A-Z]{2}$/.test(p.flag)), w + '.flag', '대문자 두 글자여야 한다');
       if (chk.ok(inMap(p.x, p.y), w + '.x,y', '지도 밖이다')) {
         chk.ok(at(p.x, p.y) === 'land', w + '.x,y', '항구 칸이 육지가 아니다');
         const k = p.x + ',' + p.y; chk.ok(!byTile.has(k), w + '.x,y', `항구 ${byTile.get(k)}와 같은 칸이다`); byTile.set(k, p.id);
@@ -123,6 +126,9 @@
     for (const v of rivals.values()) {
       const w = `rivals.${v.id}`;
       chk.str(v.name, w + '.name'); chk.int(v.gold, w + '.gold', 0); captain(v.captain, w + '.captain');
+      chk.ok(v.note === undefined || typeof v.note === 'string', w + '.note', '글이어야 한다');
+      if (v.areas !== undefined && chk.arr(v.areas, w + '.areas') && chk.ok(v.areas.length > 0, w + '.areas', '비었다'))
+        v.areas.forEach((a, i) => chk.ok(Array.isArray(a) && a.length === 4 && a.every(Number.isFinite) && a[0] < a[2] && a[1] < a[3] && a[1] >= -90 && a[3] <= 90, `${w}.areas[${i}]`, '[서경, 남위, 동경, 북위]여야 한다'));
       if (!chk.arr(v.ships, w + '.ships') || !chk.ok(v.ships.length > 0 && v.ships.length <= 3, w + '.ships', '배는 한 척에서 세 척까지다')) continue;
       let min = 0, max = 0, known = true;
       v.ships.forEach((id, i) => { const t = shipTypes.get(id); if (chk.ok(!!t, `${w}.ships[${i}]`, `배 종류 ${id}가 없다`)) { min += t.minCrew; max += t.maxCrew; } else known = false; });
@@ -130,7 +136,7 @@
     }
     chk.done();
 
-    return { meta: json.meta || {}, map, goods, facilities: fac, ports, shipTypes, fleets, rivals, cargoCap, cargoUsed,
+    return { meta: json.meta || {}, map, goods, kinds, facilities: fac, ports, shipTypes, fleets, rivals, cargoCap, cargoUsed,
       /** 그 칸(항구 칸이나 정박 칸)의 항구 */
       portAt: (c, r) => list.find(p => (p.x === c && p.y === r) || (p.anchor[0] === c && p.anchor[1] === r)) || null };
   }

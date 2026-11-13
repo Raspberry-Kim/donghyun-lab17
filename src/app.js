@@ -12,11 +12,11 @@ let current = null;            // boot()이 돌려준 묶음: engine · layout �
 
 /* ---------- 화면 전환 · 소리 · 탭 ---------- */
 $('#theme').onclick = () => { const dark = document.documentElement.dataset.theme !== 'dark'; document.documentElement.dataset.theme = dark ? 'dark' : 'light'; $('#theme').setAttribute('aria-pressed', String(dark)); };
-const SND = DHSFX(GAME.SAVE.file + ':sound'), sounds = [];              // sounds: 시험용 기록(최근 50개)
+const SND = DHSFX(GAME.SAVE.file + ':sound'), sounds = [];              // sounds: 시험용 기록(최근 200개)
 function sndUI() { const b = $('#sound'); b.setAttribute('aria-pressed', String(SND.on)); b.classList.toggle('muted', !SND.on); b.title = SND.on ? '효과음 끄기 (M)' : '효과음 켜기 (M)'; }
 $('#sound').onclick = () => { SND.set(!SND.on); sndUI(); }; sndUI();
 document.addEventListener('keydown', e => { if (e.code !== 'KeyM' || e.metaKey || e.ctrlKey || e.altKey || menu) return; const a = document.activeElement; if (a && (a.tagName === 'TEXTAREA' || a.tagName === 'INPUT' || a.tagName === 'SELECT')) return; SND.set(!SND.on); sndUI(); });
-function playSfx(s) { sounds.push(s.k); if (sounds.length > 50) sounds.shift(); SND.play(s.k, s.delay); }
+function playSfx(s) { sounds.push(s.k); if (sounds.length > 200) sounds.shift(); SND.play(s.k, s.delay); }
 let tab = 'play', resume = false;
 document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
   const next = b.dataset.tab; if (next === tab) return;
