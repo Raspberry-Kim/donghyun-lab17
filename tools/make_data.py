@@ -229,8 +229,8 @@ hang=dict(format='donghyun-hang-data',version=1,
  map=dict(grid='square',cols=H_COLS,rows=H_ROWS,wrapX=True,origin=dict(lon=H_LON0,lat=H_LAT0),degPerTile=1,tiles={'~':'sea','#':'land'},carved=carved,rle=[rle(''.join(x)) for x in grid]),
  goods=[dict(id=i,name=n,base=b) for i,n,b in GOODS], facilities=FAC, ports=ports,
  shipTypes=[dict(id='caravel',name='캐러벨',cargo=120,minCrew=10,maxCrew=40,speed=2,hull=60,guns=8,price=2000),dict(id='carrack',name='캐럭',cargo=320,minCrew=30,maxCrew=120,speed=1,hull=120,guns=16,price=5000),
-  # 거북선은 무적 모드에서만 고른다(cheat). 짐은 캐러벨만큼 싣고, 가장 빠르고, 포가 가장 세다(지어낸 시험 값).
-  dict(id='turtle',name='거북선',cargo=120,minCrew=10,maxCrew=40,speed=3,hull=200,guns=40,price=30000,cheat=True)],
+  # 거북선: 어느 탐험에서나 도크에서 사고 시작 기함으로도 고른다. 짐은 캐러벨만큼 싣고, 가장 빠르고, 포가 가장 세다(지어낸 시험 값).
+  dict(id='turtle',name='거북선',cargo=120,minCrew=10,maxCrew=40,speed=3,hull=200,guns=40,price=30000)],
  fleets=[dict(id='player',name='포동이 탐험대',x=lis[0],y=lis[1],port='lisbon',crew=28,food=90,water=60,gold=1000,captain=dict(name='포동이',war=70),
    ships=[dict(id='s1',type='caravel',name='꼬리바람호',hold=[dict(good='wine',qty=40,paid=18),dict(good='olive',qty=20,paid=14)])])],
  # 바다에서 만나는 적 함대(지어낸 이름). 첫 배가 기함이다.

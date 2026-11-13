@@ -7,7 +7,7 @@
  *    2    난수 씨앗                1~2147483646
  *    3~7  시작 자금 · 식량(일) · 물(일) · 선원 · 선장 무력
  *    8    시작 짐                  교역품 번호(자료에 적힌 순서), 수량                   ← 여러 번 쓸 수 있다
- *    9    시작 기함                배 종류 번호(자료에 적힌 순서: 1 캐러벨 · 2 캐럭 · 3 거북선). 거북선은 무적 모드에서만 된다
+ *    9    시작 기함                배 종류 번호(자료에 적힌 순서: 1 캐러벨 · 2 캐럭 · 3 거북선)
  *    10~14 교역 단위 · 시세 변동 폭(%) · 수수료(%) · 굶을 때 선원 손실(%) · 해적을 만날 확률(%/일)
  *    15~18 무적 모드(0 · 1) · 통행료(자금의 %) · 선장 수련 값(금) · 포 보강 값(금)
  *    20~24 승리 조건(모을 자금) · 기한(일) · 해전 기한(턴) · 배 이동력 · 포 사거리
@@ -45,7 +45,7 @@
       check: ([g], { world }) => (world && !nth(world.goods, g) ? `교역품은 ${world.goods.size}가지뿐이다` : null),
       show: ([g, q], { world }) => `${nth(world && world.goods, g) ? nth(world.goods, g).name : g + '번'} ${fmt(q)}`,
       set: (st, [g, q], { world }) => st.cargo.push([nth(world.goods, g).id, q]) },
-    9: { key: 'start.ship', label: '시작 기함', min: 1, max: 9, hint: '배 종류 번호는 자료에 적힌 순서(1 캐러벨 · 2 캐럭 · 3 거북선) · 거북선은 무적 모드에서만', def: '자료 값',
+    9: { key: 'start.ship', label: '시작 기함', min: 1, max: 9, hint: '배 종류 번호는 자료에 적힌 순서(1 캐러벨 · 2 캐럭 · 3 거북선)', def: '자료 값',
       check: ([n], { world }) => (world && !nth(world.shipTypes, n) ? `배 종류는 ${world.shipTypes.size}가지뿐이다` : null),
       show: ([n], { world }) => (nth(world && world.shipTypes, n) ? nth(world.shipTypes, n).name : n + '번 배'),
       set: (st, [n], { world }) => { st.start.ship = nth(world.shipTypes, n).id; } },
@@ -69,7 +69,7 @@
       show: ([n, v], { world }) => `${nth(world && world.rivals, n) ? nth(world.rivals, n).captain.name : n + '번 해적'} ${v}`,
       set: (st, [n, v], { world }) => st.rivals.push([nth(world.rivals, n).id, v]) }
   },
-  /** 설정을 모두 읽은 뒤의 검사: 거북선은 무적 모드에서만 · 시작 선원이 배의 정원 안인지 · 시작 짐이 배에 다 실리는지 */
+  /** 설정을 모두 읽은 뒤의 검사: cheat로 적힌 배는 무적 모드에서만 · 시작 선원이 배의 정원 안인지 · 시작 짐이 배에 다 실리는지 */
   validate: (values, { world }) => {
     const f = fleet(world); if (!f) return null;
     const types = startTypes(world, values['start.ship']), n = values['start.crew'];
