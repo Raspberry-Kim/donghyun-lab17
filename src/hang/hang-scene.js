@@ -1,13 +1,13 @@
 /* 동현항 · 바다 장면 — 사각 세계 지도 위에서 항해하고, 항구에 들어가 교역 · 선원 · 배 · 보급을 챙긴다. 규칙은 hang-rules.js에 있다.
  *   항구   조작 창이 교역소 · 여관 · 도크 · 보급 · 조합 · 짐칸 · 출항으로 바뀐다(짐칸은 바다에서도 연다). 항구 표식은 나라 깃발(drawFlag)이다. 지도에서 갈 항구나 바다를 찍고 출항한다.
- *   바다   방향키로 키를 잡거나 지도의 바다를 찍으면 그리로 간다. 항구를 찍으면 시세가 보이고 '○○로 항해' 단추가 뜬다.
+ *   바다   방향키로 키를 잡거나 지도의 바다를 찍으면 그리로 간다. 항구를 찍으면 시세가 보이고 '○○로 항해' 버튼이 뜬다.
  *          배가 움직이는 동안에만 날이 간다(하루 = 한 걸음). 정박 칸에 닿으면 그 항구에 든다.
  *   만남   해적을 만나면 배가 멎고 '해적 출현' 카드가 뜬다. 싸운다 · 달아난다 · 통행료 · 짐으로 치른다 · 위협한다 가운데 고른다.
  *          사로잡은 배가 있으면 해전 뒤 '빼앗은 배' 카드가 떠서 함대에 넣거나 판다.
  *          싸우면 해전 화면(hang-battle-scene.js)으로 넘어가고, 끝나면 결과를 반영해 이 지도로 돌아온다.
  *   도크   배를 고르면(○○ 손보기) 그 배에 포를 더 달거나, 다른 배로 바꾸거나, 판다. 여관에서는 선장이 수련해 무력을 올린다.
  * 키보드(지도를 한 번 누른 뒤): 바다에서 방향키는 키 · 항구에서 방향키는 그쪽 항구 고르기 · Space 바다에서 멈춤·계속(그 밖에는 가까운 항구부터 차례로) ·
- *   Q E 가까운 항구 차례로(앞 · 뒤) · 숫자 키 조작 창의 단추 · Enter 노란 단추 · Esc 그만두기 · Shift+방향키(또는 W A S D) 지도 옮기기 · + − 확대와 축소.
+ *   Q E 가까운 항구 차례로(앞 · 뒤) · 숫자 키 조작 창의 버튼 · Enter 노란 버튼 · Esc 그만두기 · Shift+방향키(또는 W A S D) 지도 옮기기 · + − 확대와 축소.
  * 저장: saveGame()이 설정 목록 · 날짜 · 난수 · 탐험을 한 묶음으로 내고, loadGame()이 검사한 뒤 되살린다. 해전 중과 해적 출현 카드가 떠 있는 동안에는 저장하지 않는다.
  *   불러온 탐험은 멈춘 채로 돌아온다(잡아 둔 뱃길과 키는 그대로여서 '계속'을 누르면 이어 간다). */
 (function (root) {
@@ -210,7 +210,7 @@
       if (sea && this.mode === 'sea') return this.sail(this.spot);                // 바다에서는 찍은 곳으로 바로 간다
       this.refresh();
     }
-    /** 키보드. 바다에서는 방향키가 키이고, 항구에서는 방향키로 그쪽 항구를 고른다. 숫자 키와 Enter는 조작 창의 단추를 누른다. */
+    /** 키보드. 바다에서는 방향키가 키이고, 항구에서는 방향키로 그쪽 항구를 고른다. 숫자 키와 Enter는 조작 창의 버튼을 누른다. */
     onKey(code, ev) {
       if (ev && (ev.ctrlKey || ev.metaKey || ev.altKey)) return;
       if(this.civilCard){if(['Escape','Enter','NumpadEnter','Digit1'].includes(code)){ev&&ev.preventDefault();this.closeCivil();}return;}
@@ -231,7 +231,7 @@
       }
       if (dir) { used(); return this.step(ARROW[code]); }                         // 항구에서는 그쪽으로 가장 가까운 항구를 고른다
       if (code === 'Escape') { if (this.tab === 'dock' && this.dockShip) this.dockShip = null; else if (this.tab) this.tab = null; else { this.selected = null; this.route = null; this.spot = null; } return this.refresh(); }
-      if (ev && ev.repeat) return;                                                // 누르고 있어도 단추는 한 번만 눌린다
+      if (ev && ev.repeat) return;                                                // 누르고 있어도 버튼은 한 번만 눌린다
       if (n) { used(); this.layout.press(n); }
       else if (code === 'Enter' || code === 'NumpadEnter') { used(); this.layout.pressPrimary(); }
       else if (code === 'Space') { used(); if (this.mode === 'sea' && v.moving) this.command('pause'); else this.nextPort(shift ? -1 : 1); }
@@ -325,7 +325,7 @@
         { label: '선원', value: `${v.crew}/${v.maxCrew}명` }, { label: '짐', value: `${v.cargoUsed}/${v.cargoCap}` }]);
     }
     refresh() { this.refreshInfo(); this.layout.setDetail(this.detail()); this.layout.setMenu(this.menu(), id => this.command(id)); }
-    /** 지금 못 하는 일과 그 까닭(단추가 흐려진 까닭을 글로 적는다) */
+    /** 지금 못 하는 일과 그 까닭(버튼이 흐려진 까닭을 글로 적는다) */
     whyNot(list) { const no = list.filter(([, r]) => !r.ok).map(([n, r]) => `${n}: ${r.why}`); return no.length ? ' 지금 못 하는 것 — ' + no.join(' · ') : ''; }
     kindName(k) { return this.world.kinds[k] || '기타'; }
     kindOf(g) { return this.kindName(this.world.goods.get(g).kind); }
@@ -366,7 +366,7 @@
           note: `함대에 넣으면 짐을 더 싣고 포가 는다. 함대는 가장 느린 배에 맞춰 간다. 배는 ${D.maxShips}척까지다. 팔면 처음 값의 ${R.prize.pct}%를 받는다.` };
       }
       if (mode === 'over') return { title: this.overTitle(), rows: [['바다에서 보낸 날', `${v.day}일`], ['자금', fmt(v.gold)], ['선원', `${v.crew}명`], ...(this.goalText() ? [['목표', this.goalText()]] : [])],
-        note: (v.overWhy === 'gold' ? `${v.day}일 만에 자금 ${DH.josa(fmt(v.stage.gold), '을', '를')} 모았다.` : v.overWhy === 'time' ? `${v.stage.days}일이 지났다.` : '배를 몰 사람이 남지 않았다.') + ' 다시 하려면 아래 단추를 누른다.' };
+        note: (v.overWhy === 'gold' ? `${v.day}일 만에 자금 ${DH.josa(fmt(v.stage.gold), '을', '를')} 모았다.` : v.overWhy === 'time' ? `${v.stage.days}일이 지났다.` : '배를 몰 사람이 남지 않았다.') + ' 다시 하려면 아래 버튼을 누른다.' };
       if (mode === 'port' && this.tab === 'market') {
         const m = [...v.markets.get(v.port).values()], sold = m.filter(e => e.refStock > 0), rows = [['짐', this.roomText()], ...sold.map(e => [`${gname(e.good)} 사기`, `${this.kindOf(e.good)} · 값 ${e.price} · 재고 ${e.stock}`])];
         for (const [g, h] of this.sortedCargo()) { const q = v.quote(g); rows.push([`${gname(g)} ${h.qty}개`, `산 값 ${h.paid} · 여기서 팔면 개당 ${q.sell.ok ? q.sell.unit : '-'}${q.sell.ok ? ` · ${this.gainText(q.sell.unit - h.paid)}` : ''}`]); }
@@ -413,7 +413,7 @@
           ...(held.length ? [['실은 짐의 시세', held.join(' · ')]] : []), ['뱃길', sel.id === v.port ? '지금 있는 항구다' : len === null ? '찾지 못했다' : `${len}칸 · 약 ${Math.ceil(len / v.speed)}일`],
           ['위치', `${Math.abs(sel.lat).toFixed(1)}°${sel.lat >= 0 ? 'N' : 'S'} ${Math.abs(sel.lon).toFixed(1)}°${sel.lon >= 0 ? 'E' : 'W'}`],
           ['방문', this.visitText(sel.id)]],
-          note: sel.id === v.port ? '아래에서 교역소 · 여관 · 도크 · 보급을 고른다.' : mode === 'port' ? '출항을 누르면 이 항구로 떠난다.' : '항해 단추를 누르면 이 항구로 뱃길을 잡는다.' };
+          note: sel.id === v.port ? '아래에서 교역소 · 여관 · 도크 · 보급을 고른다.' : mode === 'port' ? '출항을 누르면 이 항구로 떠난다.' : '항해 버튼을 누르면 이 항구로 뱃길을 잡는다.' };
       }
       const where = here ? here.name : v.dest ? `${DH.ro(w.ports.get(v.dest).name)} 가는 바다` : v.path.length ? '찍은 곳으로 가는 바다' : v.heading ? `${WIND[v.heading]}쪽으로 가는 바다` : '바다(닻을 내렸다)';
       return { title: v.name, rows: [['있는 곳', where], ['선장', `${v.captain.name} · 무력 ${v.captain.war}${v.inv ? ' · 무적 모드' : ''}`], ['배', ships()], ['짐', `${this.roomText()} · ${this.cargoText()}`], ...(v.contracts.length ? [['의뢰', v.contracts.map(c => `${w.goods.get(c.good).name} ${c.qty} → ${w.ports.get(c.to).name}`).join(' · ')]] : []), ['바다에서 보낸 날', `${v.day}일`], ...(this.goalText() ? [['목표', this.goalText()]] : [])],
@@ -568,7 +568,7 @@
       }
       return order.slice().reverse().map(i => L[i]);                         // 고른 항구를 맨 위에 그린다
     }
-    /** 해적 출현 카드: 붉은 돛의 해적 배를 척수대로 그리고 이름과 선장을 적는다. 고르는 것은 조작 창의 단추다. */
+    /** 해적 출현 카드: 붉은 돛의 해적 배를 척수대로 그리고 이름과 선장을 적는다. 고르는 것은 조작 창의 버튼이다. */
     drawMeet(g) {
       const W = this.engine.width, H = this.engine.height, rv = this.meet, w = 320, h = 168, x = (W - w) / 2, y = (H - h) / 2, n = rv.ships.length;
       g.fillStyle = 'rgba(38,33,28,.45)'; g.fillRect(0, 0, W, H);
@@ -581,7 +581,7 @@
       g.font = `700 13px ${FONT}`; g.fillText(`${rv.name} · ${rv.captain.name}(무력 ${rv.captain.war}) · 배 ${n}척 · 선원 ${rv.crew}명`, W / 2, y + 128, w - 24);
       g.font = `500 12px ${FONT}`; g.fillStyle = '#6e6356'; g.fillText('조작 창의 다섯 가지 가운데 하나를 고른다', W / 2, y + 149, w - 24);
     }
-    /** 빼앗은 배 카드: 빼앗은 배를 그리고 함대에 넣을지 팔지 묻는다. 고르는 것은 조작 창의 단추다. */
+    /** 빼앗은 배 카드: 빼앗은 배를 그리고 함대에 넣을지 팔지 묻는다. 고르는 것은 조작 창의 버튼이다. */
     drawPrize(g) {
       const W = this.engine.width, H = this.engine.height, v = this.voyage, w = 320, h = 150, x = (W - w) / 2, y = (H - h) / 2, n = v.prizes.length;
       g.fillStyle = 'rgba(38,33,28,.45)'; g.fillRect(0, 0, W, H);
@@ -590,7 +590,7 @@
       g.fillStyle = '#9fc4d9'; g.fillRect(x + 14, y + 46, w - 28, 56); g.lineWidth = 1; g.strokeStyle = 'rgba(38,33,28,.35)'; g.strokeRect(x + 14.5, y + 46.5, w - 29, 55);
       v.prizes.forEach((pz, i) => DH.Hang.drawShip(g, W / 2 + (i - (n - 1) / 2) * 76, y + 78, 1.9, undefined, false, 1, pz.type));
       g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = INK; g.font = `800 20px ${FONT}`; g.fillText(`해적 배 ${n}척을 빼앗았다`, W / 2, y + 27);
-      g.font = `500 12px ${FONT}`; g.fillStyle = '#6e6356'; g.fillText('함대에 넣거나 판다 · 아래 단추에서 고른다', W / 2, y + 126, w - 24);
+      g.font = `500 12px ${FONT}`; g.fillStyle = '#6e6356'; g.fillText('함대에 넣거나 판다 · 아래 버튼에서 고른다', W / 2, y + 126, w - 24);
     }
     drawCard(g) {
       const W = this.engine.width, H = this.engine.height, v = this.voyage, won = v.over === 'won', w = 300, h = 96, x = (W - w) / 2, y = (H - h) / 2;
@@ -642,7 +642,7 @@
   async function boot(host, src, opt = {}) {
     const world = DH.Hang.parse(await DH.Data.load(src));
     const W = 480, H = 360;
-    const layout = new DH.Layout(host, { title: '동현항', width: W, height: H, hotkeys: true });      // 조작 단추에 번호가 붙는다(숫자 키)
+    const layout = new DH.Layout(host, { title: '동현항', width: W, height: H, hotkeys: true });      // 조작 버튼에 번호가 붙는다(숫자 키)
     const engine = new DH.Engine({ canvas: layout.canvas, width: W, height: H, seed: opt.seed ?? 1, background: MAP.deep, clock: { unit: 'day', start: world.meta.start, ticksPerUnit: 20 } });
     const scene = new HangSeaScene(engine, world, layout); engine.setScene(scene);
     if (opt.script) scene.applyDonghyunLang(opt.script);                      // 동현랭 설정을 주면 그 값으로 연다

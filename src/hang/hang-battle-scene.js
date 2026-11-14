@@ -1,10 +1,10 @@
 /* 동현항 · 해전 장면 — hang-battle.js의 해전을 캔버스에 그리고 손으로 싸운다. 바다 장면 위에 얹는다(engine.pushScene).
  *   우리 배를 찍는다 → 갈 수 있는 칸이 노랗게 → 칸을 찍어 옮긴다 → 붉은 테의 적(사거리 안)을 찍으면 포를 쏜다.
- *   적과 맞닿아 있으면 조작 창에 '올라타기' 단추가 뜬다. 우리 기함이 적 기함과 맞닿으면 '일기토 신청' 단추도 뜬다(해전마다 한 번).
+ *   적과 맞닿아 있으면 조작 창에 '올라타기' 버튼이 뜬다. 우리 기함이 적 기함과 맞닿으면 '일기토 신청' 버튼도 뜬다(해전마다 한 번).
  *   적 선장이 일기토를 신청해 오면 싸움이 멎고 '받는다 · 물리친다'를 묻는다. 물리쳐도 잃는 것은 없다.
  *   조작 창: 대기 · 차례 넘기기 · 맡기기(남은 싸움을 AI에게) · 달아나기(한 번 더 묻는다) · 올라타기와 일기토 신청(맞닿은 적이 있을 때 뒤에 붙는다).
  * 키보드: 방향키 칸 커서 · Enter 커서가 놓인 칸 찍기(손으로 찍는 것과 같다) · Space 아직 일을 마치지 않은 다음 우리 배 ·
- *   숫자 키 조작 창의 단추 · Esc 고른 배 놓기. 결과 카드 · 달아나기를 되묻는 창 · 일기토를 묻는 창에서는 Enter가 노란 단추를 누른다.
+ *   숫자 키 조작 창의 버튼 · Esc 고른 배 놓기. 결과 카드 · 달아나기를 되묻는 창 · 일기토를 묻는 창에서는 Enter가 노란 버튼을 누른다.
  * 끝나면 결과 카드를 보이고, 바다로 돌아가면서 onDone(result)를 부른다. 결과는 바다 쪽(Voyage.settleBattle)이 반영한다. */
 (function (root) {
   'use strict';
@@ -539,7 +539,7 @@
         const sh = b.shot(s); rows.push(['고른 배', `${s.name} · 포격 한 번에 선체 −${sh.hull} · 선원 −${sh.crew}`]);
         for (const t of b.boardTargets(s)) rows.push([`${t.name}에 백병전`, this.boardText(s, t)]);
         if (b.duelTargets(s).length) rows.push(['일기토', this.duelText()]);
-        note = (s.moved ? '붉은 테의 적을 찍으면 포를 쏜다.' : '노란 칸을 찍으면 옮긴다. 붉은 테의 적은 바로 쏠 수 있다.') + ` 포격 = 포 ${s.guns} × ${S.gunHull} × 선원 ${s.crew} ÷ 정원 ${s.maxCrew}.` + (b.boardTargets(s).length ? ' 맞닿은 적에는 아래 단추로 올라탄다.' : ' 적과 맞닿으면 올라탈 수 있다.')
+        note = (s.moved ? '붉은 테의 적을 찍으면 포를 쏜다.' : '노란 칸을 찍으면 옮긴다. 붉은 테의 적은 바로 쏠 수 있다.') + ` 포격 = 포 ${s.guns} × ${S.gunHull} × 선원 ${s.crew} ÷ 정원 ${s.maxCrew}.` + (b.boardTargets(s).length ? ' 맞닿은 적에는 아래 버튼으로 올라탄다.' : ' 적과 맞닿으면 올라탈 수 있다.')
           + (b.duelTargets(s).length ? ' 일기토는 해전마다 한 번 신청할 수 있고, 적 선장이 물리치면 이 배는 이어서 다른 일을 한다.' : '');
       } else if (this.look) {
         const u = b.unitAt(this.look.c, this.look.r); rows.push(['찍은 칸', b.isRock(this.look.c, this.look.r) ? '암초 · 들어갈 수 없다' : '바다']);

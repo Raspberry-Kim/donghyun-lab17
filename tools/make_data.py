@@ -184,7 +184,7 @@ def place(lon,lat):
             d=(c+0.5+H_LON0-lon)**2+(H_LAT0-r-0.5-lat)**2
             if best is None or d<best[0]: best=(d,c,r,min(sea,key=lambda n:(n[0]+0.5+H_LON0-lon)**2+(H_LAT0-n[1]-0.5-lat)**2))
     assert best,(lon,lat); return best[1],best[2],best[3]
-# id, 이름, 기준 값, 갈래. 기준 값은 놀이 균형을 맞춘 시험 값이다(1522년 시세를 옮긴 것이 아니다).
+# id, 이름, 기준 값, 갈래. 기준 값은 게임 균형을 맞춘 시험 값이다(1522년 시세를 옮긴 것이 아니다).
 GOODS=[('wine','포도주',30,'drink'),('olive','올리브유',24,'food'),('wool','모직물',40,'craft'),('glass','유리구슬',36,'craft'),('gold','금',300,'gem'),('ivory','상아',120,'gem'),
 ('pepper','후추',60,'spice'),('cotton','면직물',45,'craft'),('silk','비단',160,'craft'),('porcelain','도자기',110,'craft'),('clove','정향',140,'spice'),('sugar','설탕',50,'food'),
 ('silver','은',200,'gem'),('jjampong','짬뽕',16,'food'),('castella','카스텔라',40,'food'),('tea','차',70,'drink'),('sapphire','사파이어',230,'gem'),('ruby','루비',250,'gem'),
@@ -247,7 +247,7 @@ for pid,name,lon,lat,tags,fac,flag in PORTS:
 lis=pos['lisbon'][2]
 hang=dict(format='donghyun-hang-data',version=1,
  meta=dict(title='동현항 샘플 자료',start=dict(year=1522,month=5,day=1),
-  note='항구 45곳은 실제 지명이다. 1522년에 아직 열리지 않았거나 세워지지 않은 곳(나가사키 · 제물포 · 케이프타운 등)과 그때 없던 교역품(짬뽕 · 피자 · 실론 차 등)도 놀이로 넣었다(README의 역사 확인 표). 깃발은 오늘날 그 땅의 나라 깃발을 줄인 것이다. 좌표는 실제 경위도에서 1° 칸으로 옮겼고, 항구 칸은 큰 바다와 맞닿은 가장 가까운 육지 칸이다(세비야 · 함부르크는 실제로는 강 안쪽이라 바닷가로 나와 있고, 술루 · 암본처럼 1° 칸에 땅이 없는 작은 섬은 가장 가까운 땅에 있다. 메카는 항구인 지다 자리에 둔다). 시세·시설·배 수치는 시험 값이다. 원작 수치를 옮긴 것이 아니다. 해안선은 오늘날 기준이다.',
+  note='항구 45곳은 실제 지명이다. 1522년에 아직 열리지 않았거나 세워지지 않은 곳(나가사키 · 제물포 · 케이프타운 등)과 그때 없던 교역품(짬뽕 · 피자 · 실론 차 등)도 게임에 넣었다(README의 역사 확인 표). 깃발은 오늘날 그 땅의 나라 깃발을 줄인 것이다. 좌표는 실제 경위도에서 1° 칸으로 옮겼고, 항구 칸은 큰 바다와 맞닿은 가장 가까운 육지 칸이다(세비야 · 함부르크는 실제로는 강 안쪽이라 바닷가로 나와 있고, 술루 · 암본처럼 1° 칸에 땅이 없는 작은 섬은 가장 가까운 땅에 있다. 메카는 항구인 지다 자리에 둔다). 시세·시설·배 수치는 시험 값이다. 원작 수치를 옮긴 것이 아니다. 해안선은 오늘날 기준이다.',
   sources=['Natural Earth 110m land (public domain) https://www.naturalearthdata.com/']),
  map=dict(grid='square',cols=H_COLS,rows=H_ROWS,wrapX=True,origin=dict(lon=H_LON0,lat=H_LAT0),degPerTile=1,tiles={'~':'sea','#':'land'},carved=carved,rle=[rle(''.join(x)) for x in grid]),
  goods=[dict(id=i,name=n,base=b,kind=k) for i,n,b,k in GOODS], kinds=KINDS, facilities=FAC, ports=ports,
