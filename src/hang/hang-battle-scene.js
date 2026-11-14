@@ -140,88 +140,114 @@
     g.restore();
   }
 
-  // 동화책처럼 둥근 해적선. 전투 수치·난수·배 종류와 독립인 여섯 가지 그림.
+  // 32×32 해적선 · 28×26 민간 배. 정수 칸에 한 번 그려 두고 런 길이로 묶는다.
+  // 곡선/그라데이션 없이 외곽선, 나무 선체, 돛의 밝고 어두운 면만 쓴다.
   const PIRATE_NAMES = ['해골 왕관선', '붉은 돛 해적선', '초록 용머리선', '보라 문어선', '복어 풍선선', '통통한 고래선'];
-  function drawFancyShip(g, x, y, k, skin, face = 1) {
-    const n = ((skin % 6) + 6) % 6, hues = ['#393d50', '#ad4038', '#397b64', '#80557d', '#bc8338', '#397893'], hue = hues[n];
-    g.save(); g.translate(x, y); g.scale(k * face, k);
-    const path = (points, fill, stroke = INK, lw = .65) => { g.beginPath(); g.moveTo(...points[0]); for (const p of points.slice(1)) g.lineTo(...p); g.closePath(); g.fillStyle = fill; g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw; g.stroke(); } };
-    const oval = (cx, cy, rx, ry, fill, stroke = null) => { g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); g.fillStyle = fill; g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = .65; g.stroke(); } };
-    const line = (ax, ay, bx, by, color, width = .7) => { g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.strokeStyle = color; g.lineWidth = width; g.lineCap = 'round'; g.stroke(); };
-    oval(0, 4, 11.7, 1.6, 'rgba(255,255,255,.62)');
-    oval(0, 3.2, 9, 1.8, 'rgba(52,88,108,.17)');
-    // 돛대와 서로 다른 큰 돛. 전장 셀 안에 들어오는 윤곽을 유지한다.
-    line(-2, 1, -2, -17, '#594333', 1.1);
-    if (n === 4) {
-      oval(-1, -11, 7.4, 6.2, '#e8be65', INK);
-      for (let i = -1; i <= 1; i++) line(-1 + i * 2, -16, -1 + i * 3, -6, '#c79044', .5);
-      line(-6, -6, -4, -1, '#6d5139', .5); line(5, -6, 3, -1, '#6d5139', .5);
-      oval(2, -12, .8, 1, INK); path([[5,-12],[8,-11],[5,-10]], '#fbefc4');
-    } else {
-      g.beginPath(); g.moveTo(-8, -15); g.quadraticCurveTo(2, -17, 7, -14); g.quadraticCurveTo(10, -9, 7, -5); g.quadraticCurveTo(1, -3, -8, -6); g.quadraticCurveTo(-5, -10, -8, -15);
-      g.closePath(); g.fillStyle = n === 0 ? '#ede8d4' : hue; g.fill(); g.lineWidth = .7; g.strokeStyle = INK; g.stroke();
-      g.beginPath(); g.moveTo(-6,-14); g.quadraticCurveTo(1,-16,6,-13); g.strokeStyle = 'rgba(255,255,255,.42)'; g.stroke();
-      if (n === 1) { line(-4,-14,-4,-6,'#f4d1a1',1.4); line(1,-14,1,-5,'#f4d1a1',1.4); }
-      const bone = n === 0 ? '#414153' : '#fff1cd';
-      oval(0,-10.7,2.5,2.2,bone); path([[-1.6,-9],[1.6,-9],[1.3,-7.7],[-1.3,-7.7]],bone,null);
-      oval(-.9,-10.8,.6,.75,n===0?'#ede8d4':hue); oval(.9,-10.8,.6,.75,n===0?'#ede8d4':hue);
-      line(-3.8,-7.5,3.8,-5.5,bone,.7); line(-3.8,-5.5,3.8,-7.5,bone,.7);
-    }
-    // 통통한 선체와 밝은 갑판
-    g.beginPath(); g.moveTo(-11,-2); g.quadraticCurveTo(0,0,11,-3); g.quadraticCurveTo(9,6,0,5); g.quadraticCurveTo(-8,5,-11,-2); g.closePath(); g.fillStyle=hue; g.fill(); g.strokeStyle=INK; g.lineWidth=.8; g.stroke();
-    line(-9,-1,9,-1,'#e5b66b',1.4); line(-6,3,5,3,'rgba(255,255,255,.25)',.6);
-    for (let i=-5;i<=5;i+=5) { oval(i,1,1,1,'#242c39','#d5a860'); }
-    if (n === 0) {
-      oval(9,-2,3.5,3.6,'#f7ecd1',INK); oval(7.8,-2.7,.85,1.1,INK); oval(10.4,-2.7,.85,1.1,INK);
-      for (let j=8;j<11;j++) line(j,.3,j,1.4,INK,.4);
-      path([[6,-5],[6,-8],[8,-6],[9,-9],[10,-6],[12,-8],[12,-5]],'#e8b64f');
-    } else if (n === 2) {
-      path([[7,0],[7,-6],[10,-9],[14,-8],[13,-4],[10,-3],[11,1]],'#5a9a70');
-      path([[8,-7],[6,-10],[10,-9],[11,-12],[12,-8]],'#e6bd67');
-      oval(11,-7,.7,.8,INK); line(12,-4,14,-4,'#f1dca2',.8);
-    } else if (n === 3) {
-      for (let i=0;i<4;i++) { g.beginPath(); g.moveTo(6+i,-2); g.quadraticCurveTo(16-i,5+i,10-i,5); g.strokeStyle=hue; g.lineWidth=1.6; g.stroke(); }
-      oval(9,-3,4,4,'#b884ac',INK); oval(8,-3,.6,.9,INK); oval(10,-3,.6,.9,INK);
-    } else if (n === 5) {
-      oval(8,-1,4.8,4,hue,INK); oval(10,-2,.65,.7,'#fff3d8');
-      path([[-8,1],[-14,-3],[-12,2],[-15,4],[-9,4]],hue);
-      line(7,-5,7,-8,'#d9f3f5',.7); line(7,-8,5,-9,'#d9f3f5',.7); line(7,-8,9,-9,'#d9f3f5',.7);
-    } else if (n === 1) {
-      path([[-11,-2],[-11,-6],[-7,-6],[-7,-1]],'#664549'); oval(-9,-4,.6,.7,'#f0cf72');
-    }
-    path([[-2,-18],[4,-18],[2,-16],[-2,-16]],'#242b3a'); oval(0,-17,.65,.6,'#fff2d8');
-    g.restore();
+  const BOAT_PALETTE = { o:'#302d2a', m:'#65503c', H:'#93603e', h:'#63422f', L:'#d4a460', S:'#f5e6c4', s:'#c5b38f', w:'#edf6f7', a:'#a9503d', b:'#44758a', g:'#506f58', v:'#725870', y:'#d6af58', d:'#42434c' };
+  function pixelArt(w,h,paint) {
+    const rows=Array.from({length:h},()=>Array(w).fill('.'));
+    const dot=(x,y,c)=>{if(x>=0&&x<w&&y>=0&&y<h)rows[y][x]=c;};
+    const rect=(x,y,ww,hh,c)=>{for(let j=y;j<y+hh;j++)for(let i=x;i<x+ww;i++)dot(i,j,c);};
+    const line=(x,y,xx,yy,c)=>{
+      const dx=Math.abs(xx-x),sx=x<xx?1:-1,dy=-Math.abs(yy-y),sy=y<yy?1:-1;let err=dx+dy;
+      for(;;){dot(x,y,c);if(x===xx&&y===yy)break;const e=2*err;if(e>=dy){err+=dy;x+=sx;}if(e<=dx){err+=dx;y+=sy;}}
+    };
+    const poly=(ps,c)=>{
+      for(let y=0;y<h;y++)for(let x=0;x<w;x++){let inside=false;
+        for(let i=0,j=ps.length-1;i<ps.length;j=i++){
+          const [a,b]=ps[i],[d,e]=ps[j];if((b>y+.5)!==(e>y+.5)&&x+.5<(d-a)*(y+.5-b)/(e-b)+a)inside=!inside;
+        }if(inside)dot(x,y,c);
+      }
+      ps.forEach((p,i)=>line(...p,...ps[(i+1)%ps.length],'o'));
+    };
+    paint({dot,rect,line,poly});
+    return {w,h,runs:runs(rows.map(r=>r.join('')))};
   }
-
-  /** 작은 민간 배. 역사의 선형을 단순화한 독자 그림이며 특정 실물 선박의 복원이 아니다. */
-  function drawCivilShip(g, x, y, k, type, face = 1) {
-    g.save(); g.translate(x,y); g.scale(k*face,k); g.lineJoin='round'; g.lineCap='round';
-    const line=(a,b,c,d,col,w=.7)=>{g.beginPath();g.moveTo(a,b);g.lineTo(c,d);g.strokeStyle=col;g.lineWidth=w;g.stroke();};
-    const poly=(ps,col)=>{g.beginPath();g.moveTo(...ps[0]);ps.slice(1).forEach(p=>g.lineTo(...p));g.closePath();g.fillStyle=col;g.fill();g.strokeStyle='#544333';g.lineWidth=.6;g.stroke();};
-    g.beginPath();g.ellipse(0,3.6,10,1.3,0,0,Math.PI*2);g.fillStyle='rgba(247,251,249,.8)';g.fill();
-    if(type==='fishing') {
-      line(-2,0,-2,-7,'#75563e',.8);poly([[-2,-7],[4,-2],[-2,-2]],'#e9dcc0');
-      line(4,-1,10,-5,'#80664c',.5);line(10,-5,10,2,'#b5ad8b',.4);
-      poly([[-5,-1],[-3,-4],[1,-4],[3,-1]],'#c19760');
-    } else if(type==='junk') {
-      line(-2,1,-2,-13,'#6b513e',1);
-      poly([[-6,-12],[3,-14],[7,-10],[6,-3],[-5,-3]],'#d7a26d');
-      for(let y=-11;y<=-4;y+=2) line(-5,y,6,y,'#926a49',.5);
-    } else if(type==='dhow') {
-      line(1,0,1,-13,'#6b513e',1);
-      poly([[-8,-12],[8,-4],[-3,-3]],'#f4e5c5');line(-8,-12,9,-4,'#8b6848',.65);
-    } else if(type==='canoe') {
-      line(-5,-1,-9,4,'#785c41',.7);line(4,-1,9,4,'#785c41',.7);
-      poly([[-1,-10],[6,-3],[-1,-3]],'#e3be7f');line(-1,0,-1,-10,'#6b513e',.8);
-    } else {
-      line(-2,1,-2,-14,'#6b513e',.9);line(5,0,5,-10,'#6b513e',.7);
-      poly([[-7,-11],[3,-11],[4,-4],[-6,-4]],'#faf0d6');
-      poly([[5,-10],[10,-3],[5,-3]],'#ede0bd');
-      line(-2,-13,2,-13,type==='explorer'?'#ba5041':'#4f7d9c',1.4);
+  const PIRATE_PIXELS = Array.from({length:6},(_,n)=>pixelArt(32,32,({dot,rect,line,poly})=>{
+    const color=['d','a','g','v','y','b'][n],sail=n===0?'S':color;
+    rect(5,30,7,1,'w');rect(16,30,11,1,'w');
+    line(14,2,14,24,'o');line(15,4,15,24,'m');
+    line(14,4,4,24,'m');line(15,5,28,23,'m');
+    rect(15,1,6,3,'o');dot(17,2,'S');
+    if(n===4){
+      poly([[10,5],[19,5],[23,9],[23,14],[20,18],[10,18],[7,14],[7,9]],'y');
+      line(12,6,11,17,'L');line(18,6,19,17,'H');
+      dot(21,10,'o');dot(24,11,'S');line(10,19,12,23,'m');line(20,19,18,23,'m');
+    }else{
+      poly([[6,6],[22,6],[21,10],[22,17],[7,17],[8,12]],sail);
+      line(8,7,20,7,n===0?'w':'L');line(9,16,20,16,n===0?'s':'h');
+      // 작은 해골은 돛의 문양으로만 쓴다. 큰 얼굴과 둥근 눈은 그리지 않는다.
+      rect(13,9,5,4,n===0?'d':'S');rect(14,13,3,2,n===0?'d':'S');
+      dot(14,10,sail);dot(16,10,sail);dot(15,12,sail);
+      if(n===1){line(10,8,10,15,'s');line(20,8,20,15,'s');}
     }
-    g.beginPath();g.moveTo(-10,-1);g.quadraticCurveTo(0,1,10,-2);g.quadraticCurveTo(7,5,-5,3);g.closePath();g.fillStyle=type==='junk'?'#85563d':'#a97b4c';g.fill();g.lineWidth=.7;g.strokeStyle='#574434';g.stroke();
-    line(-7,0,7,0,'#edc588',.9);g.restore();
+    // 선미루, 밝은 갑판, 계단형 선측. 선체는 나무 배로 통일한다.
+    rect(3,20,6,4,'o');rect(4,21,4,2,color);dot(5,21,'y');
+    poly([[2,23],[12,24],[28,22],[26,27],[21,29],[8,29],[4,27]],'H');
+    line(4,24,25,24,'L');line(6,27,23,27,'h');line(9,28,21,28,'h');
+    for(const x of [8,14,20])rect(x,25,2,2,'o');
+    if(n===0){rect(25,19,5,4,'o');rect(26,20,3,2,'S');dot(26,20,'o');dot(28,20,'o');line(25,18,29,18,'y');dot(25,17,'y');dot(27,16,'y');dot(29,17,'y');}
+    if(n===2){poly([[25,23],[25,17],[27,14],[31,15],[30,18],[28,19],[28,23]],'g');dot(29,16,'y');dot(27,13,'y');dot(30,13,'y');}
+    if(n===3){rect(25,19,4,4,'v');dot(26,20,'S');line(25,22,23,26,'v');line(27,22,27,26,'v');line(28,22,30,25,'v');}
+    if(n===5){poly([[23,23],[24,20],[29,20],[30,23],[28,25],[24,25]],'b');dot(28,21,'S');poly([[5,26],[1,23],[2,27],[0,29],[6,28]],'b');}
+  }));
+  const CIVIL_PIXELS = Object.fromEntries(['fishing','junk','dhow','canoe','merchant','explorer'].map(type=>[type,pixelArt(28,26,({dot,rect,line,poly})=>{
+    rect(4,25,8,1,'w');rect(17,25,8,1,'w');
+    if(type==='fishing'){
+      line(9,8,9,20,'o');poly([[10,9],[17,16],[10,16]],'S');line(11,15,15,15,'s');
+      rect(6,17,8,3,'o');rect(7,17,6,2,'L');
+      rect(17,16,2,4,'b');dot(17,15,'L');
+      line(19,18,24,10,'o');line(24,10,26,19,'s');
+      poly([[20,19],[25,19],[24,24],[21,23]],'s');
+      line(21,20,24,23,'m');line(24,20,21,23,'m');
+    }else if(type==='junk'){
+      line(11,2,11,21,'o');line(21,8,21,21,'o');
+      poly([[4,5],[13,3],[17,6],[17,17],[5,17]],'a');
+      for(const y of [7,10,13,16])line(5,y,16,y,'L');
+      poly([[19,10],[23,8],[25,11],[25,18],[19,18]],'L');line(20,12,24,12,'H');line(20,15,24,15,'H');
+      rect(3,18,5,4,'o');rect(4,19,3,2,'g');
+    }else if(type==='dhow'){
+      line(15,2,15,21,'o');poly([[3,4],[24,16],[8,17]],'S');line(8,16,22,16,'s');line(3,3,25,16,'m');
+      rect(5,18,5,3,'L');line(4,19,9,19,'H');
+    }else if(type==='canoe'){
+      line(11,4,11,21,'o');poly([[12,5],[23,17],[12,17]],'S');line(14,16,21,16,'a');
+      line(5,19,2,24,'m');line(19,20,24,24,'m');rect(1,24,6,1,'H');rect(22,24,5,1,'H');
+      rect(6,17,2,3,'g');dot(6,16,'L');
+    }else if(type==='explorer'){
+      // 캐러벨: 두 돛대의 비스듬한 삼각 돛, 낮은 선미.
+      line(10,1,10,21,'o');line(20,7,20,21,'o');
+      poly([[3,5],[17,15],[7,16]],'S');line(3,4,18,15,'m');line(8,15,15,15,'s');
+      poly([[16,9],[26,17],[18,18]],'S');line(16,8,26,17,'m');
+      rect(11,2,4,2,'a');rect(4,18,5,3,'H');
+    }else{
+      // 캐럭: 높은 선미루, 가로 돛과 보조 삼각 돛.
+      line(11,1,11,21,'o');line(21,7,21,21,'o');
+      poly([[4,5],[17,5],[16,9],[17,16],[5,16]],'S');line(6,15,15,15,'s');
+      poly([[21,8],[27,17],[21,17]],'S');rect(12,2,4,2,'b');
+      rect(2,17,6,5,'o');rect(3,18,4,3,'H');dot(4,19,'y');
+    }
+    const small=type==='canoe'||type==='fishing';
+    poly(small?[[2,20],[10,21],[26,19],[23,23],[7,24],[4,23]]:[[1,20],[13,21],[27,19],[24,23],[20,24],[6,24],[3,22]],'H');
+    line(4,21,24,21,'L');line(7,23,21,23,'h');
+    if(!small){dot(8,22,'o');dot(15,22,'o');dot(21,22,'o');}
+    else{line(9,20,12,20,'o');if(type==='fishing'){rect(20,21,4,2,'s');dot(21,21,'m');dot(23,22,'m');}}
+  })]));
+  function drawBoatPixels(g,x,y,k,face,sp,cell) {
+    const c=k*cell,left=x-sp.w*c/2,top=y+5*k-sp.h*c,m=g.getTransform();
+    const axis=m.b===0&&m.c===0;
+    g.save();if(axis)g.setTransform(1,0,0,1,0,0);
+    for(const [r,a,n,ch] of sp.runs){
+      g.fillStyle=BOAT_PALETTE[ch];
+      if(axis){
+        const x0=Math.round(m.a*(left+(face<0?sp.w-a:a)*c)+m.e),x1=Math.round(m.a*(left+(face<0?sp.w-a-n:a+n)*c)+m.e);
+        const y0=Math.round(m.d*(top+r*c)+m.f),y1=Math.round(m.d*(top+(r+1)*c)+m.f);
+        g.fillRect(Math.min(x0,x1),Math.min(y0,y1),Math.abs(x1-x0),Math.abs(y1-y0));
+      }else g.fillRect(left+(face<0?sp.w-a-n:a)*c,top+r*c,n*c,c);
+    }g.restore();
   }
+  function drawFancyShip(g,x,y,k,skin,face=1) { drawBoatPixels(g,x,y,k,face,PIRATE_PIXELS[((skin%6)+6)%6],.8); }
+  /** 돛/어구/선체가 다른 작은 픽셀 배. 특정 실물 선박의 복원이 아니다. */
+  function drawCivilShip(g,x,y,k,type,face=1) { drawBoatPixels(g,x,y,k,face,CIVIL_PIXELS[type]||CIVIL_PIXELS.merchant,.78); }
 
   class HangBattleScene extends DH.MapScene {
     /** @param {{onDone:(result)=>void}} o 사람은 언제나 'me' 쪽이다 */

@@ -506,7 +506,7 @@
       const w = this.world, v = this.voyage, grid = this.grid, z = this.cam.zoom, mid = this.cam.x + this.cam.viewW / z / 2;
       const X = x => grid.nearX(x, mid);
       this.softCoast(g);
-      for(const s of this.civil)DH.Hang.drawCivilShip(g,X(s.x),s.y,.46/z,s.type,s.face);
+      for(const s of this.civil)DH.Hang.drawCivilShip(g,X(s.x),s.y,.50/z,s.type,s.face);
       // 남은 뱃길
       if (v.path.length) {
         g.beginPath(); const prev = this.shipPx(); g.moveTo(X(prev.x), prev.y); let px = X(prev.x);
