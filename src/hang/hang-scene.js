@@ -45,7 +45,7 @@
       this.settings = [];                                          // 지금 탐험에 적용된 동현랭 설정 [[번호, 값…]] (저장할 때 함께 적는다)
     }
     newVoyage() {
-      if (this.state.start.seed != null) this.engine.rng.state = this.state.start.seed >>> 0;      // 씨앗을 정했으면 판마다 같은 수가 나온다
+      if (this.state.start.seed != null) this.engine.rng.state = this.state.start.seed >>> 0;      // 시드를 정했으면 판마다 같은 수가 나온다
       return new DH.Hang.Voyage(this.world, { rng: this.engine.rng, state: this.state });
     }
     /** 동현랭 설정을 받아 globalState를 새로 짓고 탐험을 다시 연다. 오류가 있으면 지금 탐험을 그대로 둔다.
@@ -623,7 +623,7 @@
         voyage = DH.Hang.Voyage.restore(w, d.game, { rng: e.rng, state: st });
       } catch (err) { return NO(err.message); }
       while (e.scene && e.scene !== this) e.popScene();
-      this.state = st; this.settings = d.settings.map(x => [...x]); this.voyage = voyage; e.restore(d);      // 난수는 판을 지은 뒤에 되돌린다(씨앗 설정이 덮지 않게)
+      this.state = st; this.settings = d.settings.map(x => [...x]); this.voyage = voyage; e.restore(d);      // 난수는 판을 지은 뒤에 되돌린다(시드 설정이 덮지 않게)
       const v = voyage, s = d.scene || {}, c = s.cam, num = x => typeof x === 'number' && isFinite(x);
       this.from = [v.x, v.y]; this._told = !!v.over; this.selected = null; this.spot = null; this.tab = null; this.route = null; this.meet = null; this.dockShip = null;
       this.civil=[];this.civilKey=null;this.civilCard=null;

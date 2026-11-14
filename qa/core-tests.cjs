@@ -7,7 +7,7 @@ const hangJ = () => JSON.parse(fs.readFileSync(path.join(root, 'src/hang/donghyu
 let n = 0; const ok = (name, fn) => { fn(); n++; console.log('ok ' + name); };
 const bad = (fn, re) => assert.throws(fn, e => e instanceof DH.DataError && re.test(e.message), '잡아야 할 오류를 놓쳤다 ' + re);
 
-ok('난수: 같은 씨앗 같은 수 · 상태를 되돌리면 이어서 같다', () => {
+ok('난수: 같은 시드 같은 수 · 상태를 되돌리면 이어서 같다', () => {
   const a = new DH.RNG(7), b = new DH.RNG(7); for (let i = 0; i < 50; i++) assert.strictEqual(a.next(), b.next());
   const st = a.state, x = a.next(); a.state = st; assert.strictEqual(a.next(), x); assert.notStrictEqual(new DH.RNG(8).next(), new DH.RNG(7).next());
 });
