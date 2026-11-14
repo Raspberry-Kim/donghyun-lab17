@@ -343,7 +343,7 @@
 
     detail() {
       const w = this.world, v = this.voyage, R = v.rules, mode = this.mode, here = v.here, gname = id => w.goods.get(id).name;
-      if(this.civilCard){const s=this.civilCard;return {title:s.name,rows:[['바다',s.region],['이 배',s.text],['모양',s.more],['인사',s.gift.text]],note:'싸우거나 부딪히지 않는 작은 배다. 닫으면 하던 항해를 이어 간다.'};}
+      if(this.civilCard){const s=this.civilCard;return {title:s.name,rows:[['바다',s.region],['이 배',s.text],['모양',s.more],['만남',s.gift.text]],note:'싸우거나 부딪히지 않는 작은 배다. 닫으면 하던 항해를 이어 간다.'};}
       if(this.tab==='traffic'&&['port','sea'].includes(mode))return {title:'지나는 배',rows:this.civil.map(s=>[CIVIL[s.type].name,CIVIL[s.type].region]),note:'배를 누르거나 목록에서 골라 이야기를 읽는다. 선물은 10항해일마다 한 번, 25% 확률로 물이나 식량 5일분이다.'};
       const ships = () => v.ships.map(sh => `${sh.name}(${v.T(sh).name}) 선체 ${sh.hull}/${v.T(sh).hull} · 포 ${v.gunsOf(sh)}`).join(' · ');
       const spec = t => `선체 ${t.hull} · 포 ${t.guns} · 짐 ${t.cargo} · 선원 ${t.maxCrew}명까지 · 하루 ${t.speed}칸`, D = R.dock;
