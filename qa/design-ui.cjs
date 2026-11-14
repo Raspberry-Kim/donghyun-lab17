@@ -49,7 +49,7 @@ const out=process.env.QA_SHOTS||'/tmp/hang15-shots';fs.mkdirSync(out,{recursive:
       await p.screenshot({path:path.join(out,`math-${width}.png`)});
       await p.getByRole('button',{name:'세계 지도',exact:true}).click();checks++;
     }
-    // 새 그림이 실제 카드와 전장으로 연결되는지: 해적 조건만 준비하고 싸운다 단추를 누른다.
+    // 새 그림이 실제 카드와 전장으로 연결되는지: 해적 조건만 준비하고 싸운다 버튼을 누른다.
     await p.evaluate(()=>{
       const s=__dh.scene;s.restart();s.voyage.leave();s.meet=s.voyage.rivals.get('storm');s.refresh();__dh.engine.step(1);
     });
@@ -58,7 +58,7 @@ const out=process.env.QA_SHOTS||'/tmp/hang15-shots';fs.mkdirSync(out,{recursive:
     await p.locator('.dh-canvas').screenshot({path:path.join(out,'battle.png')});
     assert.equal(await p.evaluate(()=>__dh.engine.scenes.length),2);checks++;
     await p.locator('button[data-id="flee"]').click();await p.locator('button[data-id="no"]').click().catch(async()=>{
-      const ids=await p.locator('.dh-menu button').evaluateAll(a=>a.map(e=>e.dataset.id));throw new Error('도주 되묻기 취소 단추 확인: '+ids);
+      const ids=await p.locator('.dh-menu button').evaluateAll(a=>a.map(e=>e.dataset.id));throw new Error('도주 되묻기 취소 버튼 확인: '+ids);
     });
     // 해적선 여섯 그림은 같은 실제 그리기 함수로 모아 확인한다.
     await p.evaluate(()=>{
