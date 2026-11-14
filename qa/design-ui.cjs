@@ -45,7 +45,7 @@ const out=process.env.QA_SHOTS||'/tmp/hang15-shots';fs.mkdirSync(out,{recursive:
       await p.getByRole('button',{name:'수학적 원리',exact:true}).click();
       await p.locator('#tab-math article').last().scrollIntoViewIfNeeded();
       assert.equal(await p.locator('#tab-math').evaluate(e=>e.scrollWidth>e.clientWidth),false);
-      assert.ok((await p.locator('#tab-math').innerText()).includes('승리 보급과 작은 인사'));
+      assert.ok((await p.locator('#tab-math').innerText()).includes('승리에 대한 보급과 작은 보상'));
       await p.screenshot({path:path.join(out,`math-${width}.png`)});
       await p.getByRole('button',{name:'세계 지도',exact:true}).click();checks++;
     }

@@ -107,7 +107,7 @@ const url = 'file://' + path.join(__dirname, '..', 'index.html'), shot = path.jo
   ok('동현항 키 · 찍기: 갈 곳 없이 출항하면 항구 앞바다 · 입항 단추 · 방향키(뭍은 막힘 · 서쪽 2칸 · 남쪽 2칸) · Space로 멈춤 · 바다를 찍으면 그리로 · 바다에서 항구를 찍고 ‘세비야로 항해’');
 
   // 동현랭 설정(날마다 100% 만난다 · 해전 6턴) → 4일째에 해전 → 손으로 옮기고 쏜다 → 달아나기를 되묻는다 → 맡기기 → 결과가 탐험대에 반영된다
-  await setCode(await compose([[2, 7], [14, 100], [22, 6]])); lg = await runLang(); assert.strictEqual(lg.state, 'ok'); assert.ok(lg.out.startsWith('설정 3개를 적용하고 새 판을 열었다: 난수 씨앗 7 · 해적을 만날 확률(%/일) 100 · 해전 기한(턴) 6'), lg.out);
+  await setCode(await compose([[2, 7], [14, 100], [22, 6]])); lg = await runLang(); assert.strictEqual(lg.state, 'ok'); assert.ok(lg.out.startsWith('설정 3개를 적용하고 새 판을 열었다: 난수 시드 7 · 해적을 만날 확률(%/일) 100 · 해전 기한(턴) 6'), lg.out);
   assert.deepStrictEqual([(await info()).날짜, (await info()).자금, (await sea()).port, await G(() => __dh.state.rules.encounter.percent)], ['1522년 5월 1일', '1,000', 'lisbon', 100]);
   for (let i = 0; i < 12; i++) await p.click('button[data-id=zout]'); await step(1); Q = await portXY('elmina'); await clickWorld(Q.x, Q.y); assert.strictEqual(await title(), '엘미나'); assert.ok(/^\d+칸 · 약 \d+일$/.test((await rows()).뱃길)); await p.click('button[data-id=sail]');
   await step(60); assert.deepStrictEqual([(await sea()).n, (await sea()).day], [1, 3], '항구를 떠나 사흘은 만나지 않는다'); await step(20);
@@ -227,9 +227,9 @@ const url = 'file://' + path.join(__dirname, '..', 'index.html'), shot = path.jo
   const NAME = '동현항', TABS = ['세계 지도', '동현항 출전 규약', '규칙', '엔진과 자료', '수학적 원리', '모델과 출처'], HEADS = { protocol: ['설정 번호', '예제 열'], rules: ['놀이 방법', '조작', '동현항 규칙'], engine: ['엔진의 층', '게임이 얹는 법', '동현랭 어댑터', 'JSON 규격', '파일', '돌려 보기'], about: ['상표와 관계', '이 자료가 무엇이고 무엇이 아닌지', '자료 출처'] };
   const band = await p.evaluate(() => ({ n: document.querySelectorAll('.series-item').length, ctx: document.querySelector('.series-context').textContent, here: [...document.querySelectorAll('.series-item[aria-current=page]')].map(a => a.querySelector('.series-name').textContent), hrefs: [...document.querySelectorAll('a.series-item')].map(a => a.getAttribute('href')),
     ed: document.querySelector('.edition').textContent.trim(), foot: document.querySelector('footer').textContent, title: document.title, left: document.documentElement.innerHTML.match(/__[A-Z_]+__|<!--README/g) }));
-  assert.deepStrictEqual([band.n, band.here, band.hrefs.length, band.left], [19, [NAME + '™'], 18, null]); assert.ok(band.ctx.includes('열여덟 개의 작은 세계') && band.ed.startsWith('v0.17') && band.foot.includes(NAME + ' v0.17') && band.title.includes(NAME), JSON.stringify([band.ctx, band.ed, band.title]));
+  assert.deepStrictEqual([band.n, band.here, band.hrefs.length, band.left], [19, [NAME + '™'], 18, null]); assert.ok(band.ctx.includes('열여덟 개의 작은 세계') && band.ed.startsWith('v0.18') && band.foot.includes(NAME + ' v0.18') && band.title.includes(NAME), JSON.stringify([band.ctx, band.ed, band.title]));
   assert.ok(band.hrefs.every(h => /^https:\/\/raspberry-kim\.github\.io\/donghyun-(lang|lab\d+)\/$/.test(h)) && new Set(band.hrefs).size === 18, '띠의 주소 열여덟 개가 서로 다르다');
-  ok(`시리즈 띠 19칸(지금 여기: ${NAME}) · 머리글과 바닥글의 판 번호 v0.17 · 빌드 자리표가 남지 않았다`);
+  ok(`시리즈 띠 19칸(지금 여기: ${NAME}) · 머리글과 바닥글의 판 번호 v0.18 · 빌드 자리표가 남지 않았다`);
 
   const tabsNow = () => p.evaluate(() => ({ names: [...document.querySelectorAll('.tabs button')].map(b => b.textContent), on: [...document.querySelectorAll('.tabs button[aria-current=page]')].map(b => b.dataset.tab), shown: [...document.querySelectorAll('.tab-panel')].filter(x => !x.hidden).map(x => x.id), sw: document.documentElement.scrollWidth, run: __dh.engine.loop.running }));
   await G(() => __dh.engine.start()); let T = await tabsNow(); assert.deepStrictEqual([T.names, T.on, T.shown, T.run], [TABS, ['play'], ['tab-play'], true]);
@@ -318,7 +318,7 @@ const url = 'file://' + path.join(__dirname, '..', 'index.html'), shot = path.jo
   await tapBtn('flee'); await tapBtn('yes'); assert.deepStrictEqual(await m.evaluate(() => [__dh.engine.scene.mode, __dh.engine.scene.title()]), ['result', '달아났다']); await m.evaluate(() => __dh.engine.step(40)); await m.screenshot({ path: shot + '/ui-hang-phone-result.png', fullPage: true }); await tapBtn('back');
   assert.deepStrictEqual(await m.evaluate(() => [__dh.engine.scenes.length, __dh.voyage.cargoUsed]), [1, Math.floor(used0 / 2)], '달아나면 짐의 절반을 버린다');
   await m.selectOption('#example', 'stage'); await mtap('#run'); const mo = await m.evaluate(() => { const o = document.querySelector('#result'); return [o.dataset.kind, o.textContent, __dh.state.stage.gold, __dh.state.stage.days, __dh.voyage.gold]; });
-  assert.deepStrictEqual([mo[0], mo[2], mo[3], mo[4]], ['ok', 5000, 300, 1000]); assert.ok(mo[1].startsWith('설정 4개를 적용하고 새 판을 열었다: 난수 씨앗 7 · 승리 조건: 모을 자금 5,000 · 기한(일) 300'), mo[1]);
+  assert.deepStrictEqual([mo[0], mo[2], mo[3], mo[4]], ['ok', 5000, 300, 1000]); assert.ok(mo[1].startsWith('설정 4개를 적용하고 새 판을 열었다: 난수 시드 7 · 승리 조건: 모을 자금 5,000 · 기한(일) 300'), mo[1]);
   await mtap('.lang-rule summary'); const F4 = await fit(), tb = await m.evaluate(() => { const t = document.querySelector('.lang-rule table'); return { rows: document.querySelectorAll('#lang-rows tr').length, open: document.querySelector('.lang-rule').open, cw: t.clientWidth, sw: t.scrollWidth }; });
   assert.ok(F4.sw <= 390 && F4.btn >= 44 && F4.right <= 390, JSON.stringify(F4)); assert.deepStrictEqual([tb.rows, tb.open], [23, true]);
   await m.evaluate(() => document.querySelector('.ed-panel').scrollIntoView()); await m.screenshot({ path: shot + '/ui-hang-phone-lang.png', fullPage: true });
@@ -375,7 +375,7 @@ const url = 'file://' + path.join(__dirname, '..', 'index.html'), shot = path.jo
   await s.keyboard.press('Escape'); assert.strictEqual(await gm(), null); assert.deepStrictEqual([await S(() => __dh.engine.loop.running), await onMap()], [true, true], 'Esc로 닫으면 판이 다시 돌고 키보드는 지도에 듣는다');
   await s.click('#game-save'); await s.mouse.click(12, 12); assert.strictEqual(await gm(), null, '메뉴 바깥을 누르면 닫힌다'); await S(() => __dh.engine.stop());
   await s.click('#game-save'); await s.keyboard.press('Enter'); assert.strictEqual(await gm(), null); assert.deepStrictEqual(await status(), ['브라우저 칸 1에 저장했다 · 리스본 · 1522년 5월 1일', '']);
-  let d1 = await slot(1); assert.deepStrictEqual([d1.format, d1.version, d1.lab, d1.summary, d1.settings, d1.game.gold, d1.game.port], ['donghyunhang-save', 1, '0.17', { title: '리스본', date: '1522년 5월 1일', line: '자금 1,000 · 선원 28명' }, [], 1000, 'lisbon']); assert.ok(!isNaN(new Date(d1.savedAt)));
+  let d1 = await slot(1); assert.deepStrictEqual([d1.format, d1.version, d1.lab, d1.summary, d1.settings, d1.game.gold, d1.game.port], ['donghyunhang-save', 1, '0.18', { title: '리스본', date: '1522년 5월 1일', line: '자금 1,000 · 선원 28명' }, [], 1000, 'lisbon']); assert.ok(!isNaN(new Date(d1.savedAt)));
   await s.click('button[data-id="tab:market"]'); await s.click('button[data-id="buy:wine"]'); assert.strictEqual((await sInfo()).자금, '820'); assert.ok(await onMap(), '단추를 누른 뒤에도 키보드는 지도에 듣는다');
   await s.click('#game-save'); M = await gm(); assert.ok(/^리스본 · 1522년 5월 1일 · 자금 1,000 · 선원 28명 · \d+\/\d+ \d\d:\d\d 저장$/.test(M.notes[0]), M.notes[0]); await pick('브라우저 칸 1'); M = await gm(); assert.deepStrictEqual([M.title, M.items], ['칸 1에 덮어쓸까?', ['덮어쓴다', '그만둔다']]);
   await pick('그만둔다'); assert.strictEqual((await gm()).title, '저장'); assert.strictEqual((await slot(1)).game.gold, 1000, '그만두면 칸은 그대로다');
@@ -419,7 +419,7 @@ const url = 'file://' + path.join(__dirname, '..', 'index.html'), shot = path.jo
   await s.click('#game-save'); M = await gm(); assert.deepStrictEqual([M.title, M.text, M.items], ['지금은 저장할 수 없다', '해전이 끝난 뒤에 저장할 수 있다.', ['돌아가기']]); await s.keyboard.press('Escape'); assert.strictEqual(await gm(), null);
   await loadSlot(1); assert.deepStrictEqual([(await sSea()).n, await whole() === bought, await S(() => __dh.state.rules.encounter.percent), await S(() => __dh.scene.settings), await s.$eval('#code', e => e.value) === code0, await S(() => document.querySelector('.dh-detail-title').textContent)], [1, true, 5, [], true, '리스본 교역소']);
   await loadSlot(3); const res = await s.$eval('#result', e => e.textContent); assert.deepStrictEqual([await whole() === day1, await S(() => __dh.state.rules.encounter.percent), await S(() => __dh.scene.settings), (await sSea()).run], [true, 100, d3.settings, false]);
-  assert.ok(res.includes('‘계속’을 누르면 이어 간다 · 저장될 때의 설정: 난수 씨앗 7 · 해적을 만날 확률(%/일) 100 · 해전 기한(턴) 6. 편집기의 코드는 그대로다.'), res);
+  assert.ok(res.includes('‘계속’을 누르면 이어 간다 · 저장될 때의 설정: 난수 시드 7 · 해적을 만날 확률(%/일) 100 · 해전 기한(턴) 6. 편집기의 코드는 그대로다.'), res);
   await s.click('button[data-id=pause]'); await sStep(60); assert.strictEqual((await sSea()).mode, 'meet'); await s.click('button[data-id=fight]'); assert.deepStrictEqual([(await sSea()).n, await S(() => __dh.engine.scene.b.fleets.foe.name), await whole() === inBattle], [2, foe, true], '불러온 설정으로 같은 날 같은 적을 만난다'); await S(() => __dh.engine.step(1)); await s.screenshot({ path: shot + '/ui-save-battle.png' });
   await loadSlot(2); V = await sSea(); assert.deepStrictEqual([V.n, V.mode, V.run, await whole() === atSea, await S(() => __dh.state.rules.encounter.percent)], [1, 'sea', false, true, 5], '해전 중에 불러오면 해전을 접는다');
   await s.click('#game-save'); await pick('칸 지우기'); M = await gm(); assert.deepStrictEqual([M.title, M.items], ['칸 지우기', ['브라우저 칸 1', '브라우저 칸 2', '브라우저 칸 3', '돌아가기']]); await pick('브라우저 칸 2'); M = await gm(); assert.deepStrictEqual([M.title, M.items], ['칸 2를 지울까? 되돌릴 수 없다.', ['지운다', '그만둔다']]);

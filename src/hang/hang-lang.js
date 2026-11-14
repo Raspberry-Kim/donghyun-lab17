@@ -4,7 +4,7 @@
  * 시작값(start)은 null이고, null이면 JSON 자료에 적힌 값을 쓴다. 동현랭 설정이 없으면 이 기본값 그대로 탐험이 열린다.
  *
  *   번호  설정                     값
- *    2    난수 씨앗                1~2147483646
+ *    2    난수 시드                1~2147483646
  *    3~7  시작 자금 · 식량(일) · 물(일) · 선원 · 선장 무력
  *    8    시작 짐                  교역품 번호(자료에 적힌 순서), 수량                   ← 여러 번 쓸 수 있다
  *    9    시작 기함                배 종류 번호(자료에 적힌 순서: 1 캐러벨 · 2 캐럭 · 3 거북선)
@@ -34,7 +34,7 @@
   const startTypes = (world, ship) => { const f = fleet(world); return f ? f.ships.map((s, i) => (i === 0 && ship ? nth(world.shipTypes, ship) : world.shipTypes.get(s.type))) : null; };
 
   const lang = new DH.DonghyunLangAdapter({ name: '동현항', commands: {
-    2: { key: 'start.seed', label: '난수 씨앗', min: 1, max: 2147483646, path: 'start.seed', hint: '같은 씨앗이면 같은 바다', def: '1' },
+    2: { key: 'start.seed', label: '난수 시드', min: 1, max: 2147483646, path: 'start.seed', hint: '같은 시드면 같은 바다', def: '1' },
     3: { key: 'start.gold', label: '시작 자금', min: 0, max: 9999999, path: 'start.gold', def: '자료 값' },
     4: { key: 'start.food', label: '시작 식량(일)', min: 0, max: 120, path: 'start.food', def: '자료 값' },
     5: { key: 'start.water', label: '시작 물(일)', min: 0, max: 60, path: 'start.water', def: '자료 값' },
@@ -100,7 +100,7 @@
   const examples = world => { const c = (list, title) => lang.compose(list, title, { world }); return [
     { id: 'none', name: '01 · 기본값(설정 없음)', code: '나는 동현이냐?\nㅋㅋ 아무것도 출력하지 않으면 기본값 그대로 시작한다\n동현이구나' },
     { id: 'rich', name: '02 · 넉넉한 출항', code: c([[3, 5000], [4, 120], [5, 60], [6, 40], [8, 1, 80], [8, 2, 0]], '자금 5,000 · 식량 120일 · 물 60일 · 선원 40명 · 포도주 80 · 올리브유 없음') },
-    { id: 'stage', name: '03 · 스테이지: 300일 안에 자금 5,000', code: c([[2, 7], [20, 5000], [21, 300], [14, 0]], '씨앗 7 · 자금 5,000을 모으면 이긴다 · 300일 안에 · 해적 없음') },
+    { id: 'stage', name: '03 · 스테이지: 300일 안에 자금 5,000', code: c([[2, 7], [20, 5000], [21, 300], [14, 0]], '시드 7 · 자금 5,000을 모으면 이긴다 · 300일 안에 · 해적 없음') },
     { id: 'war', name: '04 · 해적이 들끓는 바다', code: c([[14, 40], [7, 90], [23, 4], [30, 1, 40]], '날마다 40% 확률로 만난다 · 선장 무력 90 · 배 이동력 4 · 붉은수염 무력 40') },
     { id: 'poor', name: '05 · 빈손 출항', code: c([[3, 300], [4, 30], [5, 30], [8, 1, 0], [8, 2, 0], [10, 5]], '자금 300 · 식량 30일 · 물 30일 · 짐 없음 · 다섯 개씩 사고판다') },
     { id: 'calm', name: '06 · 고요한 바다의 큰손', code: c([[3, 20000], [14, 0], [10, 40], [11, 1], [12, 0]], '자금 20,000 · 해적 없음 · 40개씩 사고판다 · 시세 변동 1% · 수수료 없음') },

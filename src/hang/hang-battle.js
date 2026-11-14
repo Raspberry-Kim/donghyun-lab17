@@ -9,7 +9,7 @@
  *            맡겨 둔 싸움(auto)에서 우리 쪽은 우리 선장의 무력이 적 선장 이상일 때만 받는다.
  *   무적     fleet.invincible이면 그 쪽 배는 선체와 선원이 줄지 않고, 선장은 일기토에서 기력이 줄지 않는다.
  *   선체가 0이 되면 가라앉고, 선원이 0이 되면 배를 빼앗긴다. 기함을 잃은 쪽이 진다. 20턴이 지나면 승부 없이 갈라진다.
- * 암초(네 칸)에는 들어갈 수 없다. 자리는 씨앗으로 정해진다. */
+ * 암초(네 칸)에는 들어갈 수 없다. 자리는 시드로 정해진다. */
 (function (root) {
   'use strict';
   const DH = root.DH = root.DH || {};
@@ -19,7 +19,7 @@
   const SPOT = { me: [[1, 4], [0, 2], [0, 6]], foe: [[6, 3], [7, 1], [7, 5]] };
   const OTHER = { me: 'foe', foe: 'me' };
 
-  /** 씨앗으로 암초 자리를 정한다. 가운데 네 줄(2~5열)에만 놓는다. */
+  /** 시드로 암초 자리를 정한다. 가운데 네 줄(2~5열)에만 놓는다. */
   function makeSea(seed, n = SEA.rocks) {
     const rng = new DH.RNG((seed >>> 0) * 2654435761 + 97), rocks = new Set();
     for (let i = 0; i < 200 && rocks.size < n; i++) rocks.add((2 + rng.int(4)) + ',' + rng.int(SEA.rows));
