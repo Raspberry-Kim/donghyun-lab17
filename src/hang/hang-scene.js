@@ -23,7 +23,7 @@
     fishing: { name: '연안 고깃배', region: '이 고장의 어민', text: '작은 돛과 그물을 실은 주민의 고깃배다.', more: '해안 가까이에서 천천히 고기를 잡는다.' },
     junk: { name: '동아시아 정크 상선', region: '동아시아 바다', text: '가로 살이 들어간 돛을 펼친 목조 상선이다.', more: '동아시아 정크의 선형을 작게 줄여 그렸다.' },
     dhow: { name: '인도양 다우 상선', region: '아라비아·인도양', text: '비스듬한 활대에 삼각 돛을 단 상선이다.', more: '교역과 어업에 쓰인 다우에서 모양을 빌렸다.' },
-    canoe: { name: '섬마을 돛단배', region: '섬과 섬 사이', text: '노와 작은 돛으로 움직이는 가벼운 배다.', more: '연안과 섬 사이를 다니던 배를 단순화했다.' },
+    canoe: { name: '섬마을 돛단배', region: '섬과 섬 사이', text: '작은 돛과 옆 받침대로 균형을 잡는 가벼운 배다.', more: '연안과 섬 사이를 다니던 배를 단순화했다.' },
     merchant: { name: '유럽 캐럭 상선', region: '유럽·대서양 항로', text: '둥근 선체와 넓은 돛에 화물을 싣는 상선이다.', more: '15~16세기 캐럭을 바탕으로 작게 그렸다.' },
     explorer: { name: '대양의 캐러벨 탐험선', region: '먼바다의 탐험가', text: '먼 수평선을 향해 항해하는 작은 범선이다.', more: '초기 대서양 탐험에 쓰인 캐러벨에서 따왔다.' }
   };
@@ -140,6 +140,8 @@
       if (key !== this.civilKey || (this.civil.length>=2&&visible<2)) {
         this.civilKey = key; this.civil = [];
         const seed = DH.Hang.artHash(key), m = this.world.map;
+        // 배 그림(16칸)이 옆 육지에 올라앉지 않게, 둘레와 위쪽이 바다인 칸을 먼저 고른다
+        const open=(a,b)=>[[1,0],[-1,0],[0,1],[0,-1],[1,-1],[-1,-1]].every(([dx,dy])=>m.isSea(g.normC(a+dx),b+dy));
         for (let i = 0; i < 3; i++) {
           const tx = this.cam.x + this.engine.width / z * [.23,.73,.48][i], ty = this.cam.y + this.engine.height / z * [.32,.63,.79][i];
           let best = null, score = Infinity;
@@ -149,7 +151,7 @@
             const p=g.center(c,r), depth=this.depth[r*g.cols+nc];
             if (this.civil.some(s=>Math.hypot(p.x-s.x,p.y-s.y)<28/z)) continue;
             if ([...this.world.ports.values()].some(q=>Math.hypot(g.nearX(q.x*TILE+TILE/2,p.x)-p.x,q.y*TILE+TILE/2-p.y)<17/z)) continue;
-            const d=Math.hypot(p.x-tx,p.y-ty)+(i===0?Math.max(0,depth-2)*8:0);
+            const d=Math.hypot(p.x-tx,p.y-ty)+(i===0?Math.max(0,depth-2)*8:0)+(open(c,r)?0:40/z);
             if(d<score){score=d;best=[c,r];}
           }
           if(!best) continue;
@@ -160,7 +162,8 @@
               return m.isSea(g.normC(a),b)&&(!prev||a!==prev[0]||b!==prev[1])&&Math.abs(a-best[0])<10&&Math.abs(b-best[1])<7&&screen.x>10&&screen.x<this.engine.width-10&&screen.y>10&&screen.y<this.engine.height-10;
             });
             if(!opts.length) break;
-            prev=[c,r]; path.push(opts[DH.Hang.artHash(`${seed}:${i}:${j}`)%opts.length]);
+            const wide=opts.filter(([a,b])=>open(a,b)),pick=wide.length?wide:opts;
+            prev=[c,r]; path.push(pick[DH.Hang.artHash(`${seed}:${i}:${j}`)%pick.length]);
           }
           if(path.length<2) continue;
           const norm=g.normC(best[0]), lon=(m.origin?.lon??-180)+(norm+.5)*(m.degPerTile||1), dep=this.depth[best[1]*g.cols+norm];
@@ -200,7 +203,7 @@
       const w = this.world, wpt = this.cam.toWorld(x, y), g = this.grid, z=this.cam.zoom, mid=this.cam.x+this.engine.width/z/2; let best = null, bd = 11 / z;
       for (const p of this.portPositions(z, a=>g.nearX(a,mid))) { const d = Math.hypot(p.x-wpt.x,p.y-wpt.y); if (d < bd) { bd = d; best = p.id; } }
       if (best) { this.pick(best); return this.refresh(); }
-      const civilian=this.civil.find(s=>Math.hypot(g.nearX(s.x,wpt.x)-wpt.x,s.y-wpt.y)<9/z);
+      const civilian=this.civil.find(s=>Math.hypot(g.nearX(s.x,wpt.x)-wpt.x,s.y-wpt.y)<11/z);
       if(civilian)return this.openCivil(civilian);
       const cell = this.cellAt(x, y), sea = cell && w.map.isSea(cell.c, cell.r);
       this.selected = null; this.route = null; this.tab = null; this.spot = sea ? [cell.c, cell.r] : null;
@@ -497,7 +500,7 @@
       g.fillStyle='rgba(38,33,28,.38)';g.fillRect(0,0,this.engine.width,this.engine.height);
       g.beginPath();g.roundRect(x,y,w,h,14);g.fillStyle='#fbf7ef';g.fill();g.lineWidth=1.4;g.strokeStyle=INK;g.stroke();
       g.save();g.beginPath();g.roundRect(x+12,y+12,w-24,69,10);g.clip();g.fillStyle=MAP.sea;g.fillRect(x+12,y+12,w-24,69);
-      DH.Hang.drawCivilShip(g,240,y+66,2.6,s.type);g.restore();
+      DH.Hang.drawCivilMapShip(g,240,y+56,4,s.type);g.restore();
       g.textAlign='center';g.textBaseline='middle';g.fillStyle=INK;g.font=`800 16px ${FONT}`;g.fillText(s.name,240,y+99,w-24);
       g.font=`500 11px ${FONT}`;g.fillText(s.text,240,y+123,w-26);g.fillStyle='#706455';g.fillText(s.gift.text,240,y+144,w-26);
       g.beginPath();g.roundRect(99,248,282,25,8);g.fillStyle='#f0dfb4';g.fill();g.fillStyle=INK;g.font=`700 12px ${FONT}`;g.fillText('이야기 닫기 · Enter / Esc',240,261);
@@ -506,7 +509,7 @@
       const w = this.world, v = this.voyage, grid = this.grid, z = this.cam.zoom, mid = this.cam.x + this.cam.viewW / z / 2;
       const X = x => grid.nearX(x, mid);
       this.softCoast(g);
-      for(const s of this.civil)DH.Hang.drawCivilShip(g,X(s.x),s.y,.50/z,s.type,s.face);
+      for(const s of this.civil)DH.Hang.drawCivilMapShip(g,X(s.x),s.y,1/z,s.type,s.face,this.engine.tick,s.id);
       // 남은 뱃길
       if (v.path.length) {
         g.beginPath(); const prev = this.shipPx(); g.moveTo(X(prev.x), prev.y); let px = X(prev.x);

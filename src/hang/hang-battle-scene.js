@@ -232,6 +232,103 @@
     if(!small){dot(8,22,'o');dot(15,22,'o');dot(21,22,'o');}
     else{line(9,20,12,20,'o');if(type==='fishing'){rect(20,21,4,2,'s');dot(21,21,'m');dot(23,22,'m');}}
   })]));
+  /** 지도용 지나는 배: 한 글자 = 화면 1픽셀. 뱃머리는 오른쪽. 거북선·우리 배와 같은 바깥선·갑판·선체 두 단 음영을 쓴다. */
+  const CIVIL_MAP = Object.fromEntries(Object.entries({
+    explorer:[
+      '.......aa.......',
+      '.......m........',
+      '......om....m...',
+      '.....oSm...om...',
+      '....oSSm..oSm...',
+      '...oSSsm.oSSm...',
+      '..oSSssmoSSsm...',
+      '.ooooooooooooo..',
+      'oLLLLLLLLLLLLLo.',
+      'oHHHoHHHoHHHHHHo',
+      '.ohhhhhhhhhhhho.',
+      '..oooooooooooo..',
+    ],
+    merchant:[
+      '......bb........',
+      '......m.........',
+      '...oooooooo.....',
+      '...oSSSSSSo..m..',
+      '...oSSSSSSo.oSo.',
+      '...osssssso.oSSo',
+      '....oSSSSo..osso',
+      'oooo.oSSo...om..',
+      'oLLooooomoooooo.',
+      'oHHLLLLLLLLLLLLo',
+      'oHHHoHHHoHHHoHHo',
+      '.ohhhhhhhhhhhho.',
+      '..oooooooooooo..',
+    ],
+    junk:[
+      '....ooooo.......',
+      '...oaaaaao......',
+      '...osssssoo.....',
+      '...oaaaaao.ooo..',
+      '...osssssooyyyo.',
+      '...oaaaaaooyyyo.',
+      '....osssoo.osso.',
+      '.....oomo...om..',
+      'ooo..ooooooooooo',
+      'oLLooLLLLLLLLLLo',
+      '.oHHHHHHHHHHHHo.',
+      '..ohhhhhhhhhho..',
+      '...oooooooooo...',
+    ],
+    dhow:[
+      'o...............',
+      'om..............',
+      '.oSo......m.....',
+      '..oSSo....m.....',
+      '...oSSSo..m.....',
+      '....oSSSSom.....',
+      '.....osssSSo....',
+      '......osssmSo...',
+      '.......ooomoo...',
+      '.oooooooooooooo.',
+      '.oLLLLLLLLLLLLLo',
+      '..oHHHHHHHHHHHo.',
+      '...ohhhhhhhhoo..',
+      '....ooooooooo...',
+    ],
+    fishing:[
+      '..........y.',
+      '...m.....y..',
+      '..om....y...',
+      '.oSm...y....',
+      'oSSm..y.....',
+      'osSm.y......',
+      'ooooy.......',
+      'oLLLLLLggo..',
+      'oHHHHHHHHo..',
+      '.ohhhhhho...',
+      '..oooooo....',
+    ],
+    canoe:[
+      '......o.....',
+      '.....oSo....',
+      '....oSSm....',
+      '...oSSsm....',
+      '..oSSssm....',
+      '...ooooo....',
+      '.oLLLLLLLo..',
+      'ooHHHHHHHoo.',
+      '..ohhhhho...',
+      '.m..ooo..m..',
+      'oooooooooooo',
+    ],
+  }).map(([k,rows])=>[k,{w:rows[0].length,h:rows.length,runs:runs(rows)}]));
+  /** 항해 중인 작은 배: 뒤로 흘러가는 물결 자국 · 뱃머리 물보라 · 1칸 흔들림. tick이 없으면 멈춘 그림이다. */
+  function drawCivilMapShip(g,x,y,k,type,face=1,tick=0,seed=0) {
+    const sp=CIVIL_MAP[type]||CIVIL_MAP.merchant,t=Math.floor((tick+seed*17)/14),p=t%3,h=sp.h;
+    const wake=[[h-2,-1-p%2,1,'w'],[h-1,-3-p,2,'w'],[h,-7-p,2,'w'],[h,1,sp.w-3,'w']];
+    if(p!==1)wake.push([h-2,sp.w,1,'w']);
+    const bob=(Math.floor((tick+seed*23)/22)%2)*k;
+    drawBoatPixels(g,x,y+bob,k,face,{w:sp.w,h:sp.h,runs:[...wake,...sp.runs]},1);
+  }
   function drawBoatPixels(g,x,y,k,face,sp,cell) {
     const c=k*cell,left=x-sp.w*c/2,top=y+5*k-sp.h*c,m=g.getTransform();
     const axis=m.b===0&&m.c===0;
@@ -635,5 +732,5 @@
     g.beginPath();g.arc(x,y,R-1*k,Math.PI*1.12,Math.PI*1.65);g.lineWidth=.7*k;g.strokeStyle='rgba(255,255,255,.65)';g.stroke();
   }
 
-  DH.Hang = Object.assign(DH.Hang || {}, { HangBattleScene, drawShip, drawFlag, drawCivilShip, PIRATE_NAMES, FLAGS, LOOK });
+  DH.Hang = Object.assign(DH.Hang || {}, { HangBattleScene, drawShip, drawFlag, drawCivilShip, drawCivilMapShip, CIVIL_MAP, PIRATE_NAMES, FLAGS, LOOK });
 })(typeof globalThis !== 'undefined' ? globalThis : this);
