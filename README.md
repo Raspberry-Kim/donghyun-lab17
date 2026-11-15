@@ -1,4 +1,4 @@
-# 동현항 v1.20
+# 동현항 v1.21
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24106054.svg)](https://doi.org/10.5281/zenodo.24106054)
 
@@ -781,14 +781,14 @@ donghyun-lab17/
 python3 tools/make_data.py     # JSON을 다시 만든다 (Pillow가 있어야 한다)
 node qa/core-tests.cjs         # 핵심 시험 58개 (엔진 · 파서 · 동현랭 어댑터 · 항해 · 교역 · 조합과 짐칸 · 해적과의 만남 · 해전 · 수련과 배 · 무적 모드 · 저장과 불러오기)
 node build.cjs                 # index.html 한 장
-node qa/growth-tests.cjs       # 실제 v1.20 자료·성장·예제·엔딩·옛 저장
-node qa/ui-v1.cjs              # 로컬 서버 3170, v1.20 실제 입력·저장·해전·전체화면·휴대폰 (QA_URL로 주소 지정)
+node qa/growth-tests.cjs       # 실제 v1.21 자료·성장·예제·엔딩·옛 저장
+node qa/ui-v1.cjs              # 로컬 서버 3170, v1.21 실제 입력·저장·해전·전체화면·휴대폰 (QA_URL로 주소 지정)
 node qa/design-tests.cjs       # 방문 · 보급 · 독립 난수 · 원형 표식 클릭 · 민간 배 경로/확대 8개
 node qa/pixel-tests.cjs        # 기존 픽셀 배와 새 선박 · 반전 · 회전 레이더 · 용머리 불꽃
 node qa/design-ui.cjs          # 로컬 서버 3017에서 지도 · 인사 · 해적선 · 375/390/1280px 확인 9개(QA_URL로 주소 지정)
 ```
 
-v1.20 검사 범위와 한계는 [QA.md](QA.md)에 적었다. `qa/core-tests.cjs`는 v0.26 공개 자료로 기존 규칙을 회귀 검사하고, 성장·현재 자료는 `qa/growth-tests.cjs`와 `qa/ui-v1.cjs`에서 검사한다. `qa/ui.cjs`는 옛 기대값을 남긴 이전 판용 검사이며 현행 통과 수에 넣지 않는다.
+v1.21 검사 범위와 한계는 [QA.md](QA.md)에 적었다. `qa/core-tests.cjs`는 v0.26 공개 자료로 기존 규칙을 회귀 검사하고, 성장·현재 자료는 `qa/growth-tests.cjs`와 `qa/ui-v1.cjs`에서 검사한다. `qa/ui.cjs`는 옛 기대값을 남긴 이전 판용 검사이며 현행 통과 수에 넣지 않는다.
 
 ## 자료 출처
 
