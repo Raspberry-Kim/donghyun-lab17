@@ -103,4 +103,36 @@ test('출항 문장·30일 간격·꺼짐·반복 원문 순서',()=>{
   for(let i=0;i<30;i++)v.stepDay();assert.equal(v.dialogue.quoteIndex,2);v.dialogue.quotes=false;
   for(let i=0;i<30;i++)v.stepDay();assert.equal(v.dialogue.quoteIndex,2);
 });
+test('인용 100구절·한 바퀴 중복 없음·호칭·저장 순서 복원',()=>{
+  assert.equal(H.QUOTES.length,100);
+  assert.equal(new Set(Array.from({length:100},(_,i)=>H.quoteAt(i+1).text)).size,100);
+  assert.equal(new Set(H.QUOTES.map(q=>q.original)).size,100);
+  assert.equal(H.quoteAt(101),H.quoteAt(1));
+  assert.equal(new Set(H.QUOTES.map(q=>q.url)).size,4);
+  for(const q of H.QUOTES) {
+    assert.ok(q.section&&q.work&&q.original.length>10);
+    assert.ok(q.url.startsWith('https://www.gutenberg.org/'));
+    assert.ok(q.text.endsWith('다.'));
+    for(const address of ['전하','각하'])assert.equal(H.quoteLine(address,q),`${address}, 쇼펜하우어는 '${q.text}'라고 합니다.`);
+  }
+  const v=V();for(let i=0;i<11;i++)v.nextQuote();
+  const r=H.Voyage.restore(v.world,JSON.parse(JSON.stringify(v.toJSON())));
+  assert.equal(H.quoteAt(r.dialogue.quoteIndex),H.quoteAt(v.dialogue.quoteIndex));
+  r.nextQuote();assert.equal(r.dialogue.quoteIndex,12);
+  r.dialogue.quoteIndex=99;r.nextQuote();
+  const last=H.Voyage.restore(w,JSON.parse(JSON.stringify(r.toJSON())));
+  assert.equal(last.dialogue.quoteIndex,100);last.nextQuote();
+  assert.equal(H.quoteAt(last.dialogue.quoteIndex),H.quoteAt(1));
+});
+test('여섯 작위의 존댓말 조언·차익 없음·투자 보고',()=>{
+  for(let rank=0;rank<6;rank++){
+    const v=V();v.growth.rank=rank;
+    const address=rank>=3?'전하':'각하',a=v.advice();
+    assert.ok(a.text.startsWith(address+', '));assert.ok(a.text.endsWith('별도입니다.'));
+    assert.ok(v.invest(5000).text.includes('투자했습니다.'));
+    for(const e of v.markets.get(v.port).values())e.stock=0;
+    const no=v.advice().text;assert.ok(no.startsWith(address+', '));assert.ok(no.endsWith('권합니다.'));
+    for(const text of [a.text,no])assert.ok(!/높다\.|별도다\.|없다\.|살펴보자\./.test(text));
+  }
+});
 console.log(`성장 시험 ${n}개 통과`);

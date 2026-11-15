@@ -116,34 +116,58 @@
     me: { o: '#2a2119', F: '#2a2119', L: '#c99a5b', H: '#8a5a33', h: '#5e3b22', g: '#2a2119', y: '#f2c75c', S: '#fbf3df', s: '#d9cdb3', m: '#4a3424', f: ACCENT, w: '#eef6fa', G: '#4f7d4a', d: '#2f5a36', k: '#f2c75c', D: '#d99a2b', r: '#c8402f' },
     foe: { o: '#2a2119', F: '#2a2119', L: '#8c6f52', H: '#4a3a2c', h: '#2f251c', g: '#1c1611', y: '#e0a040', S: '#d24a35', s: '#a8342a', m: '#3a2a1e', f: ACCENT, w: '#eef6fa', G: '#5b5a4a', d: '#3a3a30', k: '#e0a040', D: '#a8342a', r: '#f2c75c' },
   };
+  // 이지스함 함교만 차분한 목재색을 쓴다. 다른 배와 선체의 기존 색은 유지한다.
+  for (const pal of Object.values(PX)) Object.assign(pal, { A:'#a18c6b', B:'#78654c', C:'#544633', Y:'#c7ab6d' });
   LOOK.me.px = PX.me; LOOK.foe.px = PX.foe;
   /** 글자 줄을 같은 색끼리 묶어 둔다: [줄, 시작 칸, 길이, 글자] */
   const runs = rows => { const out = []; rows.forEach((r, y) => { for (let x = 0; x < r.length;) { const ch = r[x]; let n = 1; while (r[x + n] === ch) n++; if (ch !== '.') out.push([y, x, n, ch]); x += n; } }); return out; };
   const sprite = (big, small) => ({ big: { w: big[0].length, h: big.length, runs: runs(big), cell: 0.7, base: 24 }, small: { w: small[0].length, h: small.length, runs: runs(small), cell: 1, base: 16 } });
-  const PANOK_BIG = TURTLE_BIG.map((r,i) => i >= 10 && i < 18 ? r.replace(/[kDGr]/g, 'L').replace(/d/g, 'H') : r);
-  const PANOK_SMALL = TURTLE_SMALL.map((r,i) => i >= 7 && i < 12 ? r.replace(/[kDGr]/g, 'L').replace(/d/g, 'H') : r);
+  // 돛·선체·선수 장식은 유지하고, 둥근 등 대신 평평한 상갑판과 수직 옆면을 둔다.
+  const PANOK_BIG = TURTLE_BIG.map((r,i) => {
+    if (i < 10 || i >= 18) return r;
+    if (i === 10) return '...........m...............';
+    const bow = r.slice(23).replace(/[kDGr]/g, 'L').replace(/d/g, 'H');
+    const deck = i === 11 ? '..' + 'o'.repeat(21)
+      : '..o' + (i === 17 ? 'H'.repeat(19) : i % 2 ? 'LLLH'.repeat(5).slice(0,19) : 'L'.repeat(19)) + 'o';
+    return deck + bow;
+  });
+  const PANOK_SMALL = TURTLE_SMALL.map((r,i) => {
+    if (i < 7 || i >= 12) return r;
+    const bow = r.slice(13).replace(/[kDGr]/g, 'L').replace(/d/g, 'H');
+    return (i === 7 ? '..' + 'o'.repeat(11) : '..o' + (i === 11 ? 'H'.repeat(9) : 'LLLHLLLHL') + 'o') + bow;
+  });
   const AEGIS_SMALL = [
-    '........m.......','........mFFF....','......mmmm......','.......AAA......',
-    '......ABBA......','.....AAAAAA.....','.....ABBBBA.....','....AAAAAAA.....',
-    '..AA.AABBAAA....','..AA.AAAAAAAA...',
-    '.AAAAAAAAAAAAAA.','oAAAAAAAAAAAAAAo','oCCCCgCCCCgCCCCo',
-    '.oCCCCCCCCCCCCo.','..ooCCCCCCCCoo..','...oooooooooo...','...ww....ww.....'
-  ].map(r=>r.padEnd(17,'.'));
-  // 정조대왕함의 긴 회색 선체·후미 헬기갑판·각진 함교·선수 함포를 줄인 그림.
+    '........m........','........mFFF.....','.......mmfff.....','.......oLLo......',
+    '......oHgyHo.....','......oLLLLo.....','.....oHgygyHo....','.....oLLLLLLo....',
+    '.....oHHHHHHo....','.....oLLLLLLLo...',
+    '.oLLmLLmLLLHHo.gg','oLLLLLLLLLLLLoHHo','oHHgHHHgHHHgHHHHo',
+    '.oHHHHHHHHHHHHHo.','..ohhhhhhhhhhho..','...ooooooooooo...','...ww....ww......'
+  ].map((r,i) => [...r].map((ch,x) => i>=3 && i<=9 && x>=5 && x<=12 ? ({L:'A',H:'B',h:'C',y:'Y'}[ch] || ch) : ch).join(''));
+  // 정조대왕함의 긴 후미 갑판·각진 함교·선수 함포를 목재 배의 픽셀 문법으로 옮긴다.
+  // 거북선·범선과 같은 나무 명암·포문·테두리를 쓰며, 실제 목조 구축함의 고증은 아니다.
   // 둥근 회전 안테나는 게임용 과장이다. 실제 이지스 주 레이더 재현이 아니다.
   const AEGIS_BIG = [
     '...........................', '...........................', '...........................',
     '...........................', '.............m.............', '.............mFFF..........',
-    '............mmm............', '............AAA............', '...........AAAAA...........',
-    '...........ABBBA...........', '..........AAAAAAA..........', '..........AAABBAA..........',
-    '.....AA...ABBBBAAA.........', '.....AA...AAAAAAAA.........', '.....AA..AAAAAAAAAA........',
-    '..oooAAAAAAAABBAAAAA.......', '.oAAAAAAACCCCAAAAAAAA...oo.',
-    'oAALAAAAACCCCAAAAAAAA..oAAoo', 'oAALLLAAAAAAAAAAAAAAAooAAAAo',
-    'oAAAAAAAAAAAAAAAAAAAAAAAAAo', 'oCCCCgCCCCCCCCgCCCCCCCgCCCo.',
-    '.oCCCCCCCCCCCCCCCCCCCCCCCo.', '..oCCCCCCCCCCCCCCCCCCCCo...',
-    '...ooCCCCCCCCCCCCCCCCoo....', '....wwwoooowwwoooowwwoo.....'
-  ];
-  for (const p of Object.values(PX)) Object.assign(p, { A:'#b9c7c9', B:'#49636b', C:'#6c868e' });
+    '............mmfff..........', '............ooo............', '...........oLLLo...........',
+    '..........oHgygHo..........', '..........oLLLLLo..........', '.........oHHHHHHHo.........',
+    '.........oHgygygHo.........', '.........oLLLLLLLo.........', '.........hHHHHHHHho........',
+    '..oooLLoLLLLLLLLLLLo.......', '.oLLLLLLmLLmLLmLLmLHo......',
+    'oLHLLHLLHLLHLLHHHHHHo.oooo.', 'oLLLLLLLLLLLLLLLLLLLooLHggg',
+    'oLLLLLLLLLLLLLLLLLLLLLLLLLo', 'oHHHgHHHgHHHgHHHgHHHgHHHHHo',
+    '.oHHHHHHHHHHHHHHHHHHHHHHHo.', '..ohhhhhhhhhhhhhhhhhhhho...',
+    '...oohhhhhhhhhhhhhhhhoo....', '....wwwoooowwwoooowwwoo....'
+  ].map((r,i) => [...r].map((ch,x) => i>=7 && i<=18 && x>=9 && x<=20 ? ({L:'A',H:'B',h:'C',y:'Y'}[ch] || ch) : ch).join(''));
+  // 큰 붉은 대포. 아래 원형을 그릴 때 좌우 반전해 직전 시안과 반대(왼쪽 위 45도)로 향하게 한다.
+  const AEGIS_CANNON = {
+    big: ['.......oo..','......oRTo.','.....oRrro.','....oRrro..','...oRrro...','..oRrro....','.oRrro.....','oRRrro.....','oRrrro.....','.oooo......','..HH.......'],
+    small: ['....oo.','...oRo.','..oRro.','.oRro..','oRro...','oRro...','.oo....'],
+    colors: {o:'#43261f',R:'#c44332',r:'#8e3029',T:'#e87653',H:'#5e3b22'},
+    middle: {R:'#b13e30',r:'#7f3028'},
+    base: {R:'#993b30',r:'#703029'}
+  };
+  const SHIP_FIRE_TICKS = 90; // 기존 용머리 36틱의 2.5배. 전투 계산과 무관한 표시 시간.
+  const specialFire = type => type === 'turtle' || type === 'aegis';
   const SPRITE = sprite(SHIP_BIG, SHIP_SMALL), SPRITES = {
     turtle: sprite(TURTLE_BIG, TURTLE_SMALL), panok: sprite(PANOK_BIG, PANOK_SMALL),
     aegis: sprite(AEGIS_BIG, AEGIS_SMALL)
@@ -166,6 +190,34 @@
     }
     const rect = (j,i,w,h,color) => { const a=DX(j),b=DX(j+w),u=DY(i),v=DY(i+h); g.fillStyle=color;g.fillRect(Math.min(a,b),u,Math.abs(b-a),v-u); };
     if (type === 'aegis') {
+      const cannon = tiny ? AEGIS_CANNON.small : AEGIS_CANNON.big, base = tiny ? 3 : 7;
+      const firing = anim.fire >= 0 && anim.fire < SHIP_FIRE_TICKS, q = firing ? anim.fire / SHIP_FIRE_TICKS : 0;
+      // 부착점은 고정하고 포신만 빠르게 부풀린 뒤 천천히 복귀한다.
+      const pulse = firing ? Math.sin(Math.PI * Math.min(1, q / .22)) * .18 + Math.sin(Math.PI * q) : 0;
+      const swell = 1 + .65 * pulse, ax = tiny ? 5 : 8, ay = base + (tiny ? 6 : 9);
+      const recoil = firing ? .8 * Math.sin(Math.PI * Math.min(1, q / .3)) : 0;
+      const cxAt = j => ax + (j - ax) * swell + recoil;
+      const cyAt = i => ay + (i - ay) * swell + recoil;
+      cannon.forEach((row,i) => [...row].forEach((ch,j) => {
+        const shade = i >= cannon.length * .6 ? AEGIS_CANNON.base : i >= cannon.length * .3 ? AEGIS_CANNON.middle : {};
+        if (ch !== '.') rect(cxAt(cannon[0].length-1-j),cyAt(base+i),swell,swell,shade[ch] || AEGIS_CANNON.colors[ch]);
+      }));
+      if (firing && q > .06 && q < .92) {
+        const strength = Math.sin(Math.PI * (q - .06) / .86), reach = (tiny ? 5 : 8) + (tiny ? 8 : 15) * strength;
+        const mx = cxAt(tiny ? 1 : 2), my = cyAt(base + .5);
+        // 포구의 왼쪽 위 45도 축을 따른 픽셀 불꽃. 배 전체 반전에도 포구와 함께 움직인다.
+        for (const [scale,length,color] of [[1,1,'#ce4523'],[.62,.83,'#ffc34a'],[.28,.5,'#fff2b1']])
+          for (let j = 0; j < reach*length; j++) {
+            const taper = Math.sin(Math.PI * Math.min(1,(j+2)/(reach*length+2)));
+            const h = Math.max(.5, (tiny ? 2 : 3.2)*strength*scale*taper + .3*Math.sin(j*.9+anim.fire*.35));
+            const x = mx-j*.72, y = my-j*.72;
+            rect(x-h,y-h,h*2+1,h*2+1,color);
+          }
+        for (let j=0;j<5;j++) {
+          const d=(q*25+j*3)%(reach+5), spread=Math.sin(j*2.4)*d*.35;
+          rect(mx-d*.8+spread,my-d*.8-spread,1,1,j%2?'#ffc34a':'#fff2b1');
+        }
+      }
       const phase=(anim.tick||0)/14, cx=tiny?8:13, cy=tiny?0:4, rx=.7+2.5*Math.abs(Math.cos(phase));
       // 원판의 폭과 밝은 면이 변한다. 작은 지도에서도 각진 픽셀 원형을 유지한다.
       for(let j=-3;j<=3;j++)for(let i=-2;i<=2;i++){
@@ -174,16 +226,34 @@
       }
       rect(cx,cy-1,1,3,'#354c56');
     }
-    if (type === 'turtle' && anim.fire >= 0 && anim.fire < 36) {
-      const q=anim.fire/36, swell=1+.9*Math.sin(Math.PI*q), x0=tiny?12:24, y0=tiny?8:12;
+    if (type === 'turtle' && anim.fire >= 0 && anim.fire < SHIP_FIRE_TICKS) {
+      const q=anim.fire/SHIP_FIRE_TICKS, swell=1+.9*Math.sin(Math.PI*q), x0=tiny?12:24, y0=tiny?8:12;
+      // 확대와 같은 호흡으로 턱이 열린다. 목은 고정하고 입 앞쪽의 벌어짐을 크게 한다.
+      const open=2.5*Math.sin(Math.PI*q), jawY=j=>open*Math.max(0,(j-2)/5);
       const head=['..yy....','.yDDDo..','oDDDoDo.','oDDDDDD.','.oDDrrr.','..oDD...','..oDD...'];
-      head.forEach((row,i)=>[...row].forEach((ch,j)=>{if(ch!=='.')rect(x0+j*swell,y0+(i-3)*swell, swell,swell,pal[ch]||'#2a2119');}));
+      // 입 안을 먼저 채운 뒤 위턱·아래턱·이빨을 겹친다. 끝 프레임에는 닫힌 입으로 복귀한다.
+      if(open>.05)for(let j=3;j<8;j++){
+        const gap=jawY(j);
+        rect(x0+j*swell,y0+(1-gap*.3)*swell,swell,(1+gap)*swell,'#482520');
+      }
+      head.forEach((row,i)=>[...row].forEach((ch,j)=>{
+        if(ch==='.')return;
+        const lift=i<=3&&j>=4?-jawY(j)*.3:0;
+        const drop=i===4&&j>=4?jawY(j)*.7:0;
+        rect(x0+j*swell,y0+(i-3+lift+drop)*swell,swell,swell,pal[ch]||'#2a2119');
+      }));
+      if(open>.45){
+        for(const j of [5,7]){
+          rect(x0+j*swell,y0+(1-jawY(j)*.3)*swell,swell,.7*swell,'#f2d99a');
+          rect(x0+j*swell,y0+(1+jawY(j)*.7)*swell,swell,.55*swell,pal.D);
+        }
+      }
       if(q>.08&&q<.88){
-        const reach=5+17*Math.sin(Math.PI*q);
+        const reach=5+17*Math.sin(Math.PI*q), mouthY=y0+(1.4+open*.2)*swell;
         for(let j=0;j<reach;j++){
           const h=Math.max(1,Math.round((1-j/reach)*4+Math.sin(j*1.8+anim.fire)*1.2));
-          rect(x0+6*swell+j,y0+swell-h,1,2*h,'#cf4a22');
-          if(j<reach*.8)rect(x0+6*swell+j,y0+swell-Math.max(1,h-1),1,Math.max(1,2*h-2),'#f8bd43');
+          rect(x0+7.7*swell+j,mouthY-h,1,2*h,'#cf4a22');
+          if(j<reach*.8)rect(x0+7.7*swell+j,mouthY-Math.max(1,h-1),1,Math.max(1,2*h-2),'#f8bd43');
         }
       }
     }
@@ -466,14 +536,16 @@
       const g = this.grid, t = this.engine.tick, at = u => g.center(u.c, u.r), hit = (u, text, dy = 0) => { const p = at(u); this.fx.push({ kind: 'hit', x: p.x, y: p.y + dy, text, t0: t }); };
       if (rec.from && rec.to && (rec.from[0] !== rec.to[0] || rec.from[1] !== rec.to[1])) this.fx.push({ kind: 'trail', a: g.center(rec.from[0], rec.from[1]), b: g.center(rec.to[0], rec.to[1]), t0: t });
       const u = rec.unit && this.unit(rec.unit), x = rec.target && this.unit(rec.target);
-      const land = 14;                                             // 포탄이 날아가 닿는 데 걸리는 틱
+      const tempo = rec.type === 'fire' && specialFire(u.type) ? 2.5 : 1;
+      const land = 14 * tempo;                                    // 표시 시간만 연장. 피해·난수 계산은 그대로.
       if (rec.type === 'fire') {
         const A = at(u), B = at(x), big = Math.min(1, (rec.hull + rec.crew * 2) / 30);
-        if(u.type==='turtle')this.fx.push({kind:'dragon',id:u.id,dir:Math.sign(B.x-A.x)||1,t0:t,life:36});
-        this.fx.push({ kind: 'smoke', x: A.x, y: A.y, dir: Math.sign(B.x - A.x) || 1, t0: t, life: 40 });
-        for (let i = 0; i < 3; i++) this.fx.push({ kind: 'ball', a: A, b: { x: B.x + (i - 1) * 5, y: B.y + (i === 1 ? 0 : 3) }, t0: t + i * 4, life: land + 2 });
-        for (let i = 0; i < 3; i++) this.fx.push({ kind: 'splash', x: B.x + [-17, 15, -4][i], y: B.y + [6, 9, 14][i], t0: t + land + i * 3, life: 22 });
-        this.fx.push({ kind: 'boom', x: B.x, y: B.y - 6, size: 8 + 10 * big, t0: t + land, life: 22 }); this.fx.push({ kind: 'jolt', id: x.id, t0: t + land, life: 14 });
+        if(specialFire(u.type))this.fx.push({kind:u.type==='turtle'?'dragon':'aegisFire',id:u.id,dir:(Math.sign(B.x-A.x)||1)*(u.type==='aegis'?-1:1),t0:t,life:SHIP_FIRE_TICKS});
+        // 용머리의 열린 입을 가리지 않도록 거북선 포연만 머리 위로 띄운다.
+        this.fx.push({ kind: 'smoke', x: A.x, y: A.y - (u.type === 'turtle' ? 22 : 0), dir: Math.sign(B.x - A.x) || 1, t0: t, life: 40 * tempo });
+        for (let i = 0; i < 3; i++) this.fx.push({ kind: 'ball', a: A, b: { x: B.x + (i - 1) * 5, y: B.y + (i === 1 ? 0 : 3) }, t0: t + i * 4 * tempo, flight: land, life: land + 2 * tempo });
+        for (let i = 0; i < 3; i++) this.fx.push({ kind: 'splash', x: B.x + [-17, 15, -4][i], y: B.y + [6, 9, 14][i], t0: t + land + i * 3 * tempo, life: 22 * tempo });
+        this.fx.push({ kind: 'boom', x: B.x, y: B.y - 6, size: 8 + 10 * big, t0: t + land, life: 22 * tempo }); this.fx.push({ kind: 'jolt', id: x.id, t0: t + land, life: 14 * tempo });
         this.fx.push({ kind: 'hit', x: B.x, y: B.y, text: `선체 −${rec.hull}`, t0: t + land - 4 });
         this.sfx('cannon', 0.12); this.sfx('bang', 0.25);
       }
@@ -519,7 +591,7 @@
       if (--this.wait > 0) return;
       const rec = b.aiAct();
       if (!rec) return this.endSide();
-      this.show(rec); this.wait = STEP + (rec.type === 'fire' ? 16 : rec.type === 'board' ? 8 : 0);   // 포탄이 닿고 나서 다음 배가 움직인다(그림만 기다린다)
+      this.show(rec); this.wait = rec.type === 'fire' && specialFire(this.unit(rec.unit).type) ? SHIP_FIRE_TICKS : STEP + (rec.type === 'fire' ? 16 : rec.type === 'board' ? 8 : 0);   // 그림만 기다린다
       if (b.ended) this.finish(); else this.refresh();
     }
 
@@ -617,8 +689,8 @@
       const k = this.shake(), t = this.engine.tick;
       if (k > 0.05) { g.save(); g.translate(Math.sin(t * 2.7) * k, Math.cos(t * 3.1) * k * 0.6); super.render(g); g.restore(); } else super.render(g);
       if (this.banner && this.mode === 'fight') this.drawBanner(g);
-      // 마지막 포격도 용머리의 36틱 연출을 다 보여 준 다음 결과 카드를 올린다.
-      if (this.mode === 'result' && !this.fx.some(f => f.kind === 'dragon' && this.engine.tick - f.t0 < 36)) this.drawCard(g);
+      // 마지막 포격도 특수 선박의 90틱 연출을 다 보여 준 다음 결과 카드를 올린다.
+      if (this.mode === 'result' && !this.fx.some(f => ['dragon','aegisFire'].includes(f.kind) && this.engine.tick - f.t0 < f.life)) this.drawCard(g);
     }
     /** 턴이 바뀔 때 화면 가운데를 지나가는 띠(50틱) */
     drawBanner(g) {
@@ -656,13 +728,13 @@
       for (const u of b.units) {
         if (u.out) continue;
         const P = this.dp(u), Q = grid.center(u.c, u.r), dim = this.mode === 'fight' && u.side === b.side && u.done, face = u.side === 'foe' ? -1 : 1;
-        let jx = 0; for (const f of this.fx) if (f.kind === 'jolt' && f.id === u.id) { const q = t - f.t0; if (q >= 0 && q < 14) jx += Math.sin(q * 2.4) * 2.4 * (1 - q / 14); }
+        let jx = 0; for (const f of this.fx) if (f.kind === 'jolt' && f.id === u.id) { const q = t - f.t0; if (q >= 0 && q < f.life) jx += Math.sin(q * 2.4) * 2.4 * (1 - q / f.life); }
         const bob = Math.sin(t / 16 + Q.x / 40 + Q.y / 30) * 1.1, p = { x: P.x + jx, y: P.y + bob };
         g.globalAlpha = dim ? 0.6 : 1;
         if (u === s) { g.beginPath(); grid.trace(g, u.c, u.r); g.strokeStyle = ACCENT; g.lineWidth = 3; g.stroke(); }
         const sp = Math.hypot(Q.x - P.x, Q.y - P.y);
         if (sp > 1) { const dx = (Q.x - P.x) / sp; g.beginPath(); for (const sd of [-1, 1]) { g.moveTo(p.x - dx * 12, p.y + 8); g.lineTo(p.x - dx * 28, p.y + 9 + sd * 4); } g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.6; g.stroke(); }
-        const dragon=this.fx.find(f=>f.kind==='dragon'&&f.id===u.id&&t>=f.t0&&t-f.t0<36);
+        const dragon=this.fx.find(f=>['dragon','aegisFire'].includes(f.kind)&&f.id===u.id&&t>=f.t0&&t-f.t0<f.life);
         if (dragon) g.globalAlpha = 1; // 행동 완료 음영이 용머리와 불꽃을 흐리지 않게 한다.
         drawShip(g, p.x, p.y - 2, 2.1, LOOK[u.side], u.flag, dragon?.dir||face, u.type, this.skin(u), {tick:t,fire:dragon?t-dragon.t0:-1});
         const label = `${u.hull}·${u.crew}`; g.font = `800 10px ${FONT}`; g.lineWidth = 3; g.strokeStyle = 'rgba(251,247,239,.95)'; g.strokeText(label, P.x, P.y + 15); g.fillStyle = u.side === 'me' ? INK : '#8a2416'; g.fillText(label, P.x, P.y + 15);
@@ -697,7 +769,7 @@
         }
         if (f.kind === 'smoke') for (let i = 0; i < 4; i++) { const r = 4 + q * (10 + i * 3), x = f.x + f.dir * (10 + i * 5 + q * 14), y = f.y - 8 - i * 2 - q * 8;
           g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = `rgba(236,232,224,${(0.75 * a * (1 - i * 0.15)).toFixed(3)})`; g.fill(); }
-        else if (f.kind === 'ball' && age <= 14) { const k = age / 14, x = f.a.x + (f.b.x - f.a.x) * k, y = f.a.y + (f.b.y - f.a.y) * k - Math.sin(k * Math.PI) * 18 - 6;
+        else if (f.kind === 'ball' && age <= (f.flight || 14)) { const k = age / (f.flight || 14), x = f.a.x + (f.b.x - f.a.x) * k, y = f.a.y + (f.b.y - f.a.y) * k - Math.sin(k * Math.PI) * 18 - 6;
           if (age < 3) { g.beginPath(); g.arc(f.a.x + Math.sign(f.b.x - f.a.x) * 12, f.a.y - 8, 6 - age * 1.5, 0, Math.PI * 2); g.fillStyle = '#ffd34d'; g.fill(); }
           g.beginPath(); g.arc(x, y, 2.6, 0, Math.PI * 2); g.fillStyle = INK; g.fill(); }
         else if (f.kind === 'boom') { const r = f.size * (0.4 + q * 1.1);

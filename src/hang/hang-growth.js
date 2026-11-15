@@ -64,7 +64,7 @@
       const row = this.growth.investments.find(e => e[0] === this.port);
       if (row) row[1] += amount; else this.growth.investments.push([this.port, amount]);
       this.gold -= amount;
-      return { ok: true, type: 'invest', text: `${this.address()}, ${this.here.name}에 금 ${fmt(amount)} 투자 · 지분 ${this.share().toFixed(1)}%${this.cooperative() ? ' · 협력항' : ''}` };
+      return { ok: true, type: 'invest', text: `${this.address()}, ${this.here.name}에 금 ${fmt(amount)}을 투자했습니다. 지분은 ${this.share().toFixed(1)}%입니다.${this.cooperative() ? ' 협력항 혜택을 받으실 수 있습니다.' : ''}` };
     },
     portRank(pid) { return GROWTH.ports[pid] || 0; },
     canPort(pid) {
@@ -91,7 +91,7 @@
       this.growth.rank++;
       if (this.growth.rank === 5) this.growth.founded = true;
       this.checkStage();
-      return { ok: true, type: 'promote', text: `${this.address()}, ${c.next}에 올랐다.${this.growth.founded ? ' 협력항 연합의 공국을 세웠다.' : ' 새로운 항구·선박·왕실 의뢰를 확인하자.'}` };
+      return { ok: true, type: 'promote', text: `${this.address()}, ${c.next}에 오르셨습니다.${this.growth.founded ? ' 협력항 연합의 공국을 세우셨습니다. 축하드립니다.' : ' 새로 열린 항구·선박·왕실 의뢰를 확인해 보시겠습니까?'}` };
     },
     advice() {
       if (!this.port) return null;
@@ -106,7 +106,7 @@
           if (pct > 0 && (!best || pct > best.pct)) best = { good: e.good, to: pid, buy, unit, pct };
         }
       }
-      return best ? { ...best, text: `${this.address()}, ${this.world.goods.get(best.good).name}은 이곳 매수 ${fmt(best.buy)} → ${this.world.ports.get(best.to).name} 순매각 ${fmt(best.unit)}로 ${best.pct}% 높다. 지금 시세 기준이며 항해비·추가 가격 변동은 별도다.` } : { text: `${this.address()}, 지금 열린 항구에는 수수료를 뺀 유리한 교역 차익이 없다. 의뢰와 첫 방문을 살펴보자.` };
+      return best ? { ...best, text: `${this.address()}, ${DH.josa(this.world.goods.get(best.good).name, '은', '는')} 이곳 매수 ${fmt(best.buy)} → ${this.world.ports.get(best.to).name} 순매각 ${fmt(best.unit)} 기준으로 ${best.pct}% 높습니다. 지금 시세 기준이며 항해비·추가 가격 변동은 별도입니다.` } : { text: `${this.address()}, 지금 열린 항구에는 수수료를 뺀 유리한 교역 차익이 없습니다. 의뢰와 처음 방문하실 항구를 살펴보시는 것을 권합니다.` };
     },
     royalOffers(pid, round, ordinary) {
       const rank = this.growth.rank;
