@@ -3490,6 +3490,17 @@
   {
    "id": "turtle",
    "name": "거북선",
+   "cargo": 360,
+   "minCrew": 10,
+   "maxCrew": 80,
+   "speed": 4,
+   "hull": 240,
+   "guns": 80,
+   "price": 10000
+  },
+  {
+   "id": "panok",
+   "name": "판옥선",
    "cargo": 240,
    "minCrew": 10,
    "maxCrew": 40,
@@ -3497,6 +3508,17 @@
    "hull": 200,
    "guns": 40,
    "price": 8000
+  },
+  {
+   "id": "aegis",
+   "name": "이지스함",
+   "cargo": 360,
+   "minCrew": 10,
+   "maxCrew": 80,
+   "speed": 4,
+   "hull": 360,
+   "guns": 120,
+   "price": 15000
   }
  ],
  "fleets": [
@@ -3506,10 +3528,10 @@
    "x": 170,
    "y": 33,
    "port": "lisbon",
-   "crew": 28,
+   "crew": 120,
    "food": 90,
    "water": 60,
-   "gold": 1000,
+   "gold": 200000,
    "captain": {
     "name": "포동이",
     "war": 70
@@ -3517,12 +3539,24 @@
    "ships": [
     {
      "id": "s1",
-     "type": "caravel",
+     "type": "turtle",
      "name": "꼬리바람호",
      "hold": [
       {"good": "wine", "qty": 40, "paid": 18},
       {"good": "olive", "qty": 20, "paid": 14}
      ]
+    },
+    {
+     "id": "s2",
+     "type": "panok",
+     "name": "푸른물결호",
+     "hold": []
+    },
+    {
+     "id": "s3",
+     "type": "caravel",
+     "name": "흰구름호",
+     "hold": []
     }
    ]
   }

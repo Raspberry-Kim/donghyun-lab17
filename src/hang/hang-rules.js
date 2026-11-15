@@ -54,7 +54,8 @@
       const st = o.state || null, f = world.fleets.get('player'), s = (st && st.start) || {};
       this.world = world; this.rng = o.rng || new DH.RNG(1); this.state = st;
       this.rules = st && st.rules ? st.rules : RULES; this.seaRules = st && st.sea ? st.sea : null;
-      this.stage = { gold: 0, days: 0, ...(st && st.stage ? st.stage : {}) };
+      this.stage = { gold: 1000000, days: 3650, ending: 2, ...(st && st.stage ? st.stage : {}) };
+      if (this.stage.ending !== 3) { if (!this.stage.gold) this.stage.gold = 1000000; if (!this.stage.days) this.stage.ending = 1; }
       this.grid = new DH.SquareGrid(world.map.cols, world.map.rows, 1, { wrapX: world.map.wrapX, diagonal: true });
       this.name = f.name; this.captain = { ...f.captain, war: s.war ?? f.captain.war };
       this.ships = f.ships.map((sh, i) => { const type = i === 0 && s.ship ? s.ship : sh.type; return { id: sh.id, type, name: sh.name, hull: world.shipTypes.get(type).hull, plus: 0 }; });   // plus: 보강한 포
@@ -74,7 +75,7 @@
       this.visits = new Map(f.port ? [[f.port, 1]] : []); this.visitsKnown = true;
       this.trafficAttempt = -1;                                                 // 마지막으로 선물 추첨을 한 10항해일 묶음(저장)
       this.fighting = null;
-      this.checkStage();
+      this.initGrowth?.(); this.checkStage();
     }
     // ───────── 지금 형편 ─────────
     T(sh) { return this.world.shipTypes.get(sh.type); }
@@ -104,8 +105,9 @@
     /** 스테이지 조건: 자금을 목표만큼 모으면 이기고, 기한(일)이 지나면 진다. 조건이 없으면(0) 끝없이 다닌다. */
     checkStage() {
       if (this.over) return;
-      if (this.stage.gold > 0 && this.gold >= this.stage.gold) { this.over = 'won'; this.overWhy = 'gold'; }
-      else if (this.stage.days > 0 && this.day >= this.stage.days) { this.over = 'lost'; this.overWhy = 'time'; }
+      if (this.growth?.founded) { this.over = 'won'; this.overWhy = 'duchy'; }
+      else if (this.stage.ending !== 3 && this.stage.gold > 0 && this.gold >= this.stage.gold) { this.over = 'won'; this.overWhy = 'gold'; }
+      else if (this.stage.ending === 2 && this.stage.days > 0 && this.day >= this.stage.days) { this.over = 'lost'; this.overWhy = 'time'; }
     }
 
     // ───────── 항해 ─────────
@@ -120,6 +122,7 @@
       if (!path) return NO(`${p ? p.name : '그곳'}까지 뱃길을 찾지 못했다`);
       const from = this.here ? this.here.name : '바다';
       const end = p || this.anchorAt(to[0], to[1]);                              // 찍은 바다가 정박 칸이면 그 항구에 든다
+      if (end && this.canPort && !this.canPort(end.id).ok) return this.canPort(end.id);
       this.leave(); this.path = path; this.dest = end ? end.id : null; this.heading = null;
       return { ok: true, len: path.length, days: Math.ceil(path.length / this.speed), text: `${from} → ${end ? end.name : '찍은 바다'} · ${path.length}칸 · 하루 ${this.speed}칸` };
     }
@@ -132,8 +135,8 @@
       return { ok: true, text: `키를 ${{ left: '서', right: '동', up: '북', down: '남' }[dir]}쪽으로 잡았다` };
     }
     stop() { this.path = []; this.dest = null; this.heading = null; }
-    leave() { if (this.port) { this.lastPort = this.port; this.port = null; this.sinceLand = 0; } }
-    enter(pid) { const p = this.world.ports.get(pid); if (this.port !== pid) this.visits.set(pid, Math.min(1e7, (this.visits.get(pid) || 0) + 1)); this.stop(); this.port = pid; this.lastPort = pid; this.x = p.anchor[0]; this.y = p.anchor[1]; this.sinceLand = 0; }
+    leave() { if (this.port) { this.nextQuote?.(); this.lastPort = this.port; this.port = null; this.sinceLand = 0; } }
+    enter(pid) { if (this.canPort && !this.canPort(pid).ok) return this.canPort(pid); const p = this.world.ports.get(pid); if (this.port !== pid) this.visits.set(pid, Math.min(1e7, (this.visits.get(pid) || 0) + 1)); this.recordVisit?.(pid); this.stop(); this.port = pid; this.lastPort = pid; this.x = p.anchor[0]; this.y = p.anchor[1]; this.sinceLand = 0; return { ok: true }; }
     anchorAt(c, r) { for (const p of this.world.ports.values()) if (p.anchor[0] === c && p.anchor[1] === r) return p; return null; }
 
     /** 하루를 보낸다(바다에서만). 이동 → 보급 → 시세 → 입항 → 만남 순서다.
@@ -142,13 +145,14 @@
       if (this.port || this.over) return { ok: false, from: [this.x, this.y], moved: 0, events: [], arrived: null, encounter: null };
       const R = this.rules, ev = [], from = [this.x, this.y]; let moved = 0, arrived = null;
       this.day++; this.sinceLand++;
+      if (this.dialogue && this.day - this.dialogue.lastQuoteDay >= 30) this.nextQuote?.();
       for (let i = 0; i < this.speed; i++) {                                    // ① 이동
         if (this.path.length) { [this.x, this.y] = this.path.shift(); moved++; }
         else if (this.heading) {
           const d = DIRS[this.heading], nx = this.grid.normC(this.x + d[0]), ny = this.y + d[1];
           if (!this.world.map.isSea(nx, ny)) { this.heading = null; ev.push('뭍에 막혀 닻을 내렸다'); break; }
           this.x = nx; this.y = ny; moved++;
-          const p = this.anchorAt(nx, ny); if (p) { arrived = p.id; break; }                          // 키로 가다 정박 칸에 닿으면 든다
+          const p = this.anchorAt(nx, ny); if (p && (!this.canPort || this.canPort(p.id).ok)) { arrived = p.id; break; }
         } else break;
       }
       for (const [key, name] of this.inv ? [] : [['food', '식량'], ['water', '물']]) {            // ② 보급(무적 모드에서는 줄지 않는다)
@@ -159,7 +163,7 @@
       this.driftMarkets();                                                     // ③ 시세
       if (this.crew <= 0) { this.crew = 0; this.stop(); this.over = 'lost'; this.overWhy = 'crew'; ev.push('선원을 모두 잃었다'); return { ok: true, from, moved, events: ev, arrived: null, encounter: null }; }
       if (!arrived && this.dest && !this.path.length) arrived = this.dest;      // ④ 입항
-      if (arrived) { this.enter(arrived); ev.push(`${this.here.name}에 닿았다`); }
+      if (arrived) { const r = this.enter(arrived); if (r.ok) ev.push(`${this.here.name}에 닿았다`); else { ev.push(r.why); this.stop(); arrived = null; } }
       else if (!this.path.length && !this.heading && moved) ev.push('찍은 바다에 닿아 닻을 내렸다');
       this.checkStage();
       for (const c of this.contracts.filter(c => this.day > c.due)) ev.push(`의뢰 기한이 지났다 · ${this.world.goods.get(c.good).name} ${c.qty}개 → ${this.world.ports.get(c.to).name}`);
@@ -172,9 +176,10 @@
     }
     driftMarkets() {
       const P = this.rules.price;
-      for (const m of this.markets.values()) for (const e of m.values()) {
+      for (const [pid, m] of this.markets) for (const e of m.values()) {
         if (e.price !== e.ref) { const d = e.ref - e.price, s = Math.max(1, Math.ceil(Math.abs(d) * P.driftPct / 100)); e.price += Math.sign(d) * Math.min(Math.abs(d), s); }
-        if (e.stock !== e.refStock) { const d = e.refStock - e.stock; e.stock += Math.sign(d) * Math.min(Math.abs(d), P.restock); }
+        const target = this.stockTarget ? this.stockTarget(pid, e) : e.refStock;
+        if (e.stock !== target) { const d = target - e.stock; e.stock += Math.sign(d) * Math.min(Math.abs(d), P.restock); }
       }
     }
 
@@ -185,9 +190,9 @@
     quote(good) {
       const e = this.entry(good), P = this.rules.price, g = this.world.goods.get(good);
       if (!e || !g) return { buy: NO('여기서는 거래할 수 없다'), sell: NO('여기서는 거래할 수 없다') };
-      const room = this.cargoCap - this.cargoUsed, n = Math.min(this.rules.lot, e.stock, room, this.buyable(e.price));
-      const buy = !this.has('market') ? NO('교역소가 없다') : e.refStock <= 0 ? NO('이 항구에서는 팔지 않는다') : e.stock <= 0 ? NO('재고가 떨어졌다') : room <= 0 ? NO('배에 실을 자리가 없다') : n <= 0 ? NO('금이 모자란다') : { ok: true, qty: n, price: e.price, cost: this.fee(e.price * n) };
-      const m = Math.min(this.rules.lot, this.held(good)), down = Math.max(Math.max(1, Math.round(e.ref * P.minPct / 100)), e.price - this.priceStep(e)), unit = Math.floor(down * (100 - P.feePct) / 100);
+      const bp = this.buyUnit ? this.buyUnit(e) : e.price, room = this.cargoCap - this.cargoUsed, n = Math.min(this.rules.lot, e.stock, room, this.buyable(bp));
+      const buy = !this.has('market') ? NO('교역소가 없다') : e.refStock <= 0 ? NO('이 항구에서는 팔지 않는다') : e.stock <= 0 ? NO('재고가 떨어졌다') : room <= 0 ? NO('배에 실을 자리가 없다') : n <= 0 ? NO('금이 모자란다') : { ok: true, qty: n, price: bp, cost: this.fee(bp * n) };
+      const m = Math.min(this.rules.lot, this.held(good)), down = Math.max(Math.max(1, Math.round(e.ref * P.minPct / 100)), e.price - this.priceStep(e)), unit = this.sellUnit ? this.sellUnit(e) : Math.floor(down * (100 - P.feePct) / 100);
       const sell = !this.has('market') ? NO('교역소가 없다') : m <= 0 ? NO('실은 것이 없다') : { ok: true, qty: m, price: down, unit, income: unit * m };
       return { good, name: g.name, price: e.price, ref: e.ref, stock: e.stock, sells: e.refStock > 0, held: this.held(good), paid: this.cargo.get(good)?.paid ?? 0, buy, sell };
     }
@@ -230,7 +235,8 @@
         const qty = G.lot * (G.minLots + rng.int(G.maxLots - G.minLots + 1)), reward = Math.round(qty * this.markets.get(to.id).get(good).ref * (100 + G.bonusPct) / 100);
         out.push({ id: `${pid}-${round}-${out.length}`, from: pid, good, to: to.id, qty, reward, days: G.days });
       }
-      return out.filter(o => !this.taken.includes(o.id) && !this.contracts.some(c => c.id === o.id));
+      if (this.royalOffers) out.push(...this.royalOffers(pid, round, out));
+      return out.filter(o => (!this.canPort || this.canPort(o.to).ok) && !this.taken.includes(o.id) && !this.contracts.some(c => c.id === o.id));
     }
     /** 의뢰를 받는다. 물건은 따로 사서 싣는다. */
     accept(id) {
@@ -244,8 +250,9 @@
     /** 지금 넘길 수 있는지 */
     canDeliver(c) { return !this.port || c.to !== this.port ? NO(`${DH.ro(this.world.ports.get(c.to).name)} 가져가야 한다`) : this.held(c.good) < c.qty ? NO(`${DH.josa(this.world.goods.get(c.good).name, '이', '가')} ${c.qty - this.held(c.good)}개 모자란다`) : { ok: true }; }
     deliver(id) {
+      if (this.over) return NO('탐험이 끝났다');
       const c = this.contracts.find(x => x.id === id); if (!c) return NO('그런 의뢰가 없다'); const k = this.canDeliver(c); if (!k.ok) return k;
-      const h = this.cargo.get(c.good); h.qty -= c.qty; if (h.qty <= 0) this.cargo.delete(c.good); this.gold += c.reward; this.contracts = this.contracts.filter(x => x !== c);
+      const h = this.cargo.get(c.good); this.recordProfit?.(c.reward - h.paid * c.qty); h.qty -= c.qty; if (h.qty <= 0) this.cargo.delete(c.good); this.gold += c.reward; this.contracts = this.contracts.filter(x => x !== c);
       this.checkStage();
       return { ok: true, type: 'deliver', income: c.reward, text: `의뢰를 마쳤다 · ${this.world.goods.get(c.good).name} ${c.qty}개를 넘겼다 · 금 +${fmt(c.reward)}` };
     }
@@ -255,6 +262,7 @@
       if (this.over) return NO('탐험이 끝났다');
       const q = this.quote(good); if (!q.buy.ok) return q.buy;
       const e = this.entry(good), b = q.buy;
+      if (this.growth && !this.inv && !this.growth.legacyAccess) this.growth.savings += Math.max(0, Math.ceil(e.price * (1 + this.rules.price.feePct / 100)) * b.qty - b.cost);
       this.gold -= b.cost; e.stock -= b.qty; this.load(good, b.qty, b.price);
       e.price = Math.min(Math.round(e.ref * this.rules.price.maxPct / 100), e.price + this.priceStep(e));
       return { ok: true, type: 'buy', good, qty: b.qty, cost: b.cost, text: `${q.name} ${b.qty}개를 샀다 · ${this.paid(b.cost)} · 값 ${b.price} → ${e.price}` };
@@ -264,6 +272,8 @@
       if (this.over) return NO('탐험이 끝났다');
       const q = this.quote(good); if (!q.sell.ok) return q.sell;
       const e = this.entry(good), s = q.sell, h = this.cargo.get(good), before = e.price;
+      this.recordProfit?.(s.income - h.paid * s.qty);
+      if (this.growth && !this.inv) this.growth.savings += Math.max(0, s.income - Math.floor(s.price * (100 - this.rules.price.feePct) / 100) * s.qty);
       e.price = s.price; this.gold += s.income; h.qty -= s.qty; if (h.qty <= 0) this.cargo.delete(good);
       if (e.refStock > 0) e.stock += s.qty;
       this.checkStage();
@@ -302,6 +312,7 @@
         }
         const t = what === 'swap' ? this.world.shipTypes.get(arg2) : null;
         if (what === 'swap' && !t) return NO('그런 배는 없다');
+        if (what === 'swap' && this.canShip && !this.canShip(t.id).ok) return this.canShip(t.id);
         if (what === 'swap' && t.id === sh.type) return NO('지금 타는 배와 같다');
         if (what === 'swap' && t.cheat && !this.inv) return NO('무적 모드에서만 고를 수 있다');
         if (what === 'sell' && this.ships.length <= 1) return NO('마지막 한 척은 팔 수 없다');
@@ -315,12 +326,13 @@
         const t = this.world.shipTypes.get(arg);
         if (!this.has('shipyard')) return NO('이 항구에는 도크가 없다');
         if (!t) return NO('그런 배는 없다');
+        if (this.canShip && !this.canShip(t.id).ok) return this.canShip(t.id);
         if (t.cheat && !this.inv) return NO('무적 모드에서만 고를 수 있다');
         return this.ships.length >= R.dock.maxShips ? NO(`배는 ${R.dock.maxShips}척까지다`) : this.gold < this.fee(t.price) ? NO('금이 모자란다') : { ok: true, cost: this.fee(t.price) };
       }
       if (what === 'food') {
-        const room = this.crew * R.supply.foodMax - this.food, want = Math.min(room, this.crew * R.supply.lotDays), n = this.inv ? want : Math.min(want, this.gold * R.supply.perGold);
-        return room < this.crew ? NO(`식량은 ${R.supply.foodMax}일분까지 싣는다`) : n < this.crew ? NO('금이 모자란다') : { ok: true, qty: n, days: Math.floor(n / this.crew), cost: this.fee(Math.ceil(n / R.supply.perGold)) };
+        const factor = this.foodFactor ? this.foodFactor() : 1, room = this.crew * R.supply.foodMax - this.food, want = Math.min(room, this.crew * R.supply.lotDays), n = this.inv ? want : Math.min(want, Math.floor(this.gold * R.supply.perGold / factor));
+        return room < this.crew ? NO(`식량은 ${R.supply.foodMax}일분까지 싣는다`) : n < this.crew ? NO('금이 모자란다') : { ok: true, qty: n, days: Math.floor(n / this.crew), cost: this.fee(Math.ceil(n * factor / R.supply.perGold)) };
       }
       if (what === 'water') return this.water >= this.crew * R.supply.waterMax ? NO('물통이 가득 찼다') : { ok: true, days: R.supply.waterMax, cost: 0 };
       return NO('모르는 일이다');
@@ -356,7 +368,7 @@
       this.checkStage();
       return { ok: true, type: 'sell-ship', ...c, text: `${this.T(sh).name} ${DH.josa(sh.name, '을', '를')} 팔았다 · 금 +${fmt(c.income)} · 배 ${this.ships.length}척${c.off ? ` · 선원 ${c.off}명이 내렸다` : ''}` };
     }
-    buyFood() { const c = this.can('food'); if (!c.ok) return c; this.gold -= c.cost; this.food += c.qty; return { ok: true, type: 'food', ...c, text: `식량 ${c.days}일분을 실었다 · ${this.paid(c.cost)} · 식량 ${this.foodDays}일` }; }
+    buyFood() { const c = this.can('food'); if (!c.ok) return c; if (this.growth && !this.inv) this.growth.savings += Math.max(0, Math.ceil(c.qty / this.rules.supply.perGold) - c.cost); this.gold -= c.cost; this.food += c.qty; return { ok: true, type: 'food', ...c, text: `식량 ${c.days}일분을 실었다 · ${this.paid(c.cost)} · 식량 ${this.foodDays}일` }; }
     fillWater() { const c = this.can('water'); if (!c.ok) return c; this.water = this.crew * this.rules.supply.waterMax; return { ok: true, type: 'water', ...c, text: `물을 가득 채웠다 · 물 ${this.waterDays}일` }; }
 
     // ───────── 해적과의 만남 ─────────
@@ -455,6 +467,7 @@
         if (res.winner === 'me') {
           const G = this.rules.grow, was = this.captain.war, up = Math.min(G.max, was + G.win + (res.duel && res.duel.winner === 'me' ? G.duel : 0));
           this.gold += res.loot; this.captain.war = Math.max(was, up);
+          if (this.growth && !this.inv && this.fighting) this.growth.battle += 50;
           const S = this.rules.salvage, supplyDays = ((res.foe && res.foe.ships) || []).length >= S.largeShips ? S.largeDays : S.smallDays;
           this.addSupply('food', supplyDays); this.addSupply('water', supplyDays);
           if (this.fighting && this.rivals.has(this.fighting)) this.rest.set(this.fighting, this.day + this.rules.encounter.rest);   // 진 무리는 한동안 나오지 않는다
@@ -500,7 +513,7 @@
         cargo: [...this.cargo].map(([good, h]) => [good, h.qty, h.paid]),                       // 실은 순서를 지킨다(버릴 때 뒤에서부터 버린다)
         markets: [...this.markets].map(([pid, m]) => [pid, [...m.values()].map(e => [e.good, e.price, e.stock])]),
         rest: [...this.rest], prizes: this.prizes.map(p => ({ ...p })), contracts: this.contracts.map(c => ({ ...c })), taken: [...this.taken],
-        visits: [...this.visits], visitsKnown: this.visitsKnown, trafficAttempt: this.trafficAttempt };
+        visits: [...this.visits], visitsKnown: this.visitsKnown, trafficAttempt: this.trafficAttempt, ...(this.growthJSON ? this.growthJSON() : {}) };
     }
     /** toJSON()이 적은 것으로 탐험을 되살린다. 자료와 맞지 않으면 까닭을 담아 던진다(아무것도 바꾸지 않는다).
      *  @param world 자료 @param d toJSON()의 결과 @param {{rng?:DH.RNG, state?:object}} o */
@@ -509,7 +522,7 @@
       const w = world, port = id => id === null || (typeof id === 'string' && w.ports.has(id)), cell = p => Array.isArray(p) && p.length === 2 && I(p[0], 0, w.map.cols - 1) && I(p[1], 0, w.map.rows - 1) && w.map.isSea(p[0], p[1]);
       need(d && typeof d === 'object' && Array.isArray(d.ships) && Array.isArray(d.cargo) && Array.isArray(d.markets) && Array.isArray(d.path), '탐험 정보가 없다.');
       need(I(d.gold) && I(d.crew, 0, 1e6) && I(d.food) && I(d.water) && I(d.day, 0, 1e7) && I(d.sinceLand, 0, 1e7), '탐험대 정보가 맞지 않는다.');
-      need([null, 'won', 'lost'].includes(d.over) && [null, 'gold', 'time', 'crew'].includes(d.overWhy) && (d.over === null) === (d.overWhy === null) && (d.over !== null || d.crew > 0), '진행 정보가 맞지 않는다.');
+      need([null, 'won', 'lost'].includes(d.over) && [null, 'gold', 'time', 'crew', 'duchy'].includes(d.overWhy) && (d.over === null) === (d.overWhy === null) && (d.over !== null || d.crew > 0), '진행 정보가 맞지 않는다.');
       need(cell([d.x, d.y]) && port(d.port) && port(d.lastPort) && port(d.dest) && (d.heading === null || Object.hasOwn(DIRS, d.heading)) && d.path.length <= 4000 && d.path.every(cell), '배의 자리가 지도와 맞지 않는다.');
       if (d.port) { const a = w.ports.get(d.port).anchor; need(a[0] === d.x && a[1] === d.y && !d.path.length && d.heading === null && d.dest === null, '배의 자리가 지도와 맞지 않는다.'); }
       need(d.ships.length >= 1 && d.ships.length <= 12 && new Set(d.ships.map(sh => sh && sh.id)).size === d.ships.length && d.ships.every(sh => sh && typeof sh.id === 'string' && sh.id.length <= 12 && typeof sh.name === 'string' && sh.name.length <= 24 && w.shipTypes.has(sh.type) && I(sh.hull, 0, w.shipTypes.get(sh.type).hull) && (sh.plus === undefined || I(sh.plus, 0, RULES.dock.gunMax)) && (sh.won === undefined || sh.won === 1)), '배 정보가 자료와 맞지 않는다.');
@@ -540,6 +553,7 @@
       v.visits = new Map(d.visits || (d.port || d.lastPort ? [[d.port || d.lastPort, 1]] : []));
       v.visitsKnown = d.visits !== undefined && d.visitsKnown !== false;
       v.trafficAttempt = d.trafficAttempt ?? -1;
+      v.restoreGrowth?.(d);
       return v;
     }
   }

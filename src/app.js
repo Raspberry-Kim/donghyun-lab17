@@ -139,6 +139,9 @@ $('#full').onclick = () => {
   try { const r = stageFull.requestFullscreen ? stageFull.requestFullscreen() : stageFull.webkitRequestFullscreen(); if (r && r.catch) r.catch(() => setPseudo(true)); } catch (err) { setPseudo(true); }
 };
 window.__dhFull = { fit, setPseudo, isFull };            // 시험용 손잡이
+// 플레이 영역의 트랙패드 pinch/Safari gesture만 막는다. 문서의 접근성 확대 키는 보존한다.
+stageFull.addEventListener('wheel', e => { if (!waiting && e.ctrlKey) e.preventDefault(); }, { passive: false });
+for (const kind of ['gesturestart', 'gesturechange', 'gestureend']) stageFull.addEventListener(kind, e => { if (!waiting) e.preventDefault(); }, { passive: false });
 
 /* ---------- 저장 · 불러오기(동현심과 같은 규칙): 브라우저 칸 3개 + .dhsave 파일. 저절로 저장하지 않는다 ----------
    메뉴는 화면 가운데 뜨고(전체 화면에서도), 떠 있는 동안 판은 멎는다. 칸은 이 기기의 이 브라우저에만 남는다 */
@@ -279,6 +282,14 @@ function begun() {
 /* ---------- 시작: 자료를 읽고 기본값의 판 위에 시작 카드를 얹는다 ---------- */
 GAME.boot($('#host'), '#lab-data').then(g => {
   current = g; window.__dh = g; g.sounds = sounds;       // 시험용 손잡이
+  window.advanceTime = ms => { g.engine.stop(); g.engine.step(Math.max(1, Math.round(ms * 60 / 1000))); };
+  window.render_game_to_text = () => {
+    const scene=g.engine.scene,b=scene.b,v=g.voyage;
+    return JSON.stringify({mode:b?'battle:'+scene.mode:g.scene.mode,port:v.port,day:v.day,gold:v.gold,
+      rank:v.getRank().name,fame:v.fame(),stage:v.stage,over:v.overWhy,
+      coordinateSystem:'원점 북서쪽 · x 동쪽 · y 남쪽',x:v.x,y:v.y,
+      battle:b?{side:b.side,turn:b.turn,selected:scene.sel?.id,units:b.units.map(u=>({id:u.id,type:u.type,c:u.c,r:u.r,hull:u.hull,crew:u.crew,out:u.out})),effects:scene.fx.map(f=>f.kind)}:null});
+  };
   g.engine.on('sfx', playSfx);
   g.engine.pushScene(new StartCard(g.engine, g.layout)); g.waiting = () => waiting;
   $('#run').disabled = false; $('#game-save').disabled = false; $('#game-load').disabled = false; $('#status').textContent = '출전 준비';

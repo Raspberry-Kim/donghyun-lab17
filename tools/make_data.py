@@ -262,10 +262,14 @@ hang=dict(format='donghyun-hang-data',version=1,
  map=dict(grid='square',cols=H_COLS,rows=H_ROWS,wrapX=True,origin=dict(lon=H_LON0,lat=H_LAT0),degPerTile=1,tiles={'~':'sea','#':'land'},carved=carved,rle=[rle(''.join(x)) for x in grid]),
  goods=[dict(id=i,name=n,base=b,kind=k) for i,n,b,k in GOODS], kinds=KINDS, facilities=FAC, ports=ports,
  shipTypes=[dict(id='caravel',name='캐러벨',cargo=200,minCrew=10,maxCrew=40,speed=2,hull=60,guns=8,price=2000),dict(id='carrack',name='캐럭',cargo=480,minCrew=30,maxCrew=120,speed=1,hull=120,guns=16,price=5000),
-  # 거북선: 어느 탐험에서나 도크에서 사고 시작 기함으로도 고른다. 짐은 캐러벨보다 조금 더 싣고, 가장 빠르고, 포가 가장 세다(지어낸 시험 값).
-  dict(id='turtle',name='거북선',cargo=240,minCrew=10,maxCrew=40,speed=3,hull=200,guns=40,price=8000)],
- fleets=[dict(id='player',name='포동이 탐험대',x=lis[0],y=lis[1],port='lisbon',crew=28,food=90,water=60,gold=1000,captain=dict(name='포동이',war=70),
-   ships=[dict(id='s1',type='caravel',name='꼬리바람호',hold=[dict(good='wine',qty=40,paid=18),dict(good='olive',qty=20,paid=14)])])],
+  # 설정 번호는 캐러벨1·캐럭2·거북선3을 보존하고 판옥선4·이지스함5를 더한다.
+  dict(id='turtle',name='거북선',cargo=360,minCrew=10,maxCrew=80,speed=4,hull=240,guns=80,price=10000),
+  dict(id='panok',name='판옥선',cargo=240,minCrew=10,maxCrew=40,speed=3,hull=200,guns=40,price=8000),
+  dict(id='aegis',name='이지스함',cargo=360,minCrew=10,maxCrew=80,speed=4,hull=360,guns=120,price=15000)],
+ fleets=[dict(id='player',name='포동이 탐험대',x=lis[0],y=lis[1],port='lisbon',crew=120,food=90,water=60,gold=200000,captain=dict(name='포동이',war=70),
+   ships=[dict(id='s1',type='turtle',name='꼬리바람호',hold=[dict(good='wine',qty=40,paid=18),dict(good='olive',qty=20,paid=14)]),
+          dict(id='s2',type='panok',name='푸른물결호',hold=[]),
+          dict(id='s3',type='caravel',name='흰구름호',hold=[])])],
  # 바다에서 만나는 적 함대. 이름과 선장은 지어냈다. areas가 있는 무리는 그 바다(경위도 네모)에서만 나온다. 첫 배가 기함이다.
  # 지역 무리는 그 바다에서 실제로 해적·사략선이 다니던 일을 본떴다(note). 세기는 처음 세 무리 사이에 두었다(어렵게 하지 않는다).
  rivals=[dict(id='redsail',name='붉은 돛 해적단',captain=dict(name='붉은수염',war=55),ships=['caravel'],crew=24,gold=400),
