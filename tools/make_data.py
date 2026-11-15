@@ -185,20 +185,27 @@ def place(lon,lat):
             if best is None or d<best[0]: best=(d,c,r,min(sea,key=lambda n:(n[0]+0.5+H_LON0-lon)**2+(H_LAT0-n[1]-0.5-lat)**2))
     assert best,(lon,lat); return best[1],best[2],best[3]
 # id, 이름, 기준 값, 갈래. 기준 값은 게임 균형을 맞춘 시험 값이다(1522년 시세를 옮긴 것이 아니다).
-GOODS=[('wine','포도주',30,'drink'),('olive','올리브유',24,'food'),('wool','모직물',40,'craft'),('glass','유리구슬',36,'craft'),('gold','금',300,'gem'),('ivory','상아',120,'gem'),
+GOODS=[('wine','포도주',30,'drink'),('olive','올리브유',24,'food'),('wool','모직물',40,'craft'),('glass','유리공예품',36,'craft'),('gold','금',300,'gem'),('ivory','상아',120,'gem'),
 ('pepper','후추',60,'spice'),('cotton','면직물',45,'craft'),('silk','비단',160,'craft'),('porcelain','도자기',110,'craft'),('clove','정향',140,'spice'),('sugar','설탕',50,'food'),
 ('silver','은',200,'gem'),('jjampong','짬뽕',16,'food'),('castella','카스텔라',40,'food'),('tea','차',70,'drink'),('sapphire','사파이어',230,'gem'),('ruby','루비',250,'gem'),
 ('cinnamon','계피',90,'spice'),('ginseng','인삼',170,'herb'),('jade','옥',140,'gem'),('pizza','피자',14,'food'),('sculpture','조각품',160,'art'),('art','미술품',190,'art'),
 ('timber','목재',20,'raw'),('beer','맥주',18,'drink'),('feather','타조깃털',75,'raw'),('salt','암염',22,'raw'),('nutmeg','육두구',150,'spice'),('soap','비누',32,'craft'),
-('grain','곡물',12,'food'),('pearl','진주',210,'gem'),('agarwood','침향',180,'herb'),('herring','청어',15,'food'),('coral','산호',120,'gem'),('pimiento','피망',20,'food')]
-KINDS=dict(food='식료',drink='술·차',spice='향신료',herb='약재·향',craft='직물·공예',gem='보석·귀금속',art='미술품',raw='원자재')
-# 처음 열두 가지는 권역 꼬리표로, 새로 넣은 것은 항구 id로 산지를 적는다(둘 다 꼬리표처럼 맞춰 본다).
-ORIGIN={'wine':['iberia','med'],'olive':['med','iberia'],'wool':['europe_n'],'glass':['venice'],'gold':['wafrica','sofala','mozambique','butuan','capetown'],'ivory':['eafrica','wafrica'],
-'pepper':['india','java'],'cotton':['india'],'silk':['eastasia'],'porcelain':['canton'],'clove':['malacca','ternate'],'sugar':['america'],
-'silver':['nagasaki','jemulpo','dongnae'],'jjampong':['nagasaki'],'castella':['nagasaki'],'tea':['ceylon'],'sapphire':['ceylon'],'ruby':['ceylon'],'cinnamon':['ceylon'],
-'ginseng':['jemulpo'],'jade':['dongnae'],'pizza':['naples'],'sculpture':['athens'],'art':['pisa','mecca'],'timber':['oslo','pernambuco'],'beer':['hamburg'],
-'feather':['tripoli'],'salt':['tripoli'],'nutmeg':['ambon'],'soap':['marseille'],'grain':['valencia','cebu','guatemala'],'pearl':['sulu'],'agarwood':['hongkong'],
-'herring':['copenhagen'],'coral':['santodomingo'],'pimiento':['veracruz']}
+('grain','곡물',12,'food'),('pearl','진주',210,'gem'),('agarwood','침향',180,'herb'),('herring','청어',15,'food'),('coral','산호',120,'gem'),('pimiento','피망',20,'food'),
+# v0.23에 더한 열 가지. 번호(설정 8번)가 바뀌지 않게 뒤에 붙인다
+('book','서적',150,'book'),('cheese','치즈',36,'food'),('curedmeat','가공육',30,'food'),('tobacco','담배',80,'herb'),('velvet','벨벳',130,'craft'),
+('metalwork','금속공예품',100,'craft'),('carpet','양탄자',140,'craft'),('jewelry','보석공예품',260,'gem'),('coffee','커피',70,'drink'),('cacao','카카오',60,'food')]
+KINDS=dict(food='식료',drink='술·차',spice='향신료',herb='약재·향',craft='직물·공예',gem='보석·귀금속',art='미술품',book='서적',raw='원자재')
+# 산지는 권역 꼬리표나 항구 id로 적는다(둘 다 꼬리표처럼 맞춰 본다). v0.23부터 포도주 · 올리브유 · 유리공예품은 항구 id로 적는다.
+ORIGIN={'wine':['lisbon','seville','genoa','marseille'],'olive':['lisbon','seville','genoa','marseille','pisa'],'wool':['europe_n'],'glass':['venice','alexandria'],'gold':['wafrica','sofala','mozambique','butuan','capetown'],'ivory':['eafrica','wafrica'],
+'pepper':['india','java'],'cotton':['india','alexandria'],'silk':['eastasia'],'porcelain':['canton','jemulpo','dongnae'],'clove':['malacca','ternate'],'sugar':['america','pernambuco'],
+'silver':['nagasaki'],'jjampong':['nagasaki'],'castella':['nagasaki'],'tea':['ceylon'],'sapphire':['ceylon'],'ruby':['ceylon'],'cinnamon':['ceylon'],
+'ginseng':['jemulpo'],'jade':['jemulpo','dongnae'],'pizza':['naples'],'sculpture':['athens'],'art':['pisa','mecca'],'timber':['oslo','pernambuco'],'beer':['hamburg'],
+'feather':['tripoli'],'salt':['tripoli'],'nutmeg':['ambon'],'soap':['marseille','venice'],'grain':['cebu','guatemala'],'pearl':['sulu'],'agarwood':['hongkong'],
+'herring':['copenhagen'],'coral':['santodomingo'],'pimiento':['veracruz'],
+'book':['amsterdam','lisbon','venice','jemulpo','valencia'],'cheese':['copenhagen'],'curedmeat':['hamburg'],'tobacco':['seville'],'velvet':['genoa','valencia'],
+'metalwork':['london','alexandria','dongnae'],'carpet':['istanbul'],'jewelry':['istanbul','naples'],'coffee':['istanbul','mecca','hormuz'],'cacao':['guatemala','veracruz']}
+# 서적은 값이 큰 만큼 산지에서는 더 싸게 팔고 다른 항구에서는 더 비싸게 산다(시험 값). (산지 배수, 바깥 항구에 더하는 배수)
+SPREAD={'book':(0.4,0.8)}
 # 산지와 상관없이 값을 더 쳐주는 곳(역사에서 은은 명나라 쪽에서 값이 높았다). 배수는 시험 값이다.
 DEMAND={('silver','canton'):1.3,('silver','hongkong'):1.3,('silver','malacca'):1.15}
 FAC=dict(harbor='항구',market='교역소',shipyard='도크',inn='주점',guild='조합',palace='왕궁',lodge='여관')
@@ -239,9 +246,10 @@ for pid,name,lon,lat,tags,fac,flag in PORTS:
     for gid,gname,base,kind in GOODS:
         makers=[q for q,_,_,_,t,_,_ in PORTS if (set(t)|{q})&set(ORIGIN[gid])]
         assert makers,(gid,'산지가 없다')
-        if pid in makers: price,stock=round(base*0.6),200
+        lo,up=SPREAD.get(gid,(0.6,0))
+        if pid in makers: price,stock=round(base*lo),200
         else:
-            d=min(DIST[m][an] for m in makers); price,stock=round(base*(1+min(1.4,d/120))*DEMAND.get((gid,pid),1)),0   # 산지에서 뱃길이 멀수록 비싸다(시험 식)
+            d=min(DIST[m][an] for m in makers); price,stock=round(base*(1+up+min(1.4,d/120))*DEMAND.get((gid,pid),1)),0   # 산지에서 뱃길이 멀수록 비싸다(시험 식)
         market.append(dict(good=gid,price=price,stock=stock))
     ports.append(dict(id=pid,name=name,lon=lon,lat=lat,x=c,y=r,anchor=list(an),flag=flag,market=market,facilities=fac))
 lis=pos['lisbon'][2]

@@ -58,7 +58,8 @@ const url = 'file://' + path.join(__dirname, '..', 'index.html'), shot = path.jo
   ok('동현항: 탭 바꾸기 · 사각 격자(동서 이어짐) · 리스본에 정박(날짜가 멎음) · 항구 메뉴(교역소 · 여관 · 도크 · 보급 · 출항) · 동현랭 칸이 동현항 예제 열(이름 앞 번호 01~10)과 번호 표로 바뀐다');
 
   // 교역소: 사면 값이 오르고 팔면 내린다
-  await p.click('button[data-id="tab:market"]'); assert.strictEqual(await title(), '리스본 교역소'); assert.deepStrictEqual(await menu(), ['buy:wine', 'buymax:wine', 'buy:olive', 'buymax:olive', 'sell:olive', 'sellall:olive', 'sell:wine', 'sellall:wine', 'back']);
+  await p.click('button[data-id="tab:market"]'); assert.strictEqual(await title(), '리스본 교역소'); assert.deepStrictEqual(await menu(), ['buy:wine', 'buymax:wine', 'buy:olive', 'buymax:olive', 'buy:book', 'buymax:book', 'sell:olive', 'sellall:olive', 'sell:wine', 'sellall:wine', 'back']);
+  assert.deepStrictEqual([await label('buy:book'), (await rows())['서적 사기']], ['서적 사기 10 · 금 600', '서적 · 값 60 · 재고 200'], '리스본은 v0.23부터 서적도 판다');
   assert.deepStrictEqual([await label('buy:wine'), await label('sell:wine'), await label('sell:olive')], ['포도주 사기 10 · 금 180', '포도주 팔기 10 · 금 +150', '올리브유 팔기 10 · 금 +110']);
   hr = await rows(); assert.deepStrictEqual([hr['포도주 사기'], hr['포도주 40개']], ['술·차 · 값 18 · 재고 200', '산 값 18 · 여기서 팔면 개당 15 · 개당 3 밑진다']);
   await p.click('button[data-id="buy:wine"]'); assert.deepStrictEqual([(await info()).자금, (await info()).짐, (await rows())['포도주 사기'], await label('buy:wine')], ['820', '70/200', '술·차 · 값 19 · 재고 190', '포도주 사기 10 · 금 190']); assert.ok((await logTop()).includes('포도주 10개를 샀다 · 금 −180 · 값 18 → 19'));
@@ -81,7 +82,7 @@ const url = 'file://' + path.join(__dirname, '..', 'index.html'), shot = path.jo
   const portXY = id => p.evaluate(id => { const q = __dh.world.ports.get(id); return __dh.scene.grid.center(q.x, q.y); }, id), cellXY = (c, r) => p.evaluate(([c, r]) => __dh.scene.grid.center(c, r), [c, r]);
   const sea = () => G(() => { const s = __dh.scene, v = s.voyage, c = __dh.engine.clock; return { mode: s.mode, run: c.running, port: v.port, dest: v.dest, at: [v.x, v.y], moving: v.moving, heading: v.heading, day: v.day, sel: s.selected, spot: s.spot, n: __dh.engine.scenes.length, over: v.over, why: v.overWhy, gold: v.gold, crew: v.crew, used: v.cargoUsed }; });
   let Q = await portXY('seville'); await clickWorld(Q.x, Q.y); assert.strictEqual(await title(), '세비야'); hr = await rows();
-  assert.deepStrictEqual([hr['파는 것'], hr.뱃길, hr['실은 짐의 시세']], ['포도주 18 · 올리브유 14', '4칸 · 약 2일', '포도주 18(산 값 18) · 올리브유 14(산 값 14)']); assert.ok(hr.시설.startsWith('항구 · 교역소'));
+  assert.deepStrictEqual([hr['파는 것'], hr.뱃길, hr['실은 짐의 시세']], ['포도주 18 · 올리브유 14 · 담배 48', '4칸 · 약 2일', '포도주 18(산 값 18) · 올리브유 14(산 값 14)']); assert.ok(hr.시설.startsWith('항구 · 교역소'));
   assert.strictEqual(await label('sail'), '세비야로 출항'); await p.click('button[data-id=sail]'); let S = await sea();
   assert.deepStrictEqual([S.mode, S.run, S.dest, S.sel, S.port], ['sea', true, 'seville', null, null]); assert.deepStrictEqual(await menu(), ['pause', 'speed', 'tab:hold', 'follow', 'zin', 'zout', 'traffic']); assert.ok((await logTop()).includes('리스본 → 세비야 · 4칸 · 하루 2칸 · 약 2일')); assert.strictEqual((await rows())['있는 곳'], '세비야로 가는 바다');
   await step(10); await p.screenshot({ path: shot + '/ui-hang-sail.png' }); await step(10); assert.deepStrictEqual([(await info()).날짜, (await sea()).port], ['1522년 5월 2일', null]);
@@ -227,9 +228,9 @@ const url = 'file://' + path.join(__dirname, '..', 'index.html'), shot = path.jo
   const NAME = '동현항', TABS = ['세계 지도', '동현항 출전 규약', '규칙', '엔진과 자료', '수학적 원리', '모델과 출처'], HEADS = { protocol: ['설정 번호', '예제 열'], rules: ['플레이 방법', '조작', '동현항 규칙'], engine: ['엔진의 층', '게임이 얹는 법', '동현랭 어댑터', 'JSON 규격', '파일', '돌려 보기'], about: ['상표와 관계', '이 자료가 무엇이고 무엇이 아닌지', '자료 출처'] };
   const band = await p.evaluate(() => ({ n: document.querySelectorAll('.series-item').length, ctx: document.querySelector('.series-context').textContent, here: [...document.querySelectorAll('.series-item[aria-current=page]')].map(a => a.querySelector('.series-name').textContent), hrefs: [...document.querySelectorAll('a.series-item')].map(a => a.getAttribute('href')),
     ed: document.querySelector('.edition').textContent.trim(), foot: document.querySelector('footer').textContent, title: document.title, left: document.documentElement.innerHTML.match(/__[A-Z_]+__|<!--README/g) }));
-  assert.deepStrictEqual([band.n, band.here, band.hrefs.length, band.left], [19, [NAME + '™'], 18, null]); assert.ok(band.ctx.includes('열여덟 개의 작은 세계') && band.ed.startsWith('v0.21') && band.foot.includes(NAME + ' v0.21') && band.title.includes(NAME), JSON.stringify([band.ctx, band.ed, band.title]));
+  assert.deepStrictEqual([band.n, band.here, band.hrefs.length, band.left], [19, [NAME + '™'], 18, null]); assert.ok(band.ctx.includes('열여덟 개의 작은 세계') && band.ed.startsWith('v0.23') && band.foot.includes(NAME + ' v0.23') && band.title.includes(NAME), JSON.stringify([band.ctx, band.ed, band.title]));
   assert.ok(band.hrefs.every(h => /^https:\/\/raspberry-kim\.github\.io\/donghyun-(lang|lab\d+)\/$/.test(h)) && new Set(band.hrefs).size === 18, '띠의 주소 열여덟 개가 서로 다르다');
-  ok(`시리즈 띠 19칸(지금 여기: ${NAME}) · 머리글과 바닥글의 판 번호 v0.21 · 빌드 자리표가 남지 않았다`);
+  ok(`시리즈 띠 19칸(지금 여기: ${NAME}) · 머리글과 바닥글의 판 번호 v0.23 · 빌드 자리표가 남지 않았다`);
 
   const tabsNow = () => p.evaluate(() => ({ names: [...document.querySelectorAll('.tabs button')].map(b => b.textContent), on: [...document.querySelectorAll('.tabs button[aria-current=page]')].map(b => b.dataset.tab), shown: [...document.querySelectorAll('.tab-panel')].filter(x => !x.hidden).map(x => x.id), sw: document.documentElement.scrollWidth, run: __dh.engine.loop.running }));
   await G(() => __dh.engine.start()); let T = await tabsNow(); assert.deepStrictEqual([T.names, T.on, T.shown, T.run], [TABS, ['play'], ['tab-play'], true]);
@@ -302,7 +303,7 @@ const url = 'file://' + path.join(__dirname, '..', 'index.html'), shot = path.jo
   const mInfo = () => m.$$eval('.dh-info-item', a => Object.fromEntries(a.map(e => [e.querySelector('dt').textContent, e.querySelector('dd').textContent])));
   await m.evaluate(() => __dh.engine.stop()); await m.evaluate(() => __dh.engine.step(1));
   let F = await fit(); assert.ok(F.sw <= 390 && F.btn >= 44 && F.right <= 390 && F.n === 11, JSON.stringify(F)); assert.deepStrictEqual(Object.keys(await mInfo()), ['날짜', '자금', '식량', '물', '선원', '짐']); await m.screenshot({ path: shot + '/ui-hang-phone-port.png', fullPage: true });
-  await tapBtn('tab:market'); await tapBtn('buy:wine'); assert.strictEqual((await mInfo()).자금, '820'); const F2 = await fit(); assert.ok(F2.sw <= 390 && F2.btn >= 44 && F2.right <= 390 && F2.n === 9, JSON.stringify(F2)); await m.screenshot({ path: shot + '/ui-hang-phone-market.png', fullPage: true }); await tapBtn('back');
+  await tapBtn('tab:market'); await tapBtn('buy:wine'); assert.strictEqual((await mInfo()).자금, '820'); const F2 = await fit(); assert.ok(F2.sw <= 390 && F2.btn >= 44 && F2.right <= 390 && F2.n === 11, JSON.stringify(F2)); await m.screenshot({ path: shot + '/ui-hang-phone-market.png', fullPage: true }); await tapBtn('back');
   await m.evaluate(() => document.querySelector('.dh-canvas').scrollIntoView({ block: 'center' }));
   const sp = await m.evaluate(() => { const s = __dh.scene, q = __dh.world.ports.get('seville'), P = s.grid.center(q.x, q.y), c = s.cam.toScreen(P.x, P.y), r = document.querySelector('.dh-canvas').getBoundingClientRect(); return { x: r.left + c.x * r.width / 480, y: r.top + c.y * r.height / 360 }; });
   await m.touchscreen.tap(sp.x, sp.y); assert.strictEqual(await m.$eval('.dh-detail-title', e => e.textContent), '세비야'); await tapBtn('sail'); await m.evaluate(() => __dh.engine.step(40));
@@ -375,7 +376,7 @@ const url = 'file://' + path.join(__dirname, '..', 'index.html'), shot = path.jo
   await s.keyboard.press('Escape'); assert.strictEqual(await gm(), null); assert.deepStrictEqual([await S(() => __dh.engine.loop.running), await onMap()], [true, true], 'Esc로 닫으면 판이 다시 돌고 키보드는 지도에 듣는다');
   await s.click('#game-save'); await s.mouse.click(12, 12); assert.strictEqual(await gm(), null, '메뉴 바깥을 누르면 닫힌다'); await S(() => __dh.engine.stop());
   await s.click('#game-save'); await s.keyboard.press('Enter'); assert.strictEqual(await gm(), null); assert.deepStrictEqual(await status(), ['브라우저 칸 1에 저장했다 · 리스본 · 1522년 5월 1일', '']);
-  let d1 = await slot(1); assert.deepStrictEqual([d1.format, d1.version, d1.lab, d1.summary, d1.settings, d1.game.gold, d1.game.port], ['donghyunhang-save', 1, '0.21', { title: '리스본', date: '1522년 5월 1일', line: '자금 1,000 · 선원 28명' }, [], 1000, 'lisbon']); assert.ok(!isNaN(new Date(d1.savedAt)));
+  let d1 = await slot(1); assert.deepStrictEqual([d1.format, d1.version, d1.lab, d1.summary, d1.settings, d1.game.gold, d1.game.port], ['donghyunhang-save', 1, '0.23', { title: '리스본', date: '1522년 5월 1일', line: '자금 1,000 · 선원 28명' }, [], 1000, 'lisbon']); assert.ok(!isNaN(new Date(d1.savedAt)));
   await s.click('button[data-id="tab:market"]'); await s.click('button[data-id="buy:wine"]'); assert.strictEqual((await sInfo()).자금, '820'); assert.ok(await onMap(), '버튼을 누른 뒤에도 키보드는 지도에 듣는다');
   await s.click('#game-save'); M = await gm(); assert.ok(/^리스본 · 1522년 5월 1일 · 자금 1,000 · 선원 28명 · \d+\/\d+ \d\d:\d\d 저장$/.test(M.notes[0]), M.notes[0]); await pick('브라우저 칸 1'); M = await gm(); assert.deepStrictEqual([M.title, M.items], ['칸 1에 덮어쓸까?', ['덮어쓴다', '그만둔다']]);
   await pick('그만둔다'); assert.strictEqual((await gm()).title, '저장'); assert.strictEqual((await slot(1)).game.gold, 1000, '그만두면 칸은 그대로다');
@@ -497,21 +498,22 @@ const url = 'file://' + path.join(__dirname, '..', 'index.html'), shot = path.jo
     const M = () => g.$$eval('.dh-menu button', a => a.map(e => [e.dataset.id, (e.querySelector('.dh-key') || {}).textContent || '', e.dataset.key || '', e.disabled, e.classList.contains('hang-wide')]));
     const Z = () => g.evaluate(() => { const z = __dh.engine.scene, v = __dh.voyage; return { tab: z.tab, sel: z.selected, gold: v.gold, olive: v.held('olive'), wine: v.held('wine'), cam: z.cam.x }; });
     await g.keyboard.press('Digit1'); let m = await M(); assert.strictEqual((await Z()).tab, 'market');
-    assert.deepStrictEqual(m.map(x => x[0]), ['buy:wine', 'buymax:wine', 'buy:olive', 'buymax:olive', 'sell:olive', 'sellall:olive', 'sell:wine', 'sellall:wine', 'back'], '줄 순서는 v0.20과 같다');
-    assert.deepStrictEqual(m.map(x => x[1]), ['1', '2', 'Q', 'W', 'A', 'S', 'Z', 'X', 'Esc']); assert.deepStrictEqual(m.map(x => x[2]), ['1', '2', 'Q', 'W', 'A', 'S', 'Z', 'X', ''], '돌아가기는 Esc로만');
-    assert.deepStrictEqual(m.map(x => x[4]), [false, false, false, false, false, false, false, false, true], '돌아가기는 한 줄을 다 쓴다');
-    const pos = await g.$$eval('.dh-menu button', a => a.map(e => Math.round(e.getBoundingClientRect().top))); assert.ok(pos[0] === pos[1] && pos[2] === pos[3] && pos[4] === pos[5] && pos[2] > pos[0] && pos[8] > pos[6], '한 줄에 짝 둘 ' + pos);
-    let s0 = await Z(); await g.keyboard.press('KeyA'); let s1 = await Z(); assert.deepStrictEqual([s1.olive, s1.gold > s0.gold], [s0.olive - 10, true], 'A = 올리브유 팔기');
-    await g.keyboard.press('KeyS'); s1 = await Z(); assert.strictEqual(s1.olive, 0, 'S = 올리브유 모두 팔기'); m = await M();
-    assert.deepStrictEqual(m.map(x => x[0]), ['buy:wine', 'buymax:wine', 'buy:olive', 'buymax:olive', 'sell:olive', 'sellall:olive', 'sell:wine', 'sellall:wine', 'back'], '다 판 품목의 줄이 남는다');
-    assert.deepStrictEqual([m[4][3], m[5][3], m[6][3], m[6][1]], [true, true, false, 'Z'], '다 판 줄은 흐리고 뒤 줄의 키는 그대로');
-    await g.keyboard.press('KeyA'); assert.strictEqual((await Z()).olive, 0, '흐린 버튼은 키로도 눌리지 않는다');
+    const L23 = ['buy:wine', 'buymax:wine', 'buy:olive', 'buymax:olive', 'buy:book', 'buymax:book', 'sell:olive', 'sellall:olive', 'sell:wine', 'sellall:wine', 'back'];
+    assert.deepStrictEqual(m.map(x => x[0]), L23, '사는 줄(파는 순서) 뒤에 파는 줄 · v0.23부터 리스본은 서적도 판다');
+    assert.deepStrictEqual(m.map(x => x[1]), ['1', '2', 'Q', 'W', 'A', 'S', 'Z', 'X', '3', '4', 'Esc']); assert.deepStrictEqual(m.map(x => x[2]), ['1', '2', 'Q', 'W', 'A', 'S', 'Z', 'X', '3', '4', ''], '돌아가기는 Esc로만');
+    assert.deepStrictEqual(m.map(x => x[4]), [false, false, false, false, false, false, false, false, false, false, true], '돌아가기는 한 줄을 다 쓴다');
+    const pos = await g.$$eval('.dh-menu button', a => a.map(e => Math.round(e.getBoundingClientRect().top))); assert.ok(pos[0] === pos[1] && pos[2] === pos[3] && pos[4] === pos[5] && pos[6] === pos[7] && pos[2] > pos[0] && pos[10] > pos[8], '한 줄에 짝 둘 ' + pos);
+    let s0 = await Z(); await g.keyboard.press('KeyZ'); let s1 = await Z(); assert.deepStrictEqual([s1.olive, s1.gold > s0.gold], [s0.olive - 10, true], 'Z = 올리브유 팔기');
+    await g.keyboard.press('KeyX'); s1 = await Z(); assert.strictEqual(s1.olive, 0, 'X = 올리브유 모두 팔기'); m = await M();
+    assert.deepStrictEqual(m.map(x => x[0]), L23, '다 판 품목의 줄이 남는다');
+    assert.deepStrictEqual([m[6][3], m[7][3], m[8][3], m[8][1]], [true, true, false, '3'], '다 판 줄은 흐리고 뒤 줄의 키는 그대로');
+    await g.keyboard.press('KeyZ'); assert.strictEqual((await Z()).olive, 0, '흐린 버튼은 키로도 눌리지 않는다');
     await g.keyboard.press('KeyQ'); s1 = await Z(); assert.deepStrictEqual([s1.olive, s1.tab, s1.sel], [10, 'market', null], 'Q = 올리브유 사기(항구 고르기가 아니다)');
     await g.keyboard.press('KeyE'); await g.keyboard.press('KeyT'); await g.keyboard.press('KeyD'); s1 = await Z(); assert.deepStrictEqual([s1.tab, s1.sel, s1.cam], ['market', null, s0.cam], '교역소에서 E · T · D는 항구 고르기 · 지나는 배 · 지도 옮기기가 아니다');
     await g.keyboard.press('Shift+ArrowRight'); assert.ok((await Z()).cam > s0.cam, 'Shift+방향키는 지도를 옮긴다');
     const nw = await g.evaluate(() => { const v = __dh.voyage, id = [...__dh.engine.scene.world.goods.keys()].find(k => !v.cargo.has(k) && !((v.markets.get(v.port).get(k) || {}).refStock > 0)); v.cargo.set(id, { qty: 10, paid: 50 }); __dh.engine.scene.refresh(); return id; });
-    m = await M(); assert.deepStrictEqual(m.slice(-3).map(x => x.slice(0, 2)), [['sell:' + nw, '3'], ['sellall:' + nw, '4'], ['back', 'Esc']], '새로 실은 품목은 맨 끝 줄(3 4)');
-    assert.deepStrictEqual(m.slice(0, 8).map(x => x[1]), ['1', '2', 'Q', 'W', 'A', 'S', 'Z', 'X'], '앞 줄의 키는 그대로');
+    m = await M(); assert.deepStrictEqual(m.slice(-3).map(x => x.slice(0, 2)), [['sell:' + nw, 'E'], ['sellall:' + nw, 'R'], ['back', 'Esc']], '새로 실은 품목은 맨 끝 줄(E R)');
+    assert.deepStrictEqual(m.slice(0, 10).map(x => x[1]), ['1', '2', 'Q', 'W', 'A', 'S', 'Z', 'X', '3', '4'], '앞 줄의 키는 그대로');
     await g.keyboard.press('Escape'); assert.strictEqual((await Z()).tab, null); await g.keyboard.press('Digit6'); m = await M(); assert.strictEqual((await Z()).tab, 'hold');
     assert.deepStrictEqual(m.map(x => x.slice(0, 2)), [['sellall:olive', '1'], ['dump:olive', '2'], ['sellall:wine', 'Q'], ['dump:wine', 'W'], ['sellall:' + nw, 'A'], ['dump:' + nw, 'S'], ['back', 'Esc']], '짐칸도 한 줄이 한 품목');
     await g.keyboard.press('KeyS'); m = await M(); assert.deepStrictEqual([m[5][0], m[5][3], m.length], ['dump:' + nw, true, 7], 'S = 버리기 · 다 버린 줄은 흐린 채로 남는다');
