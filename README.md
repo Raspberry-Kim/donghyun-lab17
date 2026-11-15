@@ -1,8 +1,8 @@
-# 동현항 v0.24
+# 동현항 v0.26
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24106054.svg)](https://doi.org/10.5281/zenodo.24106054)
 
-동현랭으로 시작값과 규칙 수치를 정하는 **1인용 항해 · 교역 시뮬레이션 게임**이다. 선장 **포동이**의 탐험대가 1522년 리스본에서 떠나 **항구 마흔다섯 곳**을 오가며 **교역품 마흔여섯 가지**(아홉 갈래)를 사고판다. 바다에서는 하루하루 날짜가 흐르고 식량과 물이 줄어든다. **바다마다 다른 해적 여덟 무리**를 만나면 싸울지 · 달아날지 · 통행료나 짐으로 치를지 · 포로 위협할지 고르고, 싸우면 **8×8 육각 바다**에서 포격 · 백병전 · 일기토로 겨룬다. 이기면 선장의 무력이 오르고 빼앗은 배를 함대에 넣거나 판다. 큰 항구의 조합에서는 배달 의뢰를 받고, 짐칸 창에서 실은 것을 갈래별로 본다.
+동현랭으로 시작값과 규칙 수치를 정하는 **1인용 항해 · 교역 시뮬레이션 게임**이다. 선장 **포동이**의 탐험대가 1522년 리스본에서 떠나 **항구 마흔다섯 곳**을 오가며 **교역품 마흔일곱 가지**(아홉 갈래)를 사고판다. 바다에서는 하루하루 날짜가 흐르고 식량과 물이 줄어든다. **바다마다 다른 해적 여덟 무리**를 만나면 싸울지 · 달아날지 · 통행료나 짐으로 치를지 · 포로 위협할지 고르고, 싸우면 **8×8 육각 바다**에서 포격 · 백병전 · 일기토로 겨룬다. 이기면 선장의 무력이 오르고 빼앗은 배를 함대에 넣거나 판다. 큰 항구의 조합에서는 배달 의뢰를 받고, 짐칸 창에서 실은 것을 갈래별로 본다.
 동현 시리즈의 열일곱 번째 작은 실험이다. 1993년 게임 「대항해시대 II」의 큰 틀만 참고했고 지도 · 자료 · 규칙 · 그림 · 글 · 코드는 모두 새로 만들었다. 동현삼(열여섯 번째 실험)과 같은 엔진을 쓴다.
 
 바로 하기: https://raspberry-kim.github.io/donghyun-lab17/
@@ -116,7 +116,7 @@
 | 4 · 5 | 시작 식량(일) · 물(일) | 0~120 · 0~60 | 자료 값(90 · 60) |
 | 6 | 시작 선원 | 배의 최소~최대 선원 안 | 자료 값(28) |
 | 7 | 선장 무력(일기토와 백병전에 쓴다) | 1~100 | 자료 값(70) |
-| 8 | 시작 짐 (여러 번) | 교역품 번호(자료에 적힌 순서 1~46. 아래 **교역품** 표의 번호), 수량 | 자료 값 |
+| 8 | 시작 짐 (여러 번) | 교역품 번호(자료에 적힌 순서 1~47. 아래 **교역품** 표의 번호), 수량 | 자료 값 |
 | 9 | 시작 기함 | 배 종류 번호(자료에 적힌 순서: 1 캐러벨 · 2 캐럭 · 3 거북선). 시작 선원과 짐이 그 배에 맞아야 한다 | 자료 값(1 캐러벨) |
 | 10 | 교역 단위 | 1~100 | 10 |
 | 11 | 시세 변동 폭(%) | 1~20 | 3 |
@@ -234,6 +234,8 @@
 
 v0.23에 교역품 열 가지(서적 · 치즈 · 가공육 · 담배 · 벨벳 · 금속공예품 · 양탄자 · 보석공예품 · 커피 · 카카오)와 갈래 ‘서적’을 더하고, 항구 스물한 곳의 나는 것을 바꿨다. 유리구슬은 유리공예품으로 이름만 바꿨다(번호 4 · 기준 값 36 그대로). 이스탄불 · 베네치아 · 알렉산드리아는 포도주 · 올리브유를 팔지 않고, 제물포 · 동래는 은을, 발렌시아는 곡물을 팔지 않고, 제물포 · 동래는 둘 다 도자기 · 옥을 판다.
 
+v0.26에 47번 수정(보석·귀금속 · 기준 값 100)을 더해 아덴이 판다. 1~46번의 번호와 다른 항구의 시세는 그대로다.
+
 | # | 항구 | 표식 | 나는 것 | 시설 |
 |---|---|---|---|---|
 | 1 | 리스본 | 포르투갈 | 포도주 · 올리브유 · 서적 | 도크·조합 |
@@ -247,7 +249,7 @@ v0.23에 교역품 열 가지(서적 · 치즈 · 가공육 · 담배 · 벨벳 
 | 9 | 엘미나 | 가나 | 금 · 상아 | — |
 | 10 | 소팔라 | 모잠비크 | 금 · 상아 | — |
 | 11 | 몸바사 | 케냐 | 상아 | — |
-| 12 | 아덴 | 예멘 | 없음 | 도크 |
+| 12 | 아덴 | 예멘 | 수정(v0.26) | 도크 |
 | 13 | 호르무즈 | 이란 | 커피 | 도크 |
 | 14 | 고아 | 인도 | 후추 · 면직물 | 도크 |
 | 15 | 캘리컷 | 인도 | 후추 · 면직물 | 도크 |
@@ -334,17 +336,19 @@ v0.23에 교역품 열 가지(서적 · 치즈 · 가공육 · 담배 · 벨벳 
 | 44 | 보석공예품 | 보석·귀금속 | 260 |
 | 45 | 커피 | 술·차 | 70 |
 | 46 | 카카오 | 식료 | 60 |
+| 47 | 수정 | 보석·귀금속 | 100 |
 
 ### 역사 확인
 
-항구 · 특산품 · 해적(v0.13)과 교역품의 산지(v0.23)를 1522년에 비춰 보고, 출처를 찾은 것은 세 표로 나눴다. 게임을 위해 때가 맞지 않는 것도 그대로 남겼다. 표 안은 대서양 · 북해 → 지중해 → 홍해 · 인도양 → 동남아시아 · 동아시아 → 아메리카 차례다. 이름 뒤 (v0.23)은 v0.23에 더하거나 산지를 바꾼 교역품이다.
+항구 · 특산품 · 해적(v0.13)과 교역품의 산지(v0.23)를 1522년에 비춰 보고, 출처를 찾은 것은 네 표로 나눴다. 게임을 위해 때가 맞지 않는 것도 그대로 남겼다. 표 안은 대서양 · 북해 → 지중해 → 홍해 · 인도양 → 동남아시아 · 동아시아 → 아메리카 차례다. 이름 뒤 (v0.23)은 v0.23에 더하거나 산지를 바꾼 교역품이고, (v0.26)은 v0.26에 더한 교역품이다.
 
 - **맞는다**: 1522년 무렵 그 항구나 그 둘레에서 나거나 거래됐다는 출처가 있다.
 - **반쯤 맞는다**: 그 무렵 있기는 했지만 산지가 다른 곳이거나, 그 항구의 산물이라는 기록까지는 찾지 못했다.
 - **늦다**: 1522년보다 뒤에 생기거나 커졌다. 일부러 넣었다.
+- **맞지 않는다**: 그 무렵 그 고을의 산물 기록에 나오지 않는다. 게임을 위해 넣었다.
 - **확인 못 함**: 출처를 찾지 못했다.
 
-맞는다 36줄 · 반쯤 맞는다 13줄 · 늦다 15줄 · 확인 못 함 5가지다. v0.24에서는 v0.23의 ‘확인 못 한 것’ 열네 가지 가운데 아홉 가지와 제물포의 옥, 다시 보지 않았던 리스본 · 세비야 · 제노바의 포도주 · 올리브유를 출처와 대조해 표로 옮겼다. 아테네를 ‘오스만 아래 작은 고을’로 적었던 것도 고쳤다(인구로는 큰 도시였다).
+맞는다 36줄 · 반쯤 맞는다 16줄 · 늦다 17줄 · 맞지 않는다 1줄 · 확인 못 함 없음이다. v0.24에서는 v0.23의 ‘확인 못 한 것’ 열네 가지 가운데 아홉 가지와 제물포의 옥, 다시 보지 않았던 리스본 · 세비야 · 제노바의 포도주 · 올리브유를 출처와 대조해 표로 옮겼다. 아테네를 ‘오스만 아래 작은 고을’로 적었던 것도 고쳤다(인구로는 큰 도시였다). v0.26에서는 남은 다섯 가지(동래의 옥 · 케이프타운의 금 · 과테말라의 항구 자리 · 피사와 메카의 미술품)를 모두 출처와 맞춰 표로 옮기고, 새로 넣은 아덴의 수정도 대조했다. 케이프타운에 ‘금이 나던 곳이 아니다’라고 적었던 것은 고쳤다(1886년에 조금 나왔다).
 
 | 1522년에 맞는다 | 확인한 것 | 출처 |
 |---|---|---|
@@ -393,10 +397,13 @@ v0.23에 교역품 열 가지(서적 · 치즈 · 가공육 · 담배 · 벨벳 
 | 코펜하겐 치즈(v0.23) | 덴마크에서는 1232년 기록부터 치즈로 세금을 냈다. 16세기 코펜하겐이 치즈를 실어 냈다는 출처는 찾지 못했다 | [Ylva Ardö, Cheese in Denmark (UMSL)](https://umsl.edu/~naumannj/Geography%20PowerPoint%20Slides/northern%20europe/denmark%20-%20cheese.pdf) |
 | 마르세유 포도주 · 올리브유(v0.23) | 17세기 초 프로방스는 밀 · 포도주 · 올리브를 기르는 시골이었다. 1522년 마르세유가 실어 냈다는 기록은 찾지 못했다 | [Provence (Wikipedia)](https://en.wikipedia.org/wiki/Provence) |
 | 피사 올리브유(v0.23) | 피사 곁 칼치는 올리브 산지이고 16세기부터 물레방앗간이 늘었다. 1522년에 올리브유를 실어 냈다는 기록은 찾지 못했다 | [Terre di Pisa](https://www.terredipisa.it/en/territory/calci/) |
+| 피사 미술품 | 1469년 무렵 캄포산토 벽화 일을 두고 화가들이 겨뤘고, 일은 베노초 고촐리(1497년 죽음)가 맡았다. 다만 피사는 1509년 피렌체에 다시 정복된 뒤 토스카나의 지방 도시로 기울었다. 미술품을 실어 냈다는 기록은 찾지 못했다 | [Finestre sull'Arte](https://www.finestresullarte.info/en/museums/pisa-new-permanent-collection-displays-open-at-palazzo-blu) · [Britannica](https://www.britannica.com/print/article/461669) |
 | 나폴리 보석공예품(v0.23) | 15세기 말 나폴리에 첫 금세공 학교가 섰다는 설명이 있다. 산호 · 카메오로 이름난 것은 1600년 무렵부터이고 토레 델 그레코 공방은 1805년 것이다 | [VO+](https://www.vo-plus.com/en/jewelry-features/26gold-silver-coral-and-cameos) · [Laura Morelli](https://lauramorelli.com/coral-jewelry-naples-torre-del-greco/) |
 | 이스탄불 양탄자(v0.23) | 양탄자는 이스탄불이 아니라 서아나톨리아 우샤크에서 짰다. 1487년 무렵부터 큰 산지였다 | [Britannica](https://www.britannica.com/art/Ushak-carpet) · [브루클린 미술관](https://www.brooklynmuseum.org/objects/4741) |
 | 알렉산드리아 유리공예품(v0.23) | 맘루크의 에나멜 유리는 14세기가 전성기였고 15세기에 줄었다. 16세기 초 카이로 모스크의 등은 유럽에서 들여온 것으로 본다 | [Orient (J-STAGE)](https://www.jstage.jst.go.jp/article/orient1960/39/0/39_0_69/_article) |
 | 알렉산드리아 면직물(v0.23) | 맘루크 땅의 좋은 면은 주로 시리아(바알베크)에서 났다. 이집트는 파이윰 등에서 면을 길렀지만 아마(리넨)가 더 컸다 | [Rawi](https://rawi-publishing.com/articles/mamluk_textiles_sardi) · [Utrecht 대학](https://dspace.library.uu.nl/server/api/core/bitstreams/2dd52fb6-fad9-4b0e-8864-9b181d709929/content) |
+| 메카 미술품 | 순례와 함께 메카에 장이 섰고, 중국 비단 · 모술 금속공예 · 이란 도자기 · 시리아 유리가 메카를 거쳐 이슬람 세계 이 끝에서 저 끝으로 옮겨졌다. 메카에서 만든 것이 아니라 모였다가 흩어진 것이다 | [London Review of Books](https://www.lrb.co.uk/the-paper/v16/n14/robert-irwin/mecca-bound) |
+| 아덴 수정(v0.26) | 9~12세기 마다가스카르의 수정이 코모로의 뎀베니를 거쳐 아덴으로, 다시 바스라 · 카이로의 공방으로 갔다. 다도파르에서 아덴까지 남아라비아 항구는 동아프리카 물건을 쌓아 두고 옮겨 싣는 중계지였다. 아덴은 1513년 포르투갈의 포위를 막아 냈지만, 1522년 무렵 수정이 오갔다는 기록은 찾지 못했다. 예멘에서 이름난 돌은 홍옥수였다(13~14세기 인도가 들여왔다) | [Smarthistory](https://smarthistory.org/rock-crystal-ewer-san-marco/) · [Note on trade (전문 블로그)](https://pieterderideaux.jimdofree.com/introduction/note-on-trade/) · [Aden (Wikipedia)](https://en.wikipedia.org/wiki/Aden) · [Wisdom Library](https://www.wisdomlib.org/hinduism/book/minerals-and-metals-in-sanskrit-literature/d/doc1474407.html) |
 | 암본 육두구 | 육두구는 실제로는 반다 제도에서만 났다. 암본은 가까운 섬으로 대신 넣었다 | [Journal of Southeast Asian Studies](https://www.cambridge.org/core/journals/journal-of-southeast-asian-studies/article/colonisation-and-cultivation-nutmeg-production-labour-and-ecology-on-the-banda-islands-before-and-after-the-conquest-of-1621/BF86973D1324DB0D0FE680E0BF5291F7) |
 | 산토도밍고 산호 | 붉은 산호는 지중해에서 나서 에스파냐 사람이 아메리카로 날랐다. 산지가 아니라 거쳐 가는 곳이다 | [EHNE](https://ehne.fr/en/encyclopedia/themes/material-civilization/transnational-consumption-and-circulations/mediterranean-red-coral-a-european-merchandise-first-globalization) |
 | 과테말라 카카오(v0.23) | 태평양 쪽 수치테페케스와 이살코는 정복 전부터 큰 카카오 산지였다. 다만 에스파냐 교역은 1524년 정복 뒤이고, 1535년 무렵에야 멕시코로 실어 냈다 | [Mexicolore](https://www.mexicolore.co.uk/maya/chocolate/cacao-money) · [Brill](https://brill.com/display/book/9789004273689/BP000009.xml?language=en) |
@@ -412,16 +419,22 @@ v0.23에 교역품 열 가지(서적 · 치즈 · 가공육 · 담배 · 벨벳 
 | 호르무즈 커피(v0.23) | 16세기 호르무즈의 큰 교역품은 말 · 진주 · 향신료였다. 걸프의 커피는 17세기 포르투갈 기록에 나온다 | [Old Dominion 대학](https://digitalcommons.odu.edu/cgi/viewcontent.cgi?article=1072&context=history_fac_pubs) · [Portuguese Oman (Wikipedia)](https://en.wikipedia.org/wiki/Portuguese_Oman) |
 | 실론 차 | 1867년 차 재배가 시작됐다(사파이어 · 루비 · 계피는 그 전부터 났다) | [James Taylor (Wikipedia)](https://en.wikipedia.org/wiki/James_Taylor_(tea_planter)) |
 | 케이프타운 | 1652년 네덜란드 동인도회사가 세웠다 | [South African History Online](https://sahistory.org.za/article/dutch-settlement) |
+| 케이프타운 금 | 라이언스헤드 곁에서 1886년에 금이 나와 1886~1888년 깊이 45m 갱도로 시굴했지만, 케이프반도의 광산은 실패하거나 겨우 남는 정도였다. 남아프리카의 큰 금맥은 1884~1886년 비트바테르스란트에서 찾았다 | [American Geosciences Institute](https://information.americangeosciences.org/open-collections/igc/58/) · [South African History Online](https://sahistory.org.za/article/discovery-gold-1884) |
 | 나가사키 | 1571년에 항구가 열렸다 | [Nagasaki (Wikipedia)](https://en.wikipedia.org/wiki/Nagasaki) |
 | 나가사키 짬뽕 | 1899년 무렵 생겼다 | [일본 농림수산성](https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/3351/index.html) |
 | 제물포 | 1883년에 항구가 열렸다 | [인천지방해양수산청](https://incheon.mof.go.kr/ko/page.do?menuIdx=1780) |
 | 동래 도자기의 왜관요(v0.23) | 일본 주문 찻사발을 굽던 부산 왜관요는 1639~1718년의 것이다(위의 조선 사발 수출과는 따로) | [KCI](https://www.kci.go.kr/kciportal/ci/sereArticleSearch/ciSereArtiView.kci?sereArticleSearchBean.artiId=ART002760874) |
 | 동래 금속공예품(v0.23) | 백동 수저 · 그릇 같은 동래 유기는 담뱃대와 함께 이름난 산물이었지만 언제부터인지는 적혀 있지 않다. 유기 기술은 조선 전기에 주춤했다가 18세기에 다시 꽃폈다 | [한국민족문화대백과사전](http://encykorea.aks.ac.kr/Article/E0066986) · [한국전통지식포털](https://koreantk.com/ktkp2014/asset/asset-view.view?artNo=0000000000023) |
 | 페르남부쿠 설탕(v0.23) | 두아르트 코엘류가 1535년에 왔고, 1542년 큰 제당소가 거의 다 지어졌다. 1550년에 제당소 다섯 곳이 돌았다 | [Captaincy of Pernambuco (Wikipedia)](https://en.wikipedia.org/wiki/Captaincy_of_Pernambuco) |
+| 과테말라 항구 자리 | 게임의 항구는 카리브해 쪽 아마티케만에 있다. 에스파냐는 1524년에야 과테말라에 들어와 5월에 태평양 쪽 평야로 내려갔다. 그 만의 산토토마스 데 카스티야는 1604년에 세워졌고 1843년 벨기에 회사가 다시 정착했다. 태평양 쪽 이스타파도 1527년 에스파냐 지도에 처음 나온다 | [Spanish conquest of Guatemala (Wikipedia)](https://en.wikipedia.org/wiki/Spanish_conquest_of_Guatemala) · [Santo Tomás de Castilla (Wikipedia)](https://en.wikipedia.org/wiki/Santo_Tom%C3%A1s_de_Castilla) · [Britannica](https://www.britannica.com/place/Santo-Tomas-de-Castilla) · [Visit Guatemala](https://visitguatemala.gt/en/blog/iztapa-what-see-do/) |
 
-확인 못 함: 동래의 옥(v0.23 · 조선의 옥 산지 서른 곳 남짓 가운데 동래가 있는지는 찾지 못했다), 케이프타운의 금(역사적으로 금이 나던 곳이 아니다), 과테말라의 항구 자리(1524년에야 에스파냐가 정복했다 · 자리는 지어낸 것), 피사(피렌체 아래)의 미술품, 메카의 미술품. 게임을 위해 정한 것이고 출처로 맞춰 보지 못했다.
+| 맞지 않는다 | 확인한 것 | 출처 |
+|---|---|---|
+| 동래 옥(v0.23) | 『경상도지리지』(1425)의 동래현 토산 공물과 『세종실록』 지리지(1454)의 동래현 토공 · 약재에 옥이 없다(‘옥(玉)’은 동래의 토성으로만 나온다). 『신증동국여지승람』(1530) 동래현 토산 21종도 석류 · 유자 · 바닷말 · 물고기 · 조개 같은 생물이다. 조선의 옥 산지로 확인한 곳은 경기 남양 · 함경 단천 등이다(위 제물포 옥) | [부산역사문화대전](https://busan.grandculture.net/Contents/Contents?dataType=01&contents_id=GC04200058&isTreeSpread=Y&RequestBy=%ED%95%AD%EB%AA%A9%EB%A7%81%ED%81%AC&gcode=) · [조선왕조실록](https://sillok.history.go.kr/id/kda_40006001_008) · [국립생물자원관](https://www.nibr.go.kr/aiibook/catImage/93/Joseon%202.pdf) |
 
-출처는 백과사전(위키백과 포함) · 박물관 · 대학 · 공공기관 자료를 먼저 썼고, 찾지 못하면 관광청이나 전문 블로그 글도 썼다(Oslo Sea Experience · culina vetus · Molo Modo 등). 출처가 있는 줄도 그 항구의 1522년 교역량까지 보여 주지는 않는다.
+확인 못 함: 없다. 다만 경상도 안의 조선 옥 산지는 찾지 못했고, 『신증동국여지승람』 동래현 토산은 원문이 아니라 생물만 추린 국립생물자원관 정리로 봤다.
+
+출처는 백과사전(위키백과 포함) · 박물관 · 대학 · 공공기관 자료를 먼저 썼고, 찾지 못하면 관광청이나 전문 블로그 글도 썼다(Oslo Sea Experience · culina vetus · Molo Modo · Visit Guatemala 등). 출처가 있는 줄도 그 항구의 1522년 교역량까지 보여 주지는 않는다.
 
 ### 해적과의 만남
 
@@ -657,7 +670,7 @@ lang.describe(state)                         // 설정 번호 표 (번호 · 이
 }
 ```
 
-- 항구 45곳, 교역품 46가지(갈래 9), 해적 8무리. 한 칸은 경위도 1°다.
+- 항구 45곳, 교역품 47가지(갈래 9), 해적 8무리. 한 칸은 경위도 1°다.
 - `flag`는 항구 표식으로 그릴 오늘날 나라 부호(ISO 3166-1 두 글자)다. `kind`는 교역품의 갈래로 `kinds`에 있는 것이어야 한다.
 - `x, y`는 항구 칸(육지), `anchor`는 그 옆 정박 칸(바다)이다. 배는 정박 칸에 선다.
 - `market`은 교역품 시세 배열이다. `stock`이 0이면 그 항구에서 팔지 않는다.

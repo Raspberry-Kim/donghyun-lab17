@@ -532,8 +532,8 @@
       if (d.war !== undefined) v.captain.war = d.war;
       v.cargo = new Map(d.cargo.map(([good, qty, paid]) => [good, { qty, paid }]));
       // v0.23에서 산지가 바뀌었다. 사기만 하는 항구의 재고는 늘 0이므로, 그런 칸에 재고가 적혀 있으면(예전에 팔던 칸) 자료의 처음 시세로 연다.
-      // 교역품을 다 적지 않은 예전 저장에서 v0.23에 새로 파는 칸(V023_SOURCES)도 처음 시세로 연다. 다 팔려 재고가 0인 예전 산지는 적힌 대로 둔다.
-      for (const [pid, list] of d.markets) { const old = list.length < w.ports.get(pid).market.length;
+      // v0.23 교역품(서적)이 없는 예전 저장에서는 v0.23에 새로 파는 칸(V023_SOURCES)도 처음 시세로 연다. v0.26에 더한 수정처럼 저장에 없는 칸은 자료의 처음 시세로 연다. 다 팔려 재고가 0인 예전 산지는 적힌 대로 둔다.
+      for (const [pid, list] of d.markets) { const old = !list.some(e => e && e[0] === 'book');
         for (const [good, price, stock] of list) { const e = v.markets.get(pid).get(good);
           if ((stock > 0 && e.refStock === 0) || (old && V023_SOURCES.has(pid + ':' + good))) Object.assign(e, { price: e.ref, stock: e.refStock }); else Object.assign(e, { price, stock }); } }
       v.rest = new Map(d.rest || []); v.prizes = (d.prizes || []).map(p => ({ type: p.type, hull: p.hull })); v.contracts = (d.contracts || []).map(c => ({ ...c })); v.taken = [...(d.taken || [])];

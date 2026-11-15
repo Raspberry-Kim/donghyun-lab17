@@ -263,7 +263,7 @@ html.pseudo-full-on,html.pseudo-full-on body{overflow:hidden;overscroll-behavior
 .document ul,.document ol{margin:10px 0;padding-left:1.3em}
 .document li{margin:4px 0}
 .document .table-wrap,.document pre{margin:12px 0}
-.document td,.document th{line-height:1.7}
+.document td,.document th{line-height:1.7}.document th{word-break:keep-all}
 .document td{color:var(--muted);word-break:keep-all}.document td:first-child{color:var(--ink)}
 .document pre.code-example{line-height:1.7;font-size:var(--text-xs);tab-size:2}
 .document .lead-note{font-size:var(--text-sm)}
