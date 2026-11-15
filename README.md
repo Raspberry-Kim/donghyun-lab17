@@ -337,7 +337,7 @@ v0.23에 교역품 열 가지(서적 · 치즈 · 가공육 · 담배 · 벨벳 
 
 ### 역사 확인
 
-v0.13에 더한 항구 · 특산품 · 해적을 1522년에 비춰 보았다. 게임을 위해 때가 맞지 않는 것도 남겼다.
+v0.13에 더한 항구 · 특산품 · 해적과 v0.23에 더하거나 산지를 바꾼 교역품을 1522년에 비춰 보았다. 게임을 위해 때가 맞지 않는 것도 남겼다.
 
 | 1522년에 맞는다 | 확인한 것 | 출처 |
 |---|---|---|
@@ -357,11 +357,30 @@ v0.13에 더한 항구 · 특산품 · 해적을 1522년에 비춰 보았다. �
 | 코펜하겐 청어 | 외레순 · 스코네 청어 장이 15~16세기에 섰다(차츰 줄었다) | [Scania market (Wikipedia)](https://en.wikipedia.org/wiki/Scania_market) |
 | 마르세유 비누 | 14세기부터 비누를 만들었고 16세기에 크게 늘었다 | [Marseille 관광청](https://www.marseille-tourisme.com/en/discover-marseille/traditions/marseille-soap/) |
 | 메카 | 지다(제다)가 메카의 항구다 | [Britannica](https://www.britannica.com/place/Jeddah-Saudi-Arabia) |
+| 리스본 서적(v0.23) | 1489년 엘리에제르 톨레다노가 리스본의 첫 책을 찍었다 | [Britannica](https://www.britannica.com/topic/publishing/The-age-of-early-printing-1450-1550) |
+| 베네치아 서적(v0.23) | 알도 마누치오의 인쇄소가 1495년 첫 책을 냈고, 베네치아는 유럽 출판의 중심이었다 | [Aldus Manutius (Wikipedia)](https://en.wikipedia.org/wiki/Aldus_Manutius) · [BBC](https://www.bbc.com/travel/article/20190708-the-city-that-launched-the-publishing-industry) |
+| 베네치아 유리공예품(v0.23) | 1291년 유리 가마를 무라노섬으로 옮겼고, 15세기부터 맑은 크리스탈로 유리를 만들었다 | [Britannica](https://www.britannica.com/art/Venetian-glass) |
+| 베네치아 비누(v0.23) | 1489년 원로원이 비누를 베네치아에서만 만들게 했고, 16세기에 비누 장인 40명 남짓이 일했다 | [베네치아 시](https://1600.venezia.it/en/articolo/bianco-venezia-the-first-scented-soap-for-personal-hygiene-was-born-the-venetian-lagoon) |
+| 발렌시아 서적(v0.23) | 1474년 에스파냐 첫 문학 인쇄본 『Obres e trobes』를 램버트 팔마르트가 찍었다 | [발렌시아 대학](https://www.uv.es/uvweb/libraries-documentation-service/en/resources/trobes-1285917358724.html) |
+| 발렌시아 벨벳(v0.23) | 1479년 벨벳 직조 조합(벨루테르스)의 규약이 섰다. 1450~1525년 벨벳 장인의 40%가 외국인이었고 제노바 사람이 많았다 | [발렌시아 관광청 비단 박물관](https://www.visitvalencia.com/en/what-to-do-valencia/valencian-culture/museum-in-valencia/silk-museum) · [eHumanista](https://www.ehumanista.ucsb.edu/sites/secure.lsit.ucsb.edu.span.d7_eh/files/sitefiles/ivitra/volume14/A/9.%20Marco.pdf) |
+| 제노바 벨벳(v0.23) | 16세기에 제노바의 검은 벨벳이 가장 좋다고 여겨졌다(여러 색 ‘제노바 벨벳’은 17세기 것) | [메트로폴리탄 미술관](https://www.metmuseum.org/essays/renaissance-velvet-textiles) |
+| 런던 금속공예품(v0.23) | 1478년 금세공 조합 회관에 검사소가 서서 금은 그릇에 홀마크를 찍었다 | [Goldsmiths' Company](https://www.thegoldsmiths.co.uk/history) |
+| 이스탄불 보석공예품(v0.23) | 오스만 궁정 공방에 보석 장인이 있었고, 1526년 장부에 보석 장인 58명이 적혔다 | [ADORNMENT (Academia)](https://www.academia.edu/34073537/ADORNMENT_THE_MAGAZINE_0F_JEWELRY_and_RELATED_ARTS_TM) · [Aramco World](https://archive.aramcoworld.com/issue/199501/topkapi.s.treasures.htm) |
+| 알렉산드리아 금속공예품(v0.23) | 맘루크 시대 카이로 · 다마스쿠스에서 은 · 금을 박은 금속 그릇이 났고 베네치아로 팔려 갔다(1517년부터 오스만) | [메트로폴리탄 미술관](https://www.metmuseum.org/essays/venices-principal-muslim-trading-partners-the-mamluks-the-ottomans-and-the-safavids) |
+| 메카 커피(v0.23) | 1511년 6월 메카 총독 하이르 베그가 커피를 금했다. 그만큼 이미 마셨다 | [History of coffee (Wikipedia)](https://en.wikipedia.org/wiki/History_of_coffee) · [Medievalists.net](https://www.medievalists.net/2025/09/brewing-controversy-how-coffee-sparked-fierce-debate-in-the-16th-century/) |
+| 베라크루스 카카오(v0.23) | 아스테카가 걷던 멕시코만 토토나카 땅의 조공에 카카오가 들었다. 더 남쪽 타바스코 촌탈파도 큰 산지였다 | [FAMSI](https://www.famsi.org/research/diehl/section01g.html) · [Mexicolore](https://www.mexicolore.co.uk/maya/chocolate/aztec-and-maya-chocolate) |
+| 제물포 · 동래 도자기(v0.23) | 1467년 무렵 경기도 광주에 사옹원 관요가 서서 백자를 구웠다. 조선 사발은 16세기 초 일본에 건너가 찻사발로 쓰였다 | [한국학중앙연구원](https://www.aks.ac.kr/cefia/webzine/2006/focus_eng.html) · [클리블랜드 미술관](https://www.clevelandart.org/print/art/1988.1057) |
+| 제물포 서적(v0.23) | 1403년 계미자를 시작으로 조선은 금속활자로 책을 찍었다(항구가 아니라 조선의 산물로서) | [우리역사넷](https://contents.history.go.kr/front/tz/view.do?levelId=tz_b22) |
 
 | 반쯤 맞는다 | 확인한 것 | 출처 |
 |---|---|---|
 | 암본 육두구 | 육두구는 실제로는 반다 제도에서만 났다. 암본은 가까운 섬으로 대신 넣었다 | [Journal of Southeast Asian Studies](https://www.cambridge.org/core/journals/journal-of-southeast-asian-studies/article/colonisation-and-cultivation-nutmeg-production-labour-and-ecology-on-the-banda-islands-before-and-after-the-conquest-of-1621/BF86973D1324DB0D0FE680E0BF5291F7) |
 | 산토도밍고 산호 | 붉은 산호는 지중해에서 나서 에스파냐 사람이 아메리카로 날랐다. 산지가 아니라 거쳐 가는 곳이다 | [EHNE](https://ehne.fr/en/encyclopedia/themes/material-civilization/transnational-consumption-and-circulations/mediterranean-red-coral-a-european-merchandise-first-globalization) |
+| 이스탄불 양탄자(v0.23) | 양탄자는 이스탄불이 아니라 서아나톨리아 우샤크에서 짰다. 1487년 무렵부터 큰 산지였다 | [Britannica](https://www.britannica.com/art/Ushak-carpet) · [브루클린 미술관](https://www.brooklynmuseum.org/objects/4741) |
+| 알렉산드리아 유리공예품(v0.23) | 맘루크의 에나멜 유리는 14세기가 전성기였고 15세기에 줄었다. 16세기 초 카이로 모스크의 등은 유럽에서 들여온 것으로 본다 | [Orient (J-STAGE)](https://www.jstage.jst.go.jp/article/orient1960/39/0/39_0_69/_article) |
+| 알렉산드리아 면직물(v0.23) | 맘루크 땅의 좋은 면은 주로 시리아(바알베크)에서 났다. 이집트는 파이윰 등에서 면을 길렀지만 아마(리넨)가 더 컸다 | [Rawi](https://rawi-publishing.com/articles/mamluk_textiles_sardi) · [Utrecht 대학](https://dspace.library.uu.nl/server/api/core/bitstreams/2dd52fb6-fad9-4b0e-8864-9b181d709929/content) |
+| 나폴리 보석공예품(v0.23) | 15세기 말 나폴리에 첫 금세공 학교가 섰다는 설명이 있다. 산호 · 카메오로 이름난 것은 1600년 무렵부터이고 토레 델 그레코 공방은 1805년 것이다 | [VO+](https://www.vo-plus.com/en/jewelry-features/26gold-silver-coral-and-cameos) · [Laura Morelli](https://lauramorelli.com/coral-jewelry-naples-torre-del-greco/) |
+| 과테말라 카카오(v0.23) | 태평양 쪽 수치테페케스와 이살코는 정복 전부터 큰 카카오 산지였다. 다만 에스파냐 교역은 1524년 정복 뒤이고, 1535년 무렵에야 멕시코로 실어 냈다 | [Mexicolore](https://www.mexicolore.co.uk/maya/chocolate/cacao-money) · [Brill](https://brill.com/display/book/9789004273689/BP000009.xml?language=en) |
 
 | 1522년보다 늦다(일부러 넣었다) | 확인한 것 | 출처 |
 |---|---|---|
@@ -371,10 +390,16 @@ v0.13에 더한 항구 · 특산품 · 해적을 1522년에 비춰 보았다. �
 | 케이프타운 | 1652년 네덜란드 동인도회사가 세웠다 | [South African History Online](https://sahistory.org.za/article/dutch-settlement) |
 | 나폴리 피자 | 18세기 나폴리에서 오늘날 모양이 됐다 | [History of pizza (Wikipedia)](https://en.wikipedia.org/wiki/History_of_pizza) |
 | 제물포 | 1883년에 항구가 열렸다 | [인천지방해양수산청](https://incheon.mof.go.kr/ko/page.do?menuIdx=1780) |
+| 암스테르담 서적(v0.23) | 암스테르담의 첫 인쇄본은 1506년이고, 유럽 출판의 중심이 된 것은 1600년 무렵부터다 | [Brill](https://brill.com/previewpdf/display/book/9789004376731/BP000010.xml) · [The Low Countries](https://www.the-low-countries.com/article/how-amsterdam-became-the-bookshop-of-the-world/) |
+| 세비야 담배(v0.23) | 16세기 초 담배 상인이 세비야에 섰다는 설명이 있지만, 16세기에는 약으로 조금 썼다. 첫 담배 공장은 1620년, 전매는 1636년이다 | [Royal Tobacco Factory (Wikipedia)](https://en.wikipedia.org/wiki/Royal_Tobacco_Factory) · [Encyclopedia.com](https://www.encyclopedia.com/books/politics-and-business-magazines/tabacalera-sa-0) |
+| 이스탄불 커피(v0.23) | 1539년 무렵 마시기 시작했고 첫 커피집은 1554년 타흐타칼레에 열렸다 | [Turkish coffee (Wikipedia)](https://en.wikipedia.org/wiki/Turkish_coffee) |
+| 호르무즈 커피(v0.23) | 16세기 호르무즈의 큰 교역품은 말 · 진주 · 향신료였다. 걸프의 커피는 17세기 포르투갈 기록에 나온다 | [Old Dominion 대학](https://digitalcommons.odu.edu/cgi/viewcontent.cgi?article=1072&context=history_fac_pubs) · [Portuguese Oman (Wikipedia)](https://en.wikipedia.org/wiki/Portuguese_Oman) |
+| 페르남부쿠 설탕(v0.23) | 두아르트 코엘류가 1535년에 왔고, 1542년 큰 제당소가 거의 다 지어졌다. 1550년에 제당소 다섯 곳이 돌았다 | [Captaincy of Pernambuco (Wikipedia)](https://en.wikipedia.org/wiki/Captaincy_of_Pernambuco) |
+| 동래 도자기의 왜관요(v0.23) | 일본 주문 찻사발을 굽던 부산 왜관요는 1639~1718년의 것이다(위의 조선 사발 수출과는 따로) | [KCI](https://www.kci.go.kr/kciportal/ci/sereArticleSearch/ciSereArtiView.kci?sereArticleSearchBean.artiId=ART002760874) |
 
-확인 못 한 것: 동래의 옥, 케이프타운의 금(역사적으로 금이 나던 곳이 아니다), 과테말라(1524년에야 에스파냐가 정복했다 · 항구 자리도 지어낸 것), 아테네(오스만 아래 작은 고을)의 조각품, 피사(피렌체 아래)의 미술품, 세부의 곡물, 베라크루스의 피망, 오슬로의 목재, 메카의 미술품. 이것들은 게임을 위해 정한 것이고 출처로 맞춰 보지 못했다.
+확인 못 한 것: 제물포 · 동래의 옥, 동래의 금속공예품, 함부르크의 가공육, 코펜하겐의 치즈, 마르세유의 포도주 · 올리브유, 피사의 올리브유(모두 v0.23), 케이프타운의 금(역사적으로 금이 나던 곳이 아니다), 과테말라(1524년에야 에스파냐가 정복했다 · 항구 자리도 지어낸 것), 아테네(오스만 아래 작은 고을)의 조각품, 피사(피렌체 아래)의 미술품, 세부의 곡물, 베라크루스의 피망, 오슬로의 목재, 메카의 미술품. 이것들은 게임을 위해 정한 것이고 출처로 맞춰 보지 못했다.
 
-v0.23에 더한 교역품과 바꾼 산지(위 항구 표의 리스본 · 세비야 · 런던 · 암스테르담 · 제노바 · 베네치아 · 이스탄불 · 알렉산드리아 · 호르무즈 · 베라크루스 · 제물포 · 동래 · 나폴리 · 피사 · 함부르크 · 마르세유 · 발렌시아 · 페르남부쿠 · 메카 · 코펜하겐 · 과테말라)도 게임을 위해 정한 것이다. 1522년의 산물인지 출처로 맞춰 보지 않았다. 커피 · 카카오 · 담배처럼 그 무렵 유럽 교역에 아직 널리 퍼지지 않은 것도 있을 수 있다.
+v0.23에 더한 교역품은 산지 이름을 1522년에 맞추기보다 게임의 뱃길을 위해 고른 것이다. 위 세 표에 맞춰 본 것을 나누어 적었다. 리스본 · 세비야 · 제노바의 포도주 · 올리브유처럼 v0.22까지 있던 것은 다시 보지 않았다.
 
 ### 해적과의 만남
 
