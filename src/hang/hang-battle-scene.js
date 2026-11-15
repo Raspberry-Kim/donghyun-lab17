@@ -178,6 +178,9 @@
    *  칸 경계를 기기 픽셀에 맞춰 반올림하므로 어떤 배율에서도 칸 사이에 틈이나 번짐이 없다. */
   function drawShip(g, x, y, k, look = LOOK.me, flag = false, face = 1, type = null, skin = null, anim = {}) {
     if (skin != null) return drawFancyShip(g, x, y, k, skin, face);
+    // 이지스함 원화의 포구는 왼쪽이다. 공통 face=1(오른쪽 진행)과 여기서 맞춘다.
+    // 항해·전투 대기·발사 모두 같은 방향 규약을 쓰며 선체와 포구를 함께 돌린다.
+    if (type === 'aegis') face = -face;
     const m = g.getTransform(), set = SPRITES[type] || SPRITE, tiny = k < 1.6, sp = tiny ? set.small : set.big;
     const c = tiny ? k : k * sp.cell, pal = look.px || PX.me;
     const left = x - sp.w * c / 2, top = y + 5 * k - (sp.base + 1) * c;
@@ -540,7 +543,7 @@
       const land = 14 * tempo;                                    // 표시 시간만 연장. 피해·난수 계산은 그대로.
       if (rec.type === 'fire') {
         const A = at(u), B = at(x), big = Math.min(1, (rec.hull + rec.crew * 2) / 30);
-        if(specialFire(u.type))this.fx.push({kind:u.type==='turtle'?'dragon':'aegisFire',id:u.id,dir:(Math.sign(B.x-A.x)||1)*(u.type==='aegis'?-1:1),t0:t,life:SHIP_FIRE_TICKS});
+        if(specialFire(u.type))this.fx.push({kind:u.type==='turtle'?'dragon':'aegisFire',id:u.id,dir:Math.sign(B.x-A.x)||1,t0:t,life:SHIP_FIRE_TICKS});
         // 용머리의 열린 입을 가리지 않도록 거북선 포연만 머리 위로 띄운다.
         this.fx.push({ kind: 'smoke', x: A.x, y: A.y - (u.type === 'turtle' ? 22 : 0), dir: Math.sign(B.x - A.x) || 1, t0: t, life: 40 * tempo });
         for (let i = 0; i < 3; i++) this.fx.push({ kind: 'ball', a: A, b: { x: B.x + (i - 1) * 5, y: B.y + (i === 1 ? 0 : 3) }, t0: t + i * 4 * tempo, flight: land, life: land + 2 * tempo });

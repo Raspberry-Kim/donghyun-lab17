@@ -79,14 +79,14 @@ console.log('ok 회전/침몰 효과의 기존 변환 유지 · 유효한 사각
   console.log('ok 목재 이지스함: 두 크기·양 진영의 나무 명암·포문·레이더 보존');
 }
 {
-  for(const k of [1,3])for(const face of [-1,1]){
-    const g=recorder();H.drawShip(g,100,100,k,H.LOOK.me,true,face,'aegis',null,{tick:0});
+  for(const k of [1,3])for(const face of [-1,1])for(const fire of [-1,0,40,89,90]){
+    const g=recorder();H.drawShip(g,100,100,k,H.LOOK.me,true,face,'aegis',null,{tick:0,fire});
     const red=g.rects.filter(r=>['#c44332','#8e3029','#e87653'].includes(r[4]));
     const top=Math.min(...red.map(r=>r[1])),bottom=Math.max(...red.map(r=>r[1]));
     const center=y=>{const a=red.filter(r=>r[1]===y);return a.reduce((s,r)=>s+r[0]+r[2]/2,0)/a.length;};
-    assert.ok((center(top)-center(bottom))*face<0,'기준 그림의 포구는 왼쪽 위, 배 전체 반전 시 함께 반전');
+    assert.ok((center(top)-center(bottom))*face>0,'포구의 전방 45도 기울기는 항해·전투의 진행 방향과 일치');
   }
-  console.log('ok 큰/작은 붉은 대포의 반대 기울기 · 배 전체 좌우 반전 보존');
+  console.log('ok 큰/작은 붉은 대포의 진행 방향 일치 · 배 전체 좌우 반전 보존');
 }
 {
   for(const k of [1,3]) {

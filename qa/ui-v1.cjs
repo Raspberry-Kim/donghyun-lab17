@@ -99,7 +99,7 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
       await p.locator('.dh-canvas').scrollIntoViewIfNeeded();
       const B=await p.locator('.dh-canvas').boundingBox();
       for(const c of aim)await p.mouse.click(B.x+c.x*B.width/480,B.y+c.y*B.height/360);
-      assert.ok(await E(dir=>__dh.engine.scene.fx.some(f=>f.kind==='aegisFire'&&f.dir===-dir&&f.life===90),dir));
+      assert.ok(await E(dir=>__dh.engine.scene.fx.some(f=>f.kind==='aegisFire'&&f.dir===dir&&f.life===90),dir));
       await E(()=>__dh.engine.step(40));await shot('aegis-fire-'+dir);
       assert.ok(await E(()=>__dh.engine.scene.b.units.find(u=>u.side==='foe').hull<1200));
       await E(()=>__dh.engine.step(20));assert.ok(await E(()=>__dh.engine.scene.fx.some(f=>f.kind==='aegisFire')));
@@ -135,7 +135,7 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
       assert.ok(!/__[_A-Z]+__/.test(await p.locator('#tab-'+tab).innerText()),tab+' 치환 누락');
     }
     await p.locator('[data-tab="math"]').click();
-    assert.ok((await p.locator('#tab-math').innerText()).includes('v1.20'));
+    assert.ok((await p.locator('#tab-math').innerText()).includes('v1.21'));
     const table=p.locator('#tab-math table').filter({hasText:'이지스함'});
     assert.equal(await table.locator('tbody tr').count(),5);
     await p.locator('#tab-math article').last().screenshot({path:path.join(out,'phone-growth-math.png')});
