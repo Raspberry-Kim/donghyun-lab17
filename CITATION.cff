@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 title: "Donghyunhang (동현항): a single-player sailing and trading simulation game on a world map with hex sea battles, with starting values and rule numbers set through the esoteric language Donghyun-lang"
 type: software
-version: "0.21"
+version: "0.23"
 doi: "10.5281/zenodo.24106054"
 date-released: "2026-11-15"
 authors:
@@ -17,7 +17,7 @@ abstract: >-
   Donghyunhang is a browser-based, noncommercial toy that follows only the
   broad frame of Uncharted Waters II (Daikoukai Jidai II; Koei, 1993): a
   captain leads a fleet across a 16th-century world map, buying low and
-  selling high among forty-five ports that trade thirty-six goods in eight
+  selling high among forty-five ports that trade forty-six goods in nine
   kinds. At sea the calendar advances one day per step while food and water
   run down; in port the player uses a market, a lodge, a shipyard, a supply
   menu, a guild with delivery contracts and a cargo hold sorted by kind.

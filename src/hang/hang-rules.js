@@ -42,6 +42,8 @@
   const SHIP_NAMES = ['흰구름호', '새벽별호', '물보라호'];
   const fmt = n => Number(n).toLocaleString('ko-KR');
   const NO = why => ({ ok: false, why });
+  // v0.23에 이미 있던 교역품을 새로 팔게 된 항구 · 교역품(예전 저장을 열 때 쓴다)
+  const V023_SOURCES = new Set(['venice:soap', 'alexandria:glass', 'alexandria:cotton', 'jemulpo:porcelain', 'jemulpo:jade', 'pisa:olive', 'marseille:wine', 'marseille:olive', 'pernambuco:sugar', 'dongnae:porcelain']);
   const artHash = text => { let h = 2166136261; for (const c of String(text)) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; };
   const DIRS = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] };
 
@@ -529,7 +531,11 @@
       v.ships = d.ships.map(sh => ({ id: sh.id, type: sh.type, name: sh.name, hull: sh.hull, plus: sh.plus || 0, ...(sh.won ? { won: 1 } : {}) }));
       if (d.war !== undefined) v.captain.war = d.war;
       v.cargo = new Map(d.cargo.map(([good, qty, paid]) => [good, { qty, paid }]));
-      for (const [pid, list] of d.markets) for (const [good, price, stock] of list) Object.assign(v.markets.get(pid).get(good), { price, stock });
+      // v0.23에서 산지가 바뀌었다. 사기만 하는 항구의 재고는 늘 0이므로, 그런 칸에 재고가 적혀 있으면(예전에 팔던 칸) 자료의 처음 시세로 연다.
+      // 교역품을 다 적지 않은 예전 저장에서 v0.23에 새로 파는 칸(V023_SOURCES)도 처음 시세로 연다. 다 팔려 재고가 0인 예전 산지는 적힌 대로 둔다.
+      for (const [pid, list] of d.markets) { const old = list.length < w.ports.get(pid).market.length;
+        for (const [good, price, stock] of list) { const e = v.markets.get(pid).get(good);
+          if ((stock > 0 && e.refStock === 0) || (old && V023_SOURCES.has(pid + ':' + good))) Object.assign(e, { price: e.ref, stock: e.refStock }); else Object.assign(e, { price, stock }); } }
       v.rest = new Map(d.rest || []); v.prizes = (d.prizes || []).map(p => ({ type: p.type, hull: p.hull })); v.contracts = (d.contracts || []).map(c => ({ ...c })); v.taken = [...(d.taken || [])];
       v.visits = new Map(d.visits || (d.port || d.lastPort ? [[d.port || d.lastPort, 1]] : []));
       v.visitsKnown = d.visits !== undefined && d.visitsKnown !== false;
