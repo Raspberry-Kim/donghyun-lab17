@@ -7,7 +7,7 @@
  *          싸우면 해전 화면(hang-battle-scene.js)으로 넘어가고, 끝나면 결과를 반영해 이 지도로 돌아온다.
  *   도크   배를 고르면(○○ 손보기) 그 배에 포를 더 달거나, 다른 배로 바꾸거나, 판다. 여관에서는 선장이 수련해 무력을 올린다.
  * 키보드(지도를 한 번 누른 뒤): 바다에서 방향키는 키 · 항구에서 방향키는 그쪽 항구 고르기 · Space 바다에서 멈춤·계속(그 밖에는 가까운 항구부터 차례로) ·
- *   Q E 가까운 항구 차례로(앞 · 뒤) · 숫자 키 조작 창의 버튼 · Enter 노란 버튼 · Esc 그만두기 · Shift+방향키(또는 W A S D) 지도 옮기기 · + − 확대와 축소.
+ *   Q E 가까운 항구 차례로(앞 · 뒤) · 숫자 키 조작 창의 버튼(교역소 · 짐칸은 1 2 · Q W · A S … 짝 키, 그동안 Q E W A S D T도 버튼 키) · Enter 노란 버튼 · Esc 그만두기 · Shift+방향키(또는 W A S D) 지도 옮기기 · + − 확대와 축소.
  * 저장: saveGame()이 설정 목록 · 날짜 · 난수 · 탐험을 한 묶음으로 내고, loadGame()이 검사한 뒤 되살린다. 해전 중과 해적 출현 카드가 떠 있는 동안에는 저장하지 않는다.
  *   불러온 탐험은 멈춘 채로 돌아온다(잡아 둔 뱃길과 키는 그대로여서 '계속'을 누르면 이어 간다). */
 (function (root) {
@@ -29,6 +29,14 @@
   };
   const ARROW = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }, PAN = { KeyA: 'ArrowLeft', KeyD: 'ArrowRight', KeyW: 'ArrowUp', KeyS: 'ArrowDown' };
   const digit = code => { const m = /^(?:Digit|Numpad)([1-9])$/.exec(code); return m ? Number(m[1]) : 0; };
+  // 교역소 · 짐칸의 짝 키. 조작 창은 두 칸이므로 한 줄의 왼쪽 · 오른쪽 버튼에 한 쌍씩 붙는다. M은 효과음 키라 뺀다
+  const GRID = [['1', '2'], ['Q', 'W'], ['A', 'S'], ['Z', 'X'], ['3', '4'], ['E', 'R'], ['D', 'F'], ['C', 'V'], ['5', '6'], ['T', 'Y'], ['G', 'H'], ['B', 'N'], ['7', '8'], ['U', 'I'], ['J', 'K'], ['9', '0'], ['O', 'P'], ['L', ';']];
+  const PUNCT = { Semicolon: ';' };
+  const gridKey = code => { let m = /^(?:Digit|Numpad)([0-9])$/.exec(code); if (m) return m[1]; m = /^Key([A-Z])$/.exec(code); if (m) return m[1]; return PUNCT[code] || ''; };
+  /** 줄 목록([[버튼, 버튼?], …])에 짝 키를 붙인다. 버튼이 하나인 줄은 한 줄을 다 쓰고 왼쪽 키만 붙는다. 돌아가기는 Esc.
+   *  공통 엔진(dh-layout.js)은 동현삼과 같은 파일이라 고치지 않는다. key로 글자를 적게 하고, 누를 글자(data-key)와 한 줄 차지(.hang-wide)는 refresh가 붙인다 */
+  const gridMenu = (rows, back) => [...rows.flatMap((row, i) => row.map((b, j) => ({ ...b, hot: GRID[i] ? GRID[i][j] : undefined, key: GRID[i] ? GRID[i][j] : false, wide: row.length === 1 }))),
+    { ...back, key: 'Esc', wide: true }];
   const TABS = { market: '교역소', inn: '여관', dock: '도크', supply: '보급', guild: '조합', hold: '짐칸' }, NEED = { market: 'market', guild: 'guild', inn: 'lodge', dock: 'shipyard' };
   const AT_SEA = { hold: true };                                  // 바다에서도 여는 창
   const SAVE = { format: 'donghyunhang-save', version: 1, name: '동현항', slot: 'donghyunhang:slot', file: 'donghyunhang', word: '탐험' };
@@ -64,7 +72,7 @@
       const s = this.world.meta.start, c = this.engine.clock;
       Object.assign(c, { year: s.year, month: s.month || 1, day: s.day || 1, serial: 0, _acc: 0, running: false });
       this.voyage = this.newVoyage(); this.from = [this.voyage.x, this.voyage.y];
-      this.selected = null; this.spot = null; this.tab = null; this.route = null; this.follow = true; this.leg = 0; this.meet = null; this.dockShip = null;
+      this.selected = null; this.spot = null; this.tab = null; this.route = null; this.follow = true; this.leg = 0; this.meet = null; this.dockShip = null; this.keep = null;
       this.civil = []; this.civilKey = null; this.civilCard = null;
       this.centerOnFleet(); this.hello(); this.refresh();
     }
@@ -214,6 +222,9 @@
     onKey(code, ev) {
       if (ev && (ev.ctrlKey || ev.metaKey || ev.altKey)) return;
       if(this.civilCard){if(['Escape','Enter','NumpadEnter','Digit1'].includes(code)){ev&&ev.preventDefault();this.closeCivil();}return;}
+      if (((this.tab === 'market' && this.mode === 'port') || (this.tab === 'hold' && ['port', 'sea'].includes(this.mode))) && !(ev && ev.shiftKey && KEYS[code])) {   // 교역소 · 짐칸: 글자 키와 숫자 키가 그 줄의 버튼을 누른다
+        const k = gridKey(code); if (k) { if (ev) ev.preventDefault(); if (!(ev && ev.repeat)) this.layout.press(k); return; }
+      }
       if(code==='KeyT'&&['port','sea'].includes(this.mode)){ev&&ev.preventDefault();return this.command('traffic');}
       const v = this.voyage, c = this.engine.clock, dir = KEYS[code], shift = !!(ev && ev.shiftKey), n = digit(code), used = () => { if (ev) ev.preventDefault(); };
       if (this.mode === 'meet' || this.mode === 'prize') {                        // 해적 출현 카드 · 빼앗은 배 카드: 숫자 키와 Enter로만 고른다
@@ -324,7 +335,8 @@
       this.layout.setInfo([{ label: '날짜', value: this.engine.clock.label }, { label: '자금', value: v.inv ? `${fmt(v.gold)}(무적)` : fmt(v.gold) }, { label: '식량', value: v.foodDays + '일' }, { label: '물', value: v.waterDays + '일' },
         { label: '선원', value: `${v.crew}/${v.maxCrew}명` }, { label: '짐', value: `${v.cargoUsed}/${v.cargoCap}` }]);
     }
-    refresh() { this.refreshInfo(); this.layout.setDetail(this.detail()); this.layout.setMenu(this.menu(), id => this.command(id)); }
+    refresh() { this.refreshInfo(); this.layout.setDetail(this.detail()); const items = this.menu(); this.layout.setMenu(items, id => this.command(id));
+      if (this.layout.menuEl) [...this.layout.menuEl.children].forEach((b, i) => { const it = items[i]; if (!it) return; if (it.hot) b.dataset.key = it.hot; if (it.wide) b.classList.add('hang-wide'); }); }   // 교역소 · 짐칸 짝 키: layout.press('Q')로 누른다
     /** 지금 못 하는 일과 그 까닭(버튼이 흐려진 까닭을 글로 적는다) */
     whyNot(list) { const no = list.filter(([, r]) => !r.ok).map(([n, r]) => `${n}: ${r.why}`); return no.length ? ' 지금 못 하는 것 — ' + no.join(' · ') : ''; }
     kindName(k) { return this.world.kinds[k] || '기타'; }
@@ -420,6 +432,15 @@
         note: mode === 'port' ? (this.spot ? '출항을 누르면 찍은 바다로 떠난다.' : '교역소 · 여관 · 도크 · 보급에서 채비를 하고, 지도에서 갈 항구나 바다를 찍은 뒤 출항한다. 항구에서는 날이 가지 않는다.')
           : `방향키로 키를 잡거나 지도의 바다를 찍으면 그리로 간다. 항구를 찍으면 시세가 보인다. 하루에 ${v.speed}칸을 가고 식량과 물이 선원 수만큼 든다.` };
     }
+    /** 교역소 · 짐칸의 줄을 기억한다. 항구에서는 날이 가지 않으므로 항구와 날짜로 이번 입항을 가린다. 새로 실은 품목은 맨 끝에 붙는다 */
+    keepRows() {
+      const v = this.voyage, base = v.port ? `${v.port}@${v.day}` : 'sea';
+      if (!this.keep || this.keep.base !== base || (!v.port && this.tab !== 'hold')) this.keep = { base, cargo: [], deliver: new Map() };
+      const K = this.keep;
+      for (const [g] of this.sortedCargo()) if (!K.cargo.includes(g)) K.cargo.push(g);
+      if (v.port) for (const c of v.contracts) if (c.to === v.port && !K.deliver.has(c.id)) K.deliver.set(c.id, { good: c.good, qty: c.qty });
+      return K;
+    }
     menu() {
       const w = this.world, v = this.voyage, c = this.engine.clock, R = v.rules, mode = this.mode, back = { id: 'back', label: '돌아가기' }, gname = id => w.goods.get(id).name;
       if(this.civilCard)return [{id:'civil-close',label:'이야기 닫기',primary:true,key:'Esc'}];
@@ -436,17 +457,20 @@
         return [...v.prizes.flatMap((pz, i) => { const t = w.shipTypes.get(pz.type); return [{ id: 'ptake:' + i, label: `${i + 1}. ${t.name} 함대에 넣기`, disabled: full, hint: full ? `배는 ${R.dock.maxShips}척까지다` : '', primary: i === 0 && !full },
           { id: 'psell:' + i, label: `${i + 1}. ${t.name} 팔기 · 금 +${fmt(Math.floor(t.price * R.prize.pct / 100))}`, primary: i === 0 && full }]; }), ...(v.prizes.length > 1 ? [{ id: 'psellall', label: '모두 판다' }] : [])];
       }
-      const holdMenu = () => [...this.sortedCargo().flatMap(([g]) => [...(v.port && v.has('market') ? [btn('sellall:' + g, v.quote(g).sell, () => `${gname(g)} 모두 팔기`, `${gname(g)} 모두 팔기`)] : []),
-        { id: 'dump:' + g, label: `${gname(g)} ${R.lot}개 버리기` }]), back];
+      const K = this.keepRows();                                  // 이번 입항(바다에서는 짐칸을 연 동안) 줄 순서를 고정한다. 다 판 품목 · 넘긴 의뢰는 흐린 채로 남는다
+      const holdMenu = () => gridMenu(K.cargo.map(g => [...(v.port && v.has('market') ? [btn('sellall:' + g, v.quote(g).sell, () => `${gname(g)} 모두 팔기`, `${gname(g)} 모두 팔기`)] : []),
+        { id: 'dump:' + g, label: `${gname(g)} ${R.lot}개 버리기`, disabled: v.held(g) <= 0, hint: v.held(g) <= 0 ? '실은 것이 없다' : '' }]), back);
       if (this.tab === 'hold' && (mode === 'sea' || mode === 'port')) return holdMenu();
       const types = [...w.shipTypes.values()].filter(t => !t.cheat || v.inv);
       const sel = w.ports.get(this.selected);
       if (mode === 'port') {
         if (this.tab === 'market') {
           const m = [...v.markets.get(v.port).values()].filter(e => e.refStock > 0);
-          return [...m.flatMap(e => [btn('buy:' + e.good, v.quote(e.good).buy, r => `${gname(e.good)} 사기 ${r.qty} · 금 ${fmt(r.cost)}`, `${gname(e.good)} 사기`), btn('buymax:' + e.good, v.quote(e.good).buy, () => `${gname(e.good)} 가득 사기`, `${gname(e.good)} 가득 사기`)]),
-            ...v.contracts.filter(c => c.to === v.port).map(c => btn('deliver:' + c.id, v.canDeliver(c), () => `의뢰 넘기기 · ${gname(c.good)} ${c.qty} · 금 +${fmt(c.reward)}`, `의뢰 넘기기 · ${gname(c.good)}`)),
-            ...this.sortedCargo().flatMap(([g]) => [btn('sell:' + g, v.quote(g).sell, r => `${gname(g)} 팔기 ${r.qty} · 금 +${fmt(r.income)}`, `${gname(g)} 팔기`), btn('sellall:' + g, v.quote(g).sell, () => `${gname(g)} 모두 팔기`, `${gname(g)} 모두 팔기`)]), back];
+          return gridMenu([...m.map(e => [btn('buy:' + e.good, v.quote(e.good).buy, r => `${gname(e.good)} 사기 ${r.qty} · 금 ${fmt(r.cost)}`, `${gname(e.good)} 사기`), btn('buymax:' + e.good, v.quote(e.good).buy, () => `${gname(e.good)} 가득 사기`, `${gname(e.good)} 가득 사기`)]),
+            ...[...K.deliver].map(([id, d]) => { const c = v.contracts.find(x => x.id === id);
+              return [c ? btn('deliver:' + c.id, v.canDeliver(c), () => `의뢰 넘기기 · ${gname(c.good)} ${c.qty} · 금 +${fmt(c.reward)}`, `의뢰 넘기기 · ${gname(c.good)}`)
+                : { id: 'deliver:' + id, label: `의뢰 넘김 · ${gname(d.good)} ${d.qty}`, disabled: true, hint: '이번 입항에 넘긴 의뢰다' }]; }),
+            ...K.cargo.map(g => [btn('sell:' + g, v.quote(g).sell, r => `${gname(g)} 팔기 ${r.qty} · 금 +${fmt(r.income)}`, `${gname(g)} 팔기`), btn('sellall:' + g, v.quote(g).sell, () => `${gname(g)} 모두 팔기`, `${gname(g)} 모두 팔기`)])], back);
         }
         if (this.tab === 'guild') { const full = v.contracts.length >= R.guild.max;
           return [...v.offers().map(o => ({ id: 'accept:' + o.id, label: `의뢰 받기 · ${gname(o.good)} ${o.qty} → ${w.ports.get(o.to).name}`, disabled: full, hint: full ? `의뢰는 ${R.guild.max}건까지 받는다` : '' })), back]; }
@@ -625,7 +649,7 @@
       while (e.scene && e.scene !== this) e.popScene();
       this.state = st; this.settings = d.settings.map(x => [...x]); this.voyage = voyage; e.restore(d);      // 난수는 판을 지은 뒤에 되돌린다(시드 설정이 덮지 않게)
       const v = voyage, s = d.scene || {}, c = s.cam, num = x => typeof x === 'number' && isFinite(x);
-      this.from = [v.x, v.y]; this._told = !!v.over; this.selected = null; this.spot = null; this.tab = null; this.route = null; this.meet = null; this.dockShip = null;
+      this.from = [v.x, v.y]; this._told = !!v.over; this.selected = null; this.spot = null; this.tab = null; this.route = null; this.meet = null; this.dockShip = null; this.keep = null;
       this.civil=[];this.civilKey=null;this.civilCard=null;
       this.follow = s.follow !== false; this.leg = Number.isInteger(s.leg) && s.leg >= 0 ? s.leg : 0;
       if (typeof s.selected === 'string' && w.ports.has(s.selected)) this.pick(s.selected);
