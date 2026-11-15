@@ -8,3 +8,25 @@
     <p class="math-source">코드: <code>RULES.salvage</code> · <code>RULES.traffic</code> · <code>RULES.supply</code> · <code>Voyage.addSupply</code> · <code>Voyage.greetTraffic</code>. 위 상수는 빌드할 때 실제 규칙에서 읽는다.</p>
   </article>
 </div>
+<div class="math-grid">
+  <article>
+    <h3><span class="math-num">11</span>투자 지분과 줄어드는 한계효용</h3>
+    <p>투자금 I의 지분 비율 s는 I/(I+5,000)이다. 지분율은 여기에 100을 곱한다. I=5,000이면 s=0.5, I=20,000이면 s=0.8이다. 한 항구 한도는 50,000이다.</p>
+    <div class="eq"><span class="eq-run"><math display="block"><mi>s</mi><mo>=</mo><mfrac><mi>I</mi><mrow><mi>I</mi><mo>+</mo><mn>5000</mn></mrow></mfrac></math></span><span class="eq-run"><math display="block"><mfrac><mrow><mi>d</mi><mi>s</mi></mrow><mrow><mi>d</mi><mi>I</mi></mrow></mfrac><mo>=</mo><mfrac><mn>5000</mn><msup><mrow><mo>(</mo><mi>I</mi><mo>+</mo><mn>5000</mn><mo>)</mo></mrow><mn>2</mn></msup></mfrac></math></span></div>
+    <p>투자금이 늘수록 미분값이 작아져 같은 금액이 올리는 지분 폭은 줄어든다. 실제 혜택은 s≥0.5인 협력항부터 적용하므로 50%에서 문턱이 있다. 기본 수수료 비율 f는 f(1−s), 식량비는 ceil(수량÷10×(1−s/2)), 재고 목표는 floor(기본 재고×(1+s))다. 재고는 목표까지 하루 5개씩 회복한다.</p>
+    <p>실제 수수료·식량 절감액을 B, 전체 투자금을 T라고 하면 회수 비율은 100B/T, 순수익률은 100(B−T)/T다. T=0이면 계산하지 않는다. 투자금은 돌려받지 못하므로 지분을 자산 매각가처럼 더하지 않는다. 무적 거래는 절감액에 넣지 않는다.</p>
+    <p class="math-source">코드: <code>hang-growth.js</code>의 <code>share</code>, <code>marketFee</code>, <code>foodFactor</code>, <code>stockTarget</code>. 식량 분모 10은 기본 <code>RULES.supply.perGold</code>다.</p>
+  </article>
+  <article>
+    <h3><span class="math-num">12</span>실제 거래 가격과 조언</h3>
+    <p>시세 p와 수수료 비율 f에서 새 판의 매수 단가는 ceil(p×(1+f))다. 매각 단가는 floor(max(최저값,p−한 단)×(1−f))다. 최저값은 max(1,round(기준값×0.3)), 최고값은 round(기준값×3)이다. 앞의 시세 식은 이 정수 경계와 기본 수수료 10%를 간략히 적은 것이다. 협력항은 할인된 f를 쓴다.</p>
+    <p>산 값의 가중 평균에는 시세가 아니라 실제로 치른 매수 단가를 넣는다. 조언의 퍼센트는 floor((목적지 순매각 단가÷현재 항구 매수 단가−1)×100)이다. 지금 열린 항구와 재고가 있는 산지만 비교하며 추가 매매·시세 복귀·항해비는 예측하지 않는다. 옛 저장은 매수 수수료를 더하지 않는다.</p>
+    <p class="math-source">코드: <code>Voyage.buyUnit</code>, <code>sellUnit</code>, <code>load</code>, <code>advice</code>. 실제 화면은 같은 함수를 사용한다.</p>
+  </article>
+  <article>
+    <h3><span class="math-num">13</span>명성과 엔딩 조건</h3>
+    <p>명성은 floor(누적 양수 실현 교역 이익÷100)+50×해전 승리 수+20×(방문 항구 수−1)이다. 탐험 항목의 최솟값은 0이며 시작항은 명성을 주지 않는다. 거래 손실은 이미 쌓은 명성을 줄이지 않는다. 선장 수련이나 무적 교역·해전은 명성을 주지 않는다.</p>
+    <p>승작은 명성·방문 항구·협력항의 세 문턱을 모두 통과한 뒤 리스본 왕궁에서 받는다. 자금 엔딩은 현금만 센다. 기한부 판은 같은 날 현금 목표와 기한을 함께 채우면 자금 승리가 우선이고, 대공 승작은 세 갈래 모두에서 공국 건국 승리다. 365항해일을 1년 상당으로 부르며 실제 달력의 연도 경과와 같다는 뜻은 아니다.</p>
+    <p class="math-source">코드: <code>Voyage.fame</code>, <code>promotion</code>, <code>checkStage</code>.</p>
+  </article>
+</div>

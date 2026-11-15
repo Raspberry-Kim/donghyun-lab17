@@ -24,7 +24,7 @@ test('승리: 적 1척 5일분 · 2~3척 10일분 · 상한 · 패배/도주/무
   for(const n of [1,2,3])for(const winner of ['me','foe',null])for(const fled of [null,'me']){
     if(winner&&fled)continue;
     const v=V();v.food=v.crew*10;v.water=v.crew*10;
-    const r={winner,fled,loot:0,me:{ships:v.ships.map(s=>({...s,ref:s.id,crew:v.crew,out:null}))},foe:{ships:Array.from({length:n},()=>({type:'caravel',out:'sunk'}))}};
+    const r={winner,fled,loot:0,me:{ships:v.ships.map(s=>({...s,ref:s.id,crew:v.crew*v.T(s).maxCrew/v.maxCrew,out:null}))},foe:{ships:Array.from({length:n},()=>({type:'caravel',out:'sunk'}))}};
     v.settleBattle(r);const days=winner==='me'?(n>=2?10:5):0;
     assert.equal(v.foodDays,10+days);assert.equal(v.waterDays,10+days);
   }

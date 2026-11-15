@@ -9,6 +9,7 @@ const recorder=(m={a:1,b:0,c:0,d:1,e:0,f:0})=>({
   fillRect(x,y,w,h){assert.ok([x,y,w,h].every(Number.isFinite));if(w&&h)this.rects.push([x,y,w,h,this.fillStyle]);}
 });
 const shapes=[
+  ...['caravel','carrack','panok','turtle','aegis'].map(type=>(g,k,face)=>H.drawShip(g,100,100,k,H.LOOK.me,true,face,type)),
   ...Array.from({length:6},(_,skin)=>(g,k,face)=>H.drawShip(g,100,100,k,H.LOOK.foe,true,face,'caravel',skin)),
   ...['fishing','junk','dhow','canoe','merchant','explorer'].map(type=>(g,k,face)=>H.drawCivilShip(g,100,100,k,type,face)),
   ...['fishing','junk','dhow','canoe','merchant','explorer'].map(type=>(g,k,face)=>H.drawCivilMapShip(g,100,100,Math.max(1,Math.round(k)),type,face,0,0)) // 지도에서는 정수 배율로 쓴다
@@ -28,9 +29,9 @@ for(const paint of shapes){
   const mirrored={rects:a.rects.map(([x,y,w,h,c])=>[200-x-w,y,w,h,c])};
   assert.deepStrictEqual(pixels(b),pixels(mirrored));
 }
-console.log('ok 18종 좌우 반전: 같은 선체·돛·문양');
+console.log(`ok ${shapes.length}개 렌더링 구성 좌우 반전: 같은 선체·돛·문양`);
 const unique=new Set(shapes.map(paint=>{const g=recorder();paint(g,3,1);return JSON.stringify(g.rects);}));
-assert.equal(unique.size,18);console.log('ok 해적 6종 · 민간 6종 · 지도용 지나는 배 6종 서로 다른 픽셀 그림');
+assert.equal(unique.size,22);console.log('ok 기존 18종과 선박 4형(캐러벨·캐럭은 같은 범선 그림) 구분');
 for(const paint of shapes){const g=recorder({a:.8,b:.2,c:-.2,d:.8,e:3,f:5});paint(g,2,-1);assert.ok(g.rects.length>30);}
 console.log('ok 회전/침몰 효과의 기존 변환 유지 · 유효한 사각형');
 // 지도용 지나는 배: 한 칸 = 화면 1픽셀, 바깥선이 있고, 항해 중에는 물결 자국이 움직인다.
@@ -50,4 +51,14 @@ console.log('ok 회전/침몰 효과의 기존 변환 유지 · 유효한 사각
   }
   console.log('ok 지나는 배 6종: 1칸=1픽셀 · 바깥선 · 움직이는 물결 자국');
 }
-console.log('PASS 5 pixel test groups');
+{
+  const draw=(type,anim)=>{const g=recorder();H.drawShip(g,100,100,3,H.LOOK.me,true,1,type,null,anim);return g.rects;};
+  assert.notDeepEqual(draw('aegis',{tick:0}),draw('aegis',{tick:22}));
+  assert.notDeepEqual(draw('turtle',{fire:-1}),draw('turtle',{fire:15}));
+  assert.deepEqual(draw('turtle',{fire:-1}),draw('turtle',{fire:36}));
+  for(const type of ['turtle','aegis'])for(const tick of [0,8,16,24,35]){
+    const a=draw(type,{tick,fire:tick});assert.ok(a.every(r=>r.slice(0,4).every(Number.isInteger)));
+  }
+  console.log('ok 회전 레이더·용머리 확대·불꽃·36틱 뒤 원상 복구 · 정수 픽셀');
+}
+console.log('PASS 6 pixel test groups');
