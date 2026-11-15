@@ -81,10 +81,10 @@ ok('이동 범위: 지형 값만큼 깎인다 · 못 가는 칸 · 출발 칸 �
   for (const v of m.values()) assert.ok(v.cost <= 5); let k = '4,4', n = 0; while (m.get(k).from) { k = m.get(k).from; n++; } assert.deepStrictEqual([k, n], ['1,4', 3]);
   assert.strictEqual(DH.moveRange(g, [1, 4], 0, cost).size, 1); assert.strictEqual(DH.moveRange(g, [4, 4], 3, () => 1).size, 37, '평지에서 3걸음 안은 37칸');
 });
-ok('동현항 자료: 항구 45 · 교역품 46(갈래 9) · 깃발 · 정박 칸 뱃길 · 탐험대 짐·선원', () => {
-  const w = DH.Hang.parse(hangJ(), { ports: 45 }); assert.strictEqual(w.ports.size, 45); assert.strictEqual(w.goods.size, 46); assert.strictEqual(Object.keys(w.kinds).length, 9);
+ok('동현항 자료: 항구 45 · 교역품 47(갈래 9) · 깃발 · 정박 칸 뱃길 · 탐험대 짐·선원', () => {
+  const w = DH.Hang.parse(hangJ(), { ports: 45 }); assert.strictEqual(w.ports.size, 45); assert.strictEqual(w.goods.size, 47); assert.strictEqual(Object.keys(w.kinds).length, 9);
   assert.ok([...w.goods.values()].every(g => g.kind in w.kinds)); assert.ok([...w.goods.values()].every(g => [...w.ports.values()].some(p => p.market.find(e => e.good === g.id).stock > 0)), '산지 없는 교역품');
-  for (const p of w.ports.values()) { assert.strictEqual(p.market.length, 46); assert.match(p.flag, /^[A-Z]{2}$/); assert.ok(Math.abs(p.x - 179.5 - p.lon) <= 2.5 && Math.abs(71.5 - p.y - p.lat) <= 1.5, p.name + ' 실제 위치에서 너무 멀다'); }
+  for (const p of w.ports.values()) { assert.strictEqual(p.market.length, 47); assert.match(p.flag, /^[A-Z]{2}$/); assert.ok(Math.abs(p.x - 179.5 - p.lon) <= 2.5 && Math.abs(71.5 - p.y - p.lat) <= 1.5, p.name + ' 실제 위치에서 너무 멀다'); }
   const f = w.fleets.get('player'); assert.strictEqual(w.portAt(f.x, f.y).id, 'lisbon'); assert.deepStrictEqual([w.cargoUsed(f), w.cargoCap(f)], [60, 200]);
   const g = new DH.SquareGrid(w.map.cols, w.map.rows, 1, { wrapX: true, diagonal: true }), a = w.ports.get('lisbon').anchor;
   for (const id of ['seville', 'venice', 'istanbul', 'hakata', 'veracruz', 'mecca', 'copenhagen', 'oslo', 'ternate', 'guatemala']) { const p = DH.findPath(g, a, w.ports.get(id).anchor, w.map.isSea); assert.ok(p && p.length > 0 && p.every(([c, r]) => w.map.isSea(c, r)), id); }
@@ -106,7 +106,7 @@ ok('동현항 파서: 틀린 자료 열두 가지를 잡는다', () => {
   const P = (f, re) => { const j = hangJ(); f(j); bad(() => DH.Hang.parse(j), re); };
   P(j => { j.format = 'x'; }, /format/); bad(() => { const j = hangJ(); j.ports.pop(); DH.Hang.parse(j, { ports: 45 }); }, /길이 45/);
   P(j => { j.ports[0].x = j.ports[0].anchor[0]; j.ports[0].y = j.ports[0].anchor[1]; }, /육지가 아니다/); P(j => { j.ports[0].anchor = [j.ports[0].x + 3, j.ports[0].y]; }, /바로 옆이 아니다|바다가 아니다/);
-  P(j => { j.ports[1].market.pop(); }, /cacao 시세가 빠졌다/); P(j => { j.ports[1].facilities.push('casino'); }, /시설 casino/);
+  P(j => { j.ports[1].market.pop(); }, /crystal 시세가 빠졌다/); P(j => { j.ports[1].facilities.push('casino'); }, /시설 casino/);
   P(j => { j.fleets[0].crew = 99; }, /선원 99명/); P(j => { j.fleets[0].ships[0].hold[0].qty = 500; }, /적재량 200을 넘는다/);
   P(j => { j.ports[2].flag = 'gb'; }, /대문자 두 글자/); P(j => { j.goods[3].kind = 'toy'; }, /갈래 toy/); P(j => { j.rivals[3].areas = [[10, 0, 5, 9]]; }, /서경, 남위/);
   P(j => { const r = j.map.rle; const p = j.ports.find(q => q.id === 'venice'); j.map.rle = r.map((s, i) => s); const [ax, ay] = p.anchor;   // 베네치아 정박 칸 둘레를 육지로 막는다
@@ -166,10 +166,10 @@ ok('동현항 교역소: 사면 그 값으로 치르고 값이 한 단 오른다
   v.gold = 30; const few = v.buy('olive'); assert.deepStrictEqual([few.qty, few.cost], [2, 28], '금이 닿는 만큼만 산다');
   const sea = V(); sea.leave(); assert.strictEqual(sea.buy('wine').why, '여기서는 거래할 수 없다');
 });
-ok('동현항 시세: 한 항구에서 사서 바로 팔면 언제나 밑진다(마흔다섯 항구의 파는 물건 여든일곱 가지 모두) · 값의 위아래 끝 · 날이 가면 제자리로', () => {
+ok('동현항 시세: 한 항구에서 사서 바로 팔면 언제나 밑진다(마흔다섯 항구의 파는 물건 여든여덟 가지 모두) · 값의 위아래 끝 · 날이 가면 제자리로', () => {
   const w = hw(); let cnt = 0;
   for (const p of w.ports.values()) for (const e of p.market) if (e.stock > 0) { const v = V(); v.enter(p.id); v.cargo.clear(); v.gold = 100000; for (let i = 0; i < 5; i++) assert.ok(v.buy(e.good).ok); for (let i = 0; i < 5; i++) v.sell(e.good); assert.ok(v.gold < 100000, p.name + ' ' + e.good); assert.strictEqual(v.cargoUsed, 0); cnt++; }
-  assert.strictEqual(cnt, 87);
+  assert.strictEqual(cnt, 88);
   const v = V({ state: quiet() }); v.cargo.clear(); v.load('wine', 120, 18); for (let i = 0; i < 12; i++) v.sell('wine'); const e = v.entry('wine'); assert.deepStrictEqual([e.price, e.stock, Math.round(18 * 0.3)], [6, 320, 5], '기준값의 30%(5) 아래로는 내려가지 않는다'); for (let i = 0; i < 5; i++) { v.load('wine', 10, 0); v.sell('wine'); } assert.strictEqual(e.price, 5);
   v.steer('left'); for (let i = 0; i < 40; i++) v.stepDay(); assert.deepStrictEqual([e.price, e.stock], [18, 200], '40일 뒤에는 값과 재고가 제자리다');
   const lon = V(); lon.enter('london'); assert.deepStrictEqual([lon.quote('wine').price, lon.quote('wine').sell.unit, lon.quote('wine').sells], [34, 29, false], '리스본 18에 산 포도주는 런던에서 개당 29에 팔린다');
@@ -391,7 +391,7 @@ ok('동현항 스테이지: 자금을 모으면 이긴다 · 기한(바다에서
 ok('동현항 설정: 틀린 번호와 값은 까닭을 말하고 globalState를 그대로 둔다 · 시작 짐이 적재량을 넘으면 막는다 · 예제 열이 모두 읽힌다', () => {
   const w = hw(), st = H.newState(), same = JSON.stringify(st), L = H.lang;
   const E = (list, re) => { const r = H.applyDonghyunLang(L.compose(list, '', { world: w }), st, { world: w }); assert.strictEqual(r.ok, false); assert.ok(re.test(r.errors[0]), r.errors[0]); assert.strictEqual(JSON.stringify(st), same); };
-  E([[3, 500], [8, 47, 10]], /설정 8\(시작 짐\): 교역품은 46가지뿐이다/); E([[6, 41]], /설정 6\(시작 선원\): 선원 41명은 배의 10~40명 밖이다/); E([[6, 9]], /10~40명 밖/); E([[4, 121]], /시작 식량\(일\) 값 121은 쓸 수 없다\. 0~120만 된다/);
+  E([[3, 500], [8, 48, 10]], /설정 8\(시작 짐\): 교역품은 47가지뿐이다/); E([[6, 41]], /설정 6\(시작 선원\): 선원 41명은 배의 10~40명 밖이다/); E([[6, 9]], /10~40명 밖/); E([[4, 121]], /시작 식량\(일\) 값 121은 쓸 수 없다\. 0~120만 된다/);
   E([[8, 1, 160], [8, 2, 41]], /시작 짐 201개는 배에 다 실리지 않는다\. 적재량은 200이다\./); E([[8, 3, 141]], /시작 짐 201개는/); E([[30, 9, 50]], /설정 30\(해적 선장 무력\): 해적은 8무리뿐이다/); E([[30, 1, 101]], /무력 값 101은 쓸 수 없다\. 1~100만 된다/);
   E([[23, 7]], /배 이동력 값 7은 쓸 수 없다\. 1~6만 된다/); E([[14, 101]], /0~100만 된다/);
   const r = H.applyDonghyunLang(put(1, 1), st, { world: w }); assert.ok(/1번째 정수 1은 동현항 설정 번호가 아니다/.test(r.errors[0]), r.errors[0]);
@@ -547,7 +547,9 @@ ok('동현항 저장: 선장 무력과 보강한 포가 적힌다 · v0.07까지
     assert.deepStrictEqual([R('istanbul', 'wine'), R('dongnae', 'silver'), R('jemulpo', 'porcelain')], [F('istanbul', 'wine'), F('dongnae', 'silver'), F('jemulpo', 'porcelain')], '산지가 바뀐 칸은 처음 시세로 연다');
     assert.deepStrictEqual([R('istanbul', 'wine')[1], R('dongnae', 'silver')[1], R('jemulpo', 'porcelain')[1]], [0, 0, 200]);
     assert.deepStrictEqual([R('lisbon', 'wine'), R('canton', 'porcelain'), R('london', 'wool'), R('valencia', 'velvet'), R('istanbul', 'coffee')], [[25, 150], [70, 0], [30, 120], F('valencia', 'velvet'), F('istanbul', 'coffee')], '산지가 그대로인 칸은 적힌 대로(다 팔린 광저우 도자기 포함) · 새 교역품은 처음 시세');
-    const now = H.Voyage.restore(hw(), J(t), { rng: new DH.RNG(1) }); assert.deepStrictEqual([now.markets.get('canton').get('porcelain').stock, now.markets.get('jemulpo').get('porcelain').stock, now.markets.get('istanbul').get('wine').stock], [0, 0, 0], 'v0.23 저장: 다 팔린 재고 0은 그대로 · 사기만 하는 항구에 적힌 재고는 0'); }
+    const now = H.Voyage.restore(hw(), J(t), { rng: new DH.RNG(1) }); assert.deepStrictEqual([now.markets.get('canton').get('porcelain').stock, now.markets.get('jemulpo').get('porcelain').stock, now.markets.get('istanbul').get('wine').stock], [0, 0, 0], 'v0.23 저장: 다 팔린 재고 0은 그대로 · 사기만 하는 항구에 적힌 재고는 0');
+    Object.assign(M('jemulpo', 'jade'), { price: 99, stock: 150 }); const o24 = J(t); o24.markets = o24.markets.map(([pid, l]) => [pid, l.filter(e => e[0] !== 'crystal')]); const r24 = H.Voyage.restore(hw(), o24, { rng: new DH.RNG(1) });
+    assert.deepStrictEqual([[r24.markets.get('jemulpo').get('jade').price, r24.markets.get('jemulpo').get('jade').stock], [r24.markets.get('aden').get('crystal').price, r24.markets.get('aden').get('crystal').stock]], [[99, 150], F('aden', 'crystal')], 'v0.24 저장(교역품 46가지): 적힌 칸은 그대로 · 아덴 수정은 처음 시세'); }
   for (const war of [0, 101, 'x', 1.5]) assert.throws(() => H.Voyage.restore(hw(), { ...j, war }, { rng: new DH.RNG(1) }), /선장 정보가 맞지 않는다/);
   for (const plus of [9, -1, 1.5, 'x']) assert.throws(() => { const k = J(j); k.ships[0].plus = plus; H.Voyage.restore(hw(), k, { rng: new DH.RNG(1) }); }, /배 정보가 자료와 맞지 않는다/);
 });

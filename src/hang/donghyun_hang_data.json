@@ -473,6 +473,12 @@
    "name": "카카오",
    "base": 60,
    "kind": "food"
+  },
+  {
+   "id": "crystal",
+   "name": "수정",
+   "base": 100,
+   "kind": "gem"
   }
  ],
  "kinds": {
@@ -551,7 +557,8 @@
     {"good": "carpet", "price": 187, "stock": 0},
     {"good": "jewelry", "price": 314, "stock": 0},
     {"good": "coffee", "price": 93, "stock": 0},
-    {"good": "cacao", "price": 99, "stock": 0}
+    {"good": "cacao", "price": 99, "stock": 0},
+    {"good": "crystal", "price": 212, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -618,7 +625,8 @@
     {"good": "carpet", "price": 182, "stock": 0},
     {"good": "jewelry", "price": 306, "stock": 0},
     {"good": "coffee", "price": 91, "stock": 0},
-    {"good": "cacao", "price": 100, "stock": 0}
+    {"good": "cacao", "price": 100, "stock": 0},
+    {"good": "crystal", "price": 210, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -685,7 +693,8 @@
     {"good": "carpet", "price": 203, "stock": 0},
     {"good": "jewelry", "price": 344, "stock": 0},
     {"good": "coffee", "price": 102, "stock": 0},
-    {"good": "cacao", "price": 104, "stock": 0}
+    {"good": "cacao", "price": 104, "stock": 0},
+    {"good": "crystal", "price": 223, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -752,7 +761,8 @@
     {"good": "carpet", "price": 209, "stock": 0},
     {"good": "jewelry", "price": 355, "stock": 0},
     {"good": "coffee", "price": 104, "stock": 0},
-    {"good": "cacao", "price": 106, "stock": 0}
+    {"good": "cacao", "price": 106, "stock": 0},
+    {"good": "crystal", "price": 228, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -817,7 +827,8 @@
     {"good": "carpet", "price": 166, "stock": 0},
     {"good": "jewelry", "price": 275, "stock": 0},
     {"good": "coffee", "price": 83, "stock": 0},
-    {"good": "cacao", "price": 108, "stock": 0}
+    {"good": "cacao", "price": 108, "stock": 0},
+    {"good": "crystal", "price": 222, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -882,7 +893,8 @@
     {"good": "carpet", "price": 161, "stock": 0},
     {"good": "jewelry", "price": 282, "stock": 0},
     {"good": "coffee", "price": 80, "stock": 0},
-    {"good": "cacao", "price": 116, "stock": 0}
+    {"good": "cacao", "price": 116, "stock": 0},
+    {"good": "crystal", "price": 235, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -949,7 +961,8 @@
     {"good": "carpet", "price": 84, "stock": 200},
     {"good": "jewelry", "price": 156, "stock": 200},
     {"good": "coffee", "price": 42, "stock": 200},
-    {"good": "cacao", "price": 118, "stock": 0}
+    {"good": "cacao", "price": 118, "stock": 0},
+    {"good": "crystal", "price": 239, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1016,7 +1029,8 @@
     {"good": "carpet", "price": 153, "stock": 0},
     {"good": "jewelry", "price": 284, "stock": 0},
     {"good": "coffee", "price": 76, "stock": 0},
-    {"good": "cacao", "price": 118, "stock": 0}
+    {"good": "cacao", "price": 118, "stock": 0},
+    {"good": "crystal", "price": 239, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1081,7 +1095,8 @@
     {"good": "carpet", "price": 229, "stock": 0},
     {"good": "jewelry", "price": 392, "stock": 0},
     {"good": "coffee", "price": 114, "stock": 0},
-    {"good": "cacao", "price": 103, "stock": 0}
+    {"good": "cacao", "price": 103, "stock": 0},
+    {"good": "crystal", "price": 183, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1145,7 +1160,8 @@
     {"good": "carpet", "price": 290, "stock": 0},
     {"good": "jewelry", "price": 507, "stock": 0},
     {"good": "coffee", "price": 98, "stock": 0},
-    {"good": "cacao", "price": 125, "stock": 0}
+    {"good": "cacao", "price": 125, "stock": 0},
+    {"good": "crystal", "price": 132, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1209,7 +1225,8 @@
     {"good": "carpet", "price": 309, "stock": 0},
     {"good": "jewelry", "price": 542, "stock": 0},
     {"good": "coffee", "price": 88, "stock": 0},
-    {"good": "cacao", "price": 132, "stock": 0}
+    {"good": "cacao", "price": 132, "stock": 0},
+    {"good": "crystal", "price": 118, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1273,7 +1290,8 @@
     {"good": "carpet", "price": 335, "stock": 0},
     {"good": "jewelry", "price": 589, "stock": 0},
     {"good": "coffee", "price": 76, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 60, "stock": 200}
    ],
    "facilities": [
     "harbor",
@@ -1338,7 +1356,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 609, "stock": 0},
     {"good": "coffee", "price": 42, "stock": 200},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 117, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1403,7 +1422,8 @@
     {"good": "carpet", "price": 332, "stock": 0},
     {"good": "jewelry", "price": 585, "stock": 0},
     {"good": "coffee", "price": 80, "stock": 0},
-    {"good": "cacao", "price": 142, "stock": 0}
+    {"good": "cacao", "price": 142, "stock": 0},
+    {"good": "crystal", "price": 123, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1468,7 +1488,8 @@
     {"good": "carpet", "price": 332, "stock": 0},
     {"good": "jewelry", "price": 585, "stock": 0},
     {"good": "coffee", "price": 81, "stock": 0},
-    {"good": "cacao", "price": 142, "stock": 0}
+    {"good": "cacao", "price": 142, "stock": 0},
+    {"good": "crystal", "price": 125, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1533,7 +1554,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 97, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 148, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1598,7 +1620,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 109, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 165, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1665,7 +1688,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 117, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 176, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1730,7 +1754,8 @@
     {"good": "carpet", "price": 256, "stock": 0},
     {"good": "jewelry", "price": 442, "stock": 0},
     {"good": "coffee", "price": 128, "stock": 0},
-    {"good": "cacao", "price": 69, "stock": 0}
+    {"good": "cacao", "price": 69, "stock": 0},
+    {"good": "crystal", "price": 224, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1794,7 +1819,8 @@
     {"good": "carpet", "price": 286, "stock": 0},
     {"good": "jewelry", "price": 498, "stock": 0},
     {"good": "coffee", "price": 143, "stock": 0},
-    {"good": "cacao", "price": 36, "stock": 200}
+    {"good": "cacao", "price": 36, "stock": 200},
+    {"good": "crystal", "price": 240, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1858,7 +1884,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 116, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 174, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1923,7 +1950,8 @@
     {"good": "carpet", "price": 335, "stock": 0},
     {"good": "jewelry", "price": 589, "stock": 0},
     {"good": "coffee", "price": 83, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 128, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -1988,7 +2016,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 118, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 178, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2052,7 +2081,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 117, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 177, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2116,7 +2146,8 @@
     {"good": "carpet", "price": 158, "stock": 0},
     {"good": "jewelry", "price": 156, "stock": 200},
     {"good": "coffee", "price": 79, "stock": 0},
-    {"good": "cacao", "price": 111, "stock": 0}
+    {"good": "cacao", "price": 111, "stock": 0},
+    {"good": "crystal", "price": 227, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2181,7 +2212,8 @@
     {"good": "carpet", "price": 146, "stock": 0},
     {"good": "jewelry", "price": 271, "stock": 0},
     {"good": "coffee", "price": 73, "stock": 0},
-    {"good": "cacao", "price": 116, "stock": 0}
+    {"good": "cacao", "price": 116, "stock": 0},
+    {"good": "crystal", "price": 235, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2245,7 +2277,8 @@
     {"good": "carpet", "price": 166, "stock": 0},
     {"good": "jewelry", "price": 275, "stock": 0},
     {"good": "coffee", "price": 83, "stock": 0},
-    {"good": "cacao", "price": 108, "stock": 0}
+    {"good": "cacao", "price": 108, "stock": 0},
+    {"good": "crystal", "price": 222, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2309,7 +2342,8 @@
     {"good": "carpet", "price": 216, "stock": 0},
     {"good": "jewelry", "price": 368, "stock": 0},
     {"good": "coffee", "price": 108, "stock": 0},
-    {"good": "cacao", "price": 109, "stock": 0}
+    {"good": "cacao", "price": 109, "stock": 0},
+    {"good": "crystal", "price": 233, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2373,7 +2407,8 @@
     {"good": "carpet", "price": 212, "stock": 0},
     {"good": "jewelry", "price": 362, "stock": 0},
     {"good": "coffee", "price": 106, "stock": 0},
-    {"good": "cacao", "price": 107, "stock": 0}
+    {"good": "cacao", "price": 107, "stock": 0},
+    {"good": "crystal", "price": 230, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2438,7 +2473,8 @@
     {"good": "carpet", "price": 159, "stock": 0},
     {"good": "jewelry", "price": 275, "stock": 0},
     {"good": "coffee", "price": 79, "stock": 0},
-    {"good": "cacao", "price": 111, "stock": 0}
+    {"good": "cacao", "price": 111, "stock": 0},
+    {"good": "crystal", "price": 227, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2503,7 +2539,8 @@
     {"good": "carpet", "price": 296, "stock": 0},
     {"good": "jewelry", "price": 518, "stock": 0},
     {"good": "coffee", "price": 94, "stock": 0},
-    {"good": "cacao", "price": 127, "stock": 0}
+    {"good": "cacao", "price": 127, "stock": 0},
+    {"good": "crystal", "price": 127, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2567,7 +2604,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 101, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 153, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2632,7 +2670,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 111, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 168, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2696,7 +2735,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 111, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 168, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2760,7 +2800,8 @@
     {"good": "carpet", "price": 168, "stock": 0},
     {"good": "jewelry", "price": 280, "stock": 0},
     {"good": "coffee", "price": 84, "stock": 0},
-    {"good": "cacao", "price": 106, "stock": 0}
+    {"good": "cacao", "price": 106, "stock": 0},
+    {"good": "crystal", "price": 219, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2825,7 +2866,8 @@
     {"good": "carpet", "price": 174, "stock": 0},
     {"good": "jewelry", "price": 290, "stock": 0},
     {"good": "coffee", "price": 87, "stock": 0},
-    {"good": "cacao", "price": 104, "stock": 0}
+    {"good": "cacao", "price": 104, "stock": 0},
+    {"good": "crystal", "price": 216, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2890,7 +2932,8 @@
     {"good": "carpet", "price": 233, "stock": 0},
     {"good": "jewelry", "price": 401, "stock": 0},
     {"good": "coffee", "price": 117, "stock": 0},
-    {"good": "cacao", "price": 88, "stock": 0}
+    {"good": "cacao", "price": 88, "stock": 0},
+    {"good": "crystal", "price": 195, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -2954,7 +2997,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 110, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 167, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -3018,7 +3062,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 110, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 166, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -3082,7 +3127,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 108, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 163, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -3146,7 +3192,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 624, "stock": 0},
     {"good": "coffee", "price": 109, "stock": 0},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 165, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -3210,7 +3257,8 @@
     {"good": "carpet", "price": 264, "stock": 0},
     {"good": "jewelry", "price": 457, "stock": 0},
     {"good": "coffee", "price": 111, "stock": 0},
-    {"good": "cacao", "price": 113, "stock": 0}
+    {"good": "cacao", "price": 113, "stock": 0},
+    {"good": "crystal", "price": 151, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -3274,7 +3322,8 @@
     {"good": "carpet", "price": 336, "stock": 0},
     {"good": "jewelry", "price": 613, "stock": 0},
     {"good": "coffee", "price": 42, "stock": 200},
-    {"good": "cacao", "price": 144, "stock": 0}
+    {"good": "cacao", "price": 144, "stock": 0},
+    {"good": "crystal", "price": 109, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -3338,7 +3387,8 @@
     {"good": "carpet", "price": 217, "stock": 0},
     {"good": "jewelry", "price": 370, "stock": 0},
     {"good": "coffee", "price": 108, "stock": 0},
-    {"good": "cacao", "price": 110, "stock": 0}
+    {"good": "cacao", "price": 110, "stock": 0},
+    {"good": "crystal", "price": 233, "stock": 0}
    ],
    "facilities": [
     "harbor",
@@ -3403,7 +3453,8 @@
     {"good": "carpet", "price": 276, "stock": 0},
     {"good": "jewelry", "price": 481, "stock": 0},
     {"good": "coffee", "price": 138, "stock": 0},
-    {"good": "cacao", "price": 36, "stock": 200}
+    {"good": "cacao", "price": 36, "stock": 200},
+    {"good": "crystal", "price": 239, "stock": 0}
    ],
    "facilities": [
     "harbor",

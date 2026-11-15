@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 title: "Donghyunhang (동현항): a single-player sailing and trading simulation game on a world map with hex sea battles, with starting values and rule numbers set through the esoteric language Donghyun-lang"
 type: software
-version: "0.24"
+version: "0.26"
 doi: "10.5281/zenodo.24106054"
 date-released: "2026-11-15"
 authors:
@@ -17,7 +17,7 @@ abstract: >-
   Donghyunhang is a browser-based, noncommercial toy that follows only the
   broad frame of Uncharted Waters II (Daikoukai Jidai II; Koei, 1993): a
   captain leads a fleet across a 16th-century world map, buying low and
-  selling high among forty-five ports that trade forty-six goods in nine
+  selling high among forty-five ports that trade forty-seven goods in nine
   kinds. At sea the calendar advances one day per step while food and water
   run down; in port the player uses a market, a lodge, a shipyard, a supply
   menu, a guild with delivery contracts and a cargo hold sorted by kind.
@@ -46,7 +46,14 @@ abstract: >-
   Sound effects are synthesized in the browser with the Web Audio API (no
   audio files) and can be switched off with a header button or the M key.
   A start card waits on the map until the player presses Sortie. The map
-  shades the sea in three depths by distance from shore.
+  shades the sea in three depths by distance from shore. Small passing
+  ships (coastal boats, regional merchantmen and explorers) move around the
+  view without fighting and open a picture and description when clicked.
+  A history check in the README compares the 1522 setting of ports, local
+  goods and pirates with cited sources in five groups (matches, partly
+  matches, later than 1522 and placed on purpose, does not match, not
+  found); places and goods that do not fit 1522 are kept on purpose for
+  play.
   The MIT license applies to the Donghyunhang code and documentation; the
   page fonts are under the SIL Open Font License. See LICENSE and
   CREDITS.md.

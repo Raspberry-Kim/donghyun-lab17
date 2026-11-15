@@ -193,7 +193,9 @@ GOODS=[('wine','포도주',30,'drink'),('olive','올리브유',24,'food'),('wool
 ('grain','곡물',12,'food'),('pearl','진주',210,'gem'),('agarwood','침향',180,'herb'),('herring','청어',15,'food'),('coral','산호',120,'gem'),('pimiento','피망',20,'food'),
 # v0.23에 더한 열 가지. 번호(설정 8번)가 바뀌지 않게 뒤에 붙인다
 ('book','서적',150,'book'),('cheese','치즈',36,'food'),('curedmeat','가공육',30,'food'),('tobacco','담배',80,'herb'),('velvet','벨벳',130,'craft'),
-('metalwork','금속공예품',100,'craft'),('carpet','양탄자',140,'craft'),('jewelry','보석공예품',260,'gem'),('coffee','커피',70,'drink'),('cacao','카카오',60,'food')]
+('metalwork','금속공예품',100,'craft'),('carpet','양탄자',140,'craft'),('jewelry','보석공예품',260,'gem'),('coffee','커피',70,'drink'),('cacao','카카오',60,'food'),
+# v0.26에 더한 수정(아덴). 번호가 바뀌지 않게 뒤에 붙인다
+('crystal','수정',100,'gem')]
 KINDS=dict(food='식료',drink='술·차',spice='향신료',herb='약재·향',craft='직물·공예',gem='보석·귀금속',art='미술품',book='서적',raw='원자재')
 # 산지는 권역 꼬리표나 항구 id로 적는다(둘 다 꼬리표처럼 맞춰 본다). v0.23부터 포도주 · 올리브유 · 유리공예품은 항구 id로 적는다.
 ORIGIN={'wine':['lisbon','seville','genoa','marseille'],'olive':['lisbon','seville','genoa','marseille','pisa'],'wool':['europe_n'],'glass':['venice','alexandria'],'gold':['wafrica','sofala','mozambique','butuan','capetown'],'ivory':['eafrica','wafrica'],
@@ -203,7 +205,7 @@ ORIGIN={'wine':['lisbon','seville','genoa','marseille'],'olive':['lisbon','sevil
 'feather':['tripoli'],'salt':['tripoli'],'nutmeg':['ambon'],'soap':['marseille','venice'],'grain':['cebu','guatemala'],'pearl':['sulu'],'agarwood':['hongkong'],
 'herring':['copenhagen'],'coral':['santodomingo'],'pimiento':['veracruz'],
 'book':['amsterdam','lisbon','venice','jemulpo','valencia'],'cheese':['copenhagen'],'curedmeat':['hamburg'],'tobacco':['seville'],'velvet':['genoa','valencia'],
-'metalwork':['london','alexandria','dongnae'],'carpet':['istanbul'],'jewelry':['istanbul','naples'],'coffee':['istanbul','mecca','hormuz'],'cacao':['guatemala','veracruz']}
+'metalwork':['london','alexandria','dongnae'],'carpet':['istanbul'],'jewelry':['istanbul','naples'],'coffee':['istanbul','mecca','hormuz'],'cacao':['guatemala','veracruz'],'crystal':['aden']}
 # 서적은 값이 큰 만큼 산지에서는 더 싸게 팔고 다른 항구에서는 더 비싸게 산다(시험 값). (산지 배수, 바깥 항구에 더하는 배수)
 SPREAD={'book':(0.4,0.8)}
 # 산지와 상관없이 값을 더 쳐주는 곳(역사에서 은은 명나라 쪽에서 값이 높았다). 배수는 시험 값이다.
