@@ -55,10 +55,65 @@ console.log('ok 회전/침몰 효과의 기존 변환 유지 · 유효한 사각
   const draw=(type,anim)=>{const g=recorder();H.drawShip(g,100,100,3,H.LOOK.me,true,1,type,null,anim);return g.rects;};
   assert.notDeepEqual(draw('aegis',{tick:0}),draw('aegis',{tick:22}));
   assert.notDeepEqual(draw('turtle',{fire:-1}),draw('turtle',{fire:15}));
-  assert.deepEqual(draw('turtle',{fire:-1}),draw('turtle',{fire:36}));
-  for(const type of ['turtle','aegis'])for(const tick of [0,8,16,24,35]){
+  for(const type of ['turtle','aegis']) {
+    assert.notDeepEqual(draw(type,{tick:0,fire:-1}),draw(type,{tick:0,fire:60}));
+    assert.deepEqual(draw(type,{tick:0,fire:-1}),draw(type,{tick:0,fire:90}));
+  }
+  for(const type of ['turtle','aegis'])for(const tick of [0,8,16,24,35,60,89]){
     const a=draw(type,{tick,fire:tick});assert.ok(a.every(r=>r.slice(0,4).every(Number.isInteger)));
   }
-  console.log('ok 회전 레이더·용머리 확대·불꽃·36틱 뒤 원상 복구 · 정수 픽셀');
+  console.log('ok 회전 레이더·용머리/포신 확대·불꽃·90틱 뒤 원상 복구 · 정수 픽셀');
 }
-console.log('PASS 6 pixel test groups');
+{
+  for(const k of [1,3])for(const side of ['me','foe']){
+    const g=recorder();H.drawShip(g,100,100,k,H.LOOK[side],true,1,'aegis',null,{tick:0});
+    const colors=new Set(g.rects.map(r=>r[4])),p=H.LOOK[side].px;
+    for(const ch of ['o','L','H','h','g'])assert.ok(colors.has(p[ch]),'지도·해전의 목재 명암·외곽선·포문');
+    for(const gray of ['#b9c7c9','#49636b','#6c868e'])assert.ok(!colors.has(gray),'회색 선체 팔레트 제거');
+    assert.ok(colors.has('#354c56'),'레이더 테두리 색 유지');
+    for(const c of ['#c44332','#8e3029'])assert.ok(colors.has(c),'크고 작은 대포 모두 붉은 명암');
+    for(const c of ['#a18c6b','#78654c'])assert.ok(colors.has(c),'레이더 아래 함교의 차분한 목재색');
+    const b=recorder();H.drawShip(b,100,100,k,H.LOOK[side],true,1,'aegis',null,{tick:22});
+    assert.notDeepEqual(g.rects,b.rects,'지도·해전 모두 레이더 회전');
+  }
+  console.log('ok 목재 이지스함: 두 크기·양 진영의 나무 명암·포문·레이더 보존');
+}
+{
+  for(const k of [1,3])for(const face of [-1,1]){
+    const g=recorder();H.drawShip(g,100,100,k,H.LOOK.me,true,face,'aegis',null,{tick:0});
+    const red=g.rects.filter(r=>['#c44332','#8e3029','#e87653'].includes(r[4]));
+    const top=Math.min(...red.map(r=>r[1])),bottom=Math.max(...red.map(r=>r[1]));
+    const center=y=>{const a=red.filter(r=>r[1]===y);return a.reduce((s,r)=>s+r[0]+r[2]/2,0)/a.length;};
+    assert.ok((center(top)-center(bottom))*face<0,'기준 그림의 포구는 왼쪽 위, 배 전체 반전 시 함께 반전');
+  }
+  console.log('ok 큰/작은 붉은 대포의 반대 기울기 · 배 전체 좌우 반전 보존');
+}
+{
+  for(const k of [1,3]) {
+    const a=recorder();H.drawShip(a,100,100,k,H.LOOK.me,true,1,'aegis',null,{fire:-1});
+    const bands=['#c44332','#b13e30','#993b30'].map(c=>a.rects.filter(r=>r[4]===c));
+    assert.ok(bands.every(b=>b.length>0),'포신 위·중간·부착부 명암 세 단계');
+    const mean=b=>b.reduce((s,r)=>s+r[1],0)/b.length;
+    assert.ok(mean(bands[0])<mean(bands[1])&&mean(bands[1])<mean(bands[2]),'아래 부착점으로 갈수록 낮아지는 톤');
+    for(const type of ['aegis','turtle']) {
+      const left=recorder(),right=recorder();
+      H.drawShip(left,100,100,k,H.LOOK.me,true,-1,type,null,{tick:0,fire:40});
+      H.drawShip(right,100,100,k,H.LOOK.me,true,1,type,null,{tick:0,fire:40});
+      assert.deepEqual(left.rects,right.rects.map(([x,y,w,h,c])=>[200-x-w,y,w,h,c]),'발사 중 양 방향 대칭');
+    }
+  }
+  console.log('ok 포신 세 단계 톤다운 · 두 선박의 큰/작은 발사 그림 좌우 반전');
+}
+{
+  const mouth=fire=>{
+    const g=recorder();H.drawShip(g,100,100,3,H.LOOK.me,true,1,'turtle',null,{tick:0,fire});
+    return g.rects.filter(r=>r[4]==='#482520');
+  };
+  assert.equal(mouth(0).length,0);
+  const height=fire=>Math.max(...mouth(fire).map(r=>r[3]));
+  assert.ok(height(45)>height(8),'머리 확대와 함께 입 안의 높이가 증가');
+  assert.ok(height(45)>height(82),'끝으로 갈수록 턱이 다시 닫힘');
+  assert.equal(mouth(90).length,0);
+  console.log('ok 거북선: 열린 입·위아래 턱·확대 연동·닫힘 복귀');
+}
+console.log('PASS 10 pixel test groups');

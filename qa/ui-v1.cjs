@@ -18,7 +18,11 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
     await p.waitForFunction(()=>window.__dh&&!document.querySelector('#run').disabled);
     assert.ok(await E(()=>__dh.waiting()));assert.ok(await p.locator('#full').isDisabled());
     await start();assert.deepEqual((await state()).ships,['turtle','panok','caravel']);assert.equal((await state()).gold,200000);
-    assert.equal(await p.locator('.hang-portrait').count(),2);await shot('port');
+    assert.equal(await p.locator('.hang-portrait').count(),2);
+    assert.ok((await p.locator('.hang-counsel-title').innerText()).includes('각하, 곁에서 보좌하겠습니다.'));
+    assert.ok((await p.locator('.hang-counsel').innerText()).includes('높습니다.'));
+    assert.deepEqual(await p.locator('.hang-portrait').evaluateAll(a=>a.map(el=>getComputedStyle(el).transform)),['none','matrix(-1, 0, 0, 1, 0, 0)']);
+    await shot('port');
     check('출전 전 정지·시작 세 척·자금 20만·두 얼굴');
     const z=await E(()=>__dh.scene.cam.zoom);await p.getByRole('button',{name:'지도 확대',exact:true}).click();
     assert.ok(await E(z=>__dh.scene.cam.zoom>z,z));await p.getByRole('button',{name:'지도 축소',exact:true}).click();
@@ -32,6 +36,7 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
     assert.ok(await E(()=>__dh.voyage.growth.savings>0));await click('sell:olive');await back();
     check('투자 차감·50% 협력항·할인 시세 실제 매수·매각');
     await click('tab:counsel');await click('dialogue:advice');assert.equal(await E(()=>__dh.voyage.dialogue.advice),false);
+    assert.ok((await p.locator('.hang-counsel').innerText()).includes('도착했습니다.'));
     await click('dialogue:advice');await click('dialogue:quotes');assert.equal(await E(()=>__dh.voyage.dialogue.quotes),false);await click('dialogue:quotes');await back();
     check('조언·항해 문장 끄기와 재활성화');
     await click('tab:inn');await click('hire');assert.equal(await E(()=>__dh.voyage.crew),125);await click('train');assert.equal(await E(()=>__dh.voyage.captain.war),71);await back();
@@ -50,7 +55,9 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
     const pt=await E(()=>{const s=__dh.scene,q=s.world.ports.get('seville'),P=s.portPx(q,s.cam.x+s.cam.viewW/s.cam.zoom/2);return s.cam.toScreen(P.x,P.y);});
     const box=await p.locator('.dh-canvas').boundingBox();await p.mouse.click(box.x+pt.x*box.width/480,box.y+pt.y*box.height/360);
     await click('sail');assert.equal(await E(()=>__dh.voyage.dialogue.quoteIndex),1);
+    assert.equal(await p.locator('.hang-quote').innerText(),"각하, 쇼펜하우어는 '세계는 나의 표상이다.'라고 합니다.");
     await E(()=>__dh.engine.step(60));assert.equal((await state()).port,'seville');assert.equal(await E(()=>__dh.voyage.fame().explore),20);
+    assert.equal(await p.locator('.hang-portrait').nth(1).evaluate(el=>getComputedStyle(el).transform),'matrix(-1, 0, 0, 1, 0, 0)');
     await shot('arrival');check('지도 선택·출항 문장·항해·세비야 첫 입항 명성');
     await start('million');await E(()=>{__dh.voyage.gold=999999;__dh.scene.refresh();});await click('tab:market');await click('sell:wine');
     assert.equal((await state()).why,'gold');await shot('gold-ending');check('실제 매각으로 자금 엔딩');
@@ -58,7 +65,9 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
     assert.equal((await state()).why,'time');check('경계일 출항·방향키 입력으로 기한 패배');
     await start('duchy');await E(()=>{const v=__dh.voyage;v.growth.profit=280000;v.growth.explored=[...__dh.world.ports.keys()].filter(p=>!DH.Hang.GROWTH.ports[p]).slice(0,30);v.growth.investments=v.growth.explored.slice(0,8).map(p=>[p,5000]);__dh.scene.refresh();});
     await click('tab:palace');for(let i=0;i<5;i++)await click('promote');
-    assert.equal((await state()).why,'duchy');assert.equal(await E(()=>__dh.voyage.address()),'전하');await shot('duchy-ending');check('왕궁 다섯 승작·전하·공국 엔딩');
+    assert.equal((await state()).why,'duchy');assert.equal(await E(()=>__dh.voyage.address()),'전하');
+    assert.ok((await p.locator('.dh-detail').innerText()).includes('세우셨습니다. 축하드립니다.'));
+    await shot('duchy-ending');check('왕궁 다섯 승작·전하·공국 엔딩');
     // 전투 배치만 준비하고, 선택과 포격은 실제 캔버스 클릭으로 실행한다.
     await start();await E(()=>{const s=__dh.scene,v=s.voyage;v.leave();s.meet=v.rivals.get('redsail');s.refresh();});await click('fight');
     assert.equal(await p.locator('.hang-counsel').count(),0);assert.ok(await p.locator('.hang-zoom').isHidden());
@@ -68,14 +77,15 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
     assert.ok(await E(()=>__dh.engine.scene.fx.some(f=>f.kind==='dragon')));
     await E(()=>__dh.engine.step(12));await shot('dragon-fire');
     assert.equal(await E(()=>__dh.engine.scene.b.units.find(u=>u.side==='foe').hull),180);
-    await E(()=>__dh.engine.step(30));assert.ok(await E(()=>!__dh.engine.scene.fx.some(f=>f.kind==='dragon')));
+    await E(()=>__dh.engine.step(48));assert.ok(await E(()=>__dh.engine.scene.fx.some(f=>f.kind==='dragon')));
+    await E(()=>__dh.engine.step(32));assert.ok(await E(()=>!__dh.engine.scene.fx.some(f=>f.kind==='dragon')));
     check('실제 거북선 포격·용머리 불꽃 생성·종료·해전에서 초상 숨김');
     await E(()=>{const b=__dh.engine.scene.b;const u=b.units.find(u=>u.side==='me');u.done=false;u.moved=false;});
     await p.locator('.dh-canvas').scrollIntoViewIfNeeded();const B2=await p.locator('.dh-canvas').boundingBox();
     for(const c of cells)await p.mouse.click(B2.x+c.x*B2.width/480,B2.y+c.y*B2.height/360);
     assert.equal(await E(()=>__dh.engine.scene.mode),'result');
     await E(()=>__dh.engine.step(12));await shot('dragon-finishing-shot');
-    await E(()=>__dh.engine.step(24));await shot('dragon-victory-card');
+    await E(()=>__dh.engine.step(80));await shot('dragon-victory-card');
     check('마지막 포격의 불꽃 후 결과 카드 표시');
     await start();await E(()=>{__dh.voyage.growth.rank=4;__dh.scene.refresh();});
     await click('tab:dock');await click('pick:s1');await click('swap:aegis');await back();await back();
@@ -84,6 +94,33 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
     await shot('aegis-radar-0');await E(()=>__dh.engine.step(22));await shot('aegis-radar-22');
     await E(()=>__dh.engine.step(22));await shot('aegis-radar-44');
     check('공작의 이지스함 교환·해전 진입·회전 레이더 세 시점');
+    for(const dir of [1,-1]) {
+      const aim=await E(dir=>{const s=__dh.engine.scene,b=s.b,u=b.units.find(u=>u.side==='me'),f=b.units.find(u=>u.side==='foe');u.c=dir>0?2:4;u.r=3;f.c=dir>0?4:2;f.r=3;f.hull=1200;f.crew=80;u.done=false;u.moved=false;s.refresh();return [u,f].map(a=>{const q=s.grid.center(a.c,a.r);return s.cam.toScreen(q.x,q.y);});},dir);
+      await p.locator('.dh-canvas').scrollIntoViewIfNeeded();
+      const B=await p.locator('.dh-canvas').boundingBox();
+      for(const c of aim)await p.mouse.click(B.x+c.x*B.width/480,B.y+c.y*B.height/360);
+      assert.ok(await E(dir=>__dh.engine.scene.fx.some(f=>f.kind==='aegisFire'&&f.dir===-dir&&f.life===90),dir));
+      await E(()=>__dh.engine.step(40));await shot('aegis-fire-'+dir);
+      assert.ok(await E(()=>__dh.engine.scene.b.units.find(u=>u.side==='foe').hull<1200));
+      await E(()=>__dh.engine.step(20));assert.ok(await E(()=>__dh.engine.scene.fx.some(f=>f.kind==='aegisFire')));
+      await E(()=>__dh.engine.step(32));assert.ok(await E(()=>!__dh.engine.scene.fx.some(f=>f.kind==='aegisFire')));
+    }
+    check('이지스함 실제 양방향 포격·피해·90틱 확대/불꽃·종료');
+    await start();await E(()=>{__dh.voyage.growth.rank=3;__dh.scene.refresh();});await click('sail');
+    for(const index of [4,13,16,17,18,19,99,100,101]) {
+      await E(i=>{__dh.voyage.dialogue.quoteIndex=i;__dh.scene.refresh();},index);
+      assert.equal(await p.locator('.hang-quote').innerText(),await E(()=>DH.Hang.quoteLine('전하',DH.Hang.quoteAt(__dh.voyage.dialogue.quoteIndex))));
+    }
+    for(const index of [1,17,18,19]){
+      await E(i=>{__dh.voyage.dialogue.quoteIndex=i;__dh.scene.refresh();},index);
+      const link=p.locator('.hang-counsel > a'),url=await link.getAttribute('href');
+      const opened=p.waitForEvent('popup');await link.click();const popup=await opened;
+      await popup.waitForURL(url);assert.equal(popup.url(),url);await popup.close();
+    }
+    await p.setViewportSize({width:375,height:844});await E(()=>{const Q=DH.Hang.QUOTES;__dh.voyage.dialogue.quoteIndex=Q.reduce((best,q,i)=>q.text.length>Q[best].text.length?i:best,0)+1;__dh.scene.refresh();});await shot('phone-long-quote');
+    assert.ok(await E(()=>document.documentElement.scrollWidth<=innerWidth+1));
+    await p.setViewportSize({width:1280,height:900});
+    check('전하 인용 형식·서로 다른 구절·375px 긴 인용 줄바꿈');
     await start();await p.locator('#full').click();await shot('fullscreen');
     const fit=await E(()=>{const a=document.querySelector('#stage-full').getBoundingClientRect(),b=document.querySelector('.dh-canvas').getBoundingClientRect();return b.right<=a.right&&b.bottom<=a.bottom;});assert.ok(fit);
     await E(()=>document.fullscreenElement?document.exitFullscreen():null);
@@ -98,7 +135,7 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
       assert.ok(!/__[_A-Z]+__/.test(await p.locator('#tab-'+tab).innerText()),tab+' 치환 누락');
     }
     await p.locator('[data-tab="math"]').click();
-    assert.ok((await p.locator('#tab-math').innerText()).includes('v1.00'));
+    assert.ok((await p.locator('#tab-math').innerText()).includes('v1.20'));
     const table=p.locator('#tab-math table').filter({hasText:'이지스함'});
     assert.equal(await table.locator('tbody tr').count(),5);
     await p.locator('#tab-math article').last().screenshot({path:path.join(out,'phone-growth-math.png')});

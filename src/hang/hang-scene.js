@@ -385,7 +385,7 @@
           note: `함대에 넣으면 짐을 더 싣고 포가 는다. 함대는 가장 느린 배에 맞춰 간다. 배는 ${D.maxShips}척까지다. 팔면 처음 값의 ${R.prize.pct}%를 받는다.` };
       }
       if (mode === 'over') return { title: this.overTitle(), rows: [['바다에서 보낸 날', `${v.day}일`], ['자금', fmt(v.gold)], ['선원', `${v.crew}명`], ...(this.goalText() ? [['목표', this.goalText()]] : [])],
-        note: (v.overWhy === 'duchy' ? `${v.address()}, 협력항 ${v.allies()}곳과 공국을 세웠다.` : v.overWhy === 'gold' ? `${v.day}일 만에 자금 ${DH.josa(fmt(v.stage.gold), '을', '를')} 모았다.` : v.overWhy === 'time' ? `${v.stage.days}일이 지났다.` : '배를 몰 사람이 남지 않았다.') + ' 다시 하려면 아래 버튼을 누른다.' };
+        note: v.overWhy === 'duchy' ? `${v.address()}, 협력항 ${v.allies()}곳과 공국을 세우셨습니다. 축하드립니다. 다시 시작하시려면 아래 버튼을 눌러 주세요.` : (v.overWhy === 'gold' ? `${v.day}일 만에 자금 ${DH.josa(fmt(v.stage.gold), '을', '를')} 모았다.` : v.overWhy === 'time' ? `${v.stage.days}일이 지났다.` : '배를 몰 사람이 남지 않았다.') + ' 다시 하려면 아래 버튼을 누른다.' };
       if (mode === 'port' && this.tab === 'market') {
         const m = [...v.markets.get(v.port).values()], sold = m.filter(e => e.refStock > 0), rows = [['짐', this.roomText()], ...sold.map(e => [`${gname(e.good)} 사기`, `${this.kindOf(e.good)} · 매수 ${v.buyUnit ? v.buyUnit(e) : e.price} · 시세 ${e.price} · 재고 ${e.stock}`])];
         for (const [g, h] of this.sortedCargo()) { const q = v.quote(g); rows.push([`${gname(g)} ${h.qty}개`, `산 값 ${h.paid} · 여기서 팔면 개당 ${q.sell.ok ? q.sell.unit : '-'}${q.sell.ok ? ` · ${this.gainText(q.sell.unit - h.paid)}` : ''}`]); }
