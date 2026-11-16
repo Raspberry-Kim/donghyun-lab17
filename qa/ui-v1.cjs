@@ -93,7 +93,7 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
     await E(()=>{const s=__dh.scene;s.voyage.leave();s.meet=s.voyage.rivals.get('redsail');s.refresh();});await click('fight');
     await shot('aegis-radar-0');await E(()=>__dh.engine.step(22));await shot('aegis-radar-22');
     await E(()=>__dh.engine.step(22));await shot('aegis-radar-44');
-    check('공작의 이지스함 교환·해전 진입·회전 레이더 세 시점');
+    check('공작의 이지스함 교환·해전 진입·레이더 막대 세 시점');
     for(const dir of [1,-1]) {
       const aim=await E(dir=>{const s=__dh.engine.scene,b=s.b,u=b.units.find(u=>u.side==='me'),f=b.units.find(u=>u.side==='foe');u.c=dir>0?2:4;u.r=3;f.c=dir>0?4:2;f.r=3;f.hull=1200;f.crew=80;u.done=false;u.moved=false;s.refresh();return [u,f].map(a=>{const q=s.grid.center(a.c,a.r);return s.cam.toScreen(q.x,q.y);});},dir);
       await p.locator('.dh-canvas').scrollIntoViewIfNeeded();
@@ -135,7 +135,7 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
       assert.ok(!/__[_A-Z]+__/.test(await p.locator('#tab-'+tab).innerText()),tab+' 치환 누락');
     }
     await p.locator('[data-tab="math"]').click();
-    assert.ok((await p.locator('#tab-math').innerText()).includes('v1.23'));
+    assert.ok((await p.locator('#tab-math').innerText()).includes('v1.24'));
     assert.ok((await p.locator('#tab-math').innerText()).includes('45틱(0.75초)'));
     const table=p.locator('#tab-math table').filter({hasText:'이지스함'});
     assert.equal(await table.locator('tbody tr').count(),5);
