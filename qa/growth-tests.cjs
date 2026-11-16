@@ -135,4 +135,32 @@ test('여섯 작위의 존댓말 조언·차익 없음·투자 보고',()=>{
     for(const text of [a.text,no])assert.ok(!/높다\.|별도다\.|없다\.|살펴보자\./.test(text));
   }
 });
+test('45항구 협력자 얼굴이 모두 다르고 제물포·나가사키만 입항 횟수로 교대',()=>{
+  const P=H.PORTRAITS,ids=[...w.ports.keys()],cells=P.cols*P.rows;
+  assert.deepEqual([P.cols,P.rows,ids.length],[8,6,45]);
+  assert.deepEqual(Object.keys(P.faces).sort(),[...ids].sort());
+  const first=ids.map(id=>H.portrait(w,id).index);
+  assert.equal(new Set(first).size,45);assert.ok(first.every(i=>Number.isInteger(i)&&i>=1&&i<cells));
+  assert.equal(H.portrait(w,null).index,0);assert.ok(!first.includes(0));
+  // 처음부터 있던 열한 얼굴은 유럽 열한 항구에 하나씩 남는다.
+  assert.deepEqual(['lisbon','seville','amsterdam','valencia','marseille','pisa','copenhagen','genoa','venice','london','naples'].map(id=>H.portrait(w,id).index),[1,2,3,4,5,6,7,8,9,10,11]);
+  assert.deepEqual(Object.keys(P.second).sort(),['jemulpo','nagasaki']);
+  const all=new Set([...first,...Object.values(P.second)]);assert.equal(all.size,47);
+  for(const id of ids)for(let visit=1;visit<=6;visit++){
+    const want=visit%2===0&&P.second[id]?P.second[id]:P.faces[id];
+    assert.equal(H.portrait(w,id,visit).index,want,id+visit);
+  }
+  for(const id of ids)for(const none of [undefined,0])assert.equal(H.portrait(w,id,none).index,P.faces[id]);
+  for(const id of ids)assert.ok(['항구 협력자','교역 안내인','상관 연락관'].includes(H.portrait(w,id).role));
+  // 실제 입항: 방문 기록만으로 교대하고 저장·복원 뒤에도 이어진다. 난수는 쓰지 않는다.
+  const v=V(),seed=v.rng.state,seen=[];v.growth.rank=4;
+  for(const id of ['jemulpo','nagasaki','jemulpo','nagasaki','jemulpo']){assert.ok(v.enter(id).ok);seen.push(H.portrait(w,id,v.visits.get(id)).index);}
+  assert.deepEqual(seen,[12,15,35,47,12]);assert.equal(v.rng.state,seed);
+  const r=H.Voyage.restore(w,JSON.parse(JSON.stringify(v.toJSON())));
+  assert.equal(H.portrait(w,'jemulpo',r.visits.get('jemulpo')).index,12);assert.equal(H.portrait(w,'nagasaki',r.visits.get('nagasaki')).index,47);
+  // 아틀라스 그림: 768×768 팔레트 PNG, 96×128칸 48개.
+  const png=fs.readFileSync(path.join(root,'src/hang/portrait-atlas-small.png'));
+  assert.deepEqual([png.readUInt32BE(16),png.readUInt32BE(20),png[24],png[25]],[768,768,8,3]);
+  const css=fs.readFileSync(path.join(root,'src/style.css'),'utf8');assert.ok(css.includes('background-size:800% 600%'));
+});
 console.log(`성장 시험 ${n}개 통과`);
