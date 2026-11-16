@@ -108,12 +108,12 @@
   // 전투·항해 RNG를 쓰지 않는다. 기존 저장의 quoteIndex만으로 중복 없는 한 바퀴를 이어 간다.
   H.quoteAt = index => QUOTES[((Math.max(1, index) - 1) % QUOTES.length + QUOTES.length) % QUOTES.length];
   H.quoteLine = (address, q) => `${address}, 쇼펜하우어는 '${q.text}'라고 합니다.`;
-  // 동행 0번, 주요 항구 1~10번. 나머지 항구는 얼굴·색조 조합을 고정한다.
+  // 동행 0번, 주요 항구 1~10번. 나머지 항구도 원본 얼굴색 그대로 쓴다.
   const FEATURED = ['lisbon', 'seville', 'amsterdam', 'alexandria', 'istanbul', 'aden', 'calicut', 'macau', 'hakata', 'london'];
   H.portrait = (world, pid) => {
-    if (!pid) return { index: 0, hue: 0, role: '동행 책사 · 시녀 · 파트너' };
+    if (!pid) return { index: 0, role: '동행 책사 · 시녀 · 파트너' };
     const i = FEATURED.indexOf(pid), n = [...world.ports.keys()].indexOf(pid);
-    return { index: i >= 0 ? i + 1 : 1 + n % 11, hue: i >= 0 ? 0 : (Math.floor(n / 11) + 1) * 9,
+    return { index: i >= 0 ? i + 1 : 1 + n % 11,
       role: ['항구 협력자', '교역 안내인', '상관 연락관'][Math.max(0, n) % 3] };
   };
   Object.assign(H.Voyage.prototype, {
@@ -186,7 +186,6 @@
         const art = create('div', 'hang-portrait'); art.setAttribute('role', 'img');
         art.setAttribute('aria-label', p.role + ' 얼굴 초상');
         art.style.backgroundPosition = `${p.index % 4 * 100/3}% ${Math.floor(p.index / 4) * 50}%`;
-        art.style.filter = `hue-rotate(${p.hue}deg)`;
         // 항구 협력자만 동행 책사 쪽을 바라본다. 이름·본문과 아틀라스 선택 좌표는 뒤집지 않는다.
         if (pid) art.style.transform = 'scaleX(-1)';
         face.append(art, create('figcaption', '', pid ? v.here.name + ' 협력자' : '동행 책사'));

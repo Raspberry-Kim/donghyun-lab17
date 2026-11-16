@@ -167,7 +167,11 @@
     base: {R:'#993b30',r:'#703029'}
   };
   const SHIP_FIRE_TICKS = 90; // 기존 용머리 36틱의 2.5배. 전투 계산과 무관한 표시 시간.
-  const specialFire = type => type === 'turtle' || type === 'aegis';
+  const PANOK_FIRE_TICKS = SHIP_FIRE_TICKS / 2;
+  const FIRE_KIND = { turtle:'dragon', aegis:'aegisFire', panok:'panokFire' };
+  const specialFire = type => Object.hasOwn(FIRE_KIND,type);
+  const shipFireTicks = type => type === 'panok' ? PANOK_FIRE_TICKS : SHIP_FIRE_TICKS;
+  const fireEffect = f => Object.values(FIRE_KIND).includes(f.kind);
   const SPRITE = sprite(SHIP_BIG, SHIP_SMALL), SPRITES = {
     turtle: sprite(TURTLE_BIG, TURTLE_SMALL), panok: sprite(PANOK_BIG, PANOK_SMALL),
     aegis: sprite(AEGIS_BIG, AEGIS_SMALL)
@@ -228,6 +232,23 @@
         if(d<=1.3)rect(cx+j,cy+i-3,1,1,d>.5?'#354c56':Math.cos(phase)>0?'#dfebd8':'#86a7aa');
       }
       rect(cx,cy-1,1,3,'#354c56');
+    }
+    if (type === 'panok' && anim.fire >= 0 && anim.fire < PANOK_FIRE_TICKS) {
+      const q=anim.fire/PANOK_FIRE_TICKS, pulse=Math.sin(Math.PI*q);
+      const x0=tiny?15:27, y0=tiny?10:14, swell=1+.35*pulse;
+      // 네모난 갑판·선수는 유지한다. 포구만 짧게 부풀고 거북선보다 작은 두 겹 화염을 낸다.
+      if(pulse>.03){
+        rect(x0-1,y0-1.2*swell,2*swell,2.4*swell,'#5e3b22');
+        rect(x0+.4,y0-.7*swell,.8*swell,1.4*swell,'#2a2119');
+      }
+      if(q>.08&&q<.88){
+        const reach=.75*(5+17*pulse), mouthX=x0+1.2*swell;
+        for(let j=0;j<reach;j++){
+          const h=Math.max(.75,.75*Math.round((1-j/reach)*4+Math.sin(j*1.8+anim.fire)*1.2));
+          rect(mouthX+j,y0-h,1,2*h,'#cf4a22');
+          if(j<reach*.8)rect(mouthX+j,y0-Math.max(.5,h-.75),1,Math.max(.75,2*h-1.5),'#f8bd43');
+        }
+      }
     }
     if (type === 'turtle' && anim.fire >= 0 && anim.fire < SHIP_FIRE_TICKS) {
       const q=anim.fire/SHIP_FIRE_TICKS, swell=1+.9*Math.sin(Math.PI*q), x0=tiny?12:24, y0=tiny?8:12;
@@ -539,16 +560,16 @@
       const g = this.grid, t = this.engine.tick, at = u => g.center(u.c, u.r), hit = (u, text, dy = 0) => { const p = at(u); this.fx.push({ kind: 'hit', x: p.x, y: p.y + dy, text, t0: t }); };
       if (rec.from && rec.to && (rec.from[0] !== rec.to[0] || rec.from[1] !== rec.to[1])) this.fx.push({ kind: 'trail', a: g.center(rec.from[0], rec.from[1]), b: g.center(rec.to[0], rec.to[1]), t0: t });
       const u = rec.unit && this.unit(rec.unit), x = rec.target && this.unit(rec.target);
-      const tempo = rec.type === 'fire' && specialFire(u.type) ? 2.5 : 1;
+      const tempo = rec.type === 'fire' && specialFire(u.type) ? shipFireTicks(u.type) / 36 : 1;
       const land = 14 * tempo;                                    // 표시 시간만 연장. 피해·난수 계산은 그대로.
       if (rec.type === 'fire') {
         const A = at(u), B = at(x), big = Math.min(1, (rec.hull + rec.crew * 2) / 30);
-        if(specialFire(u.type))this.fx.push({kind:u.type==='turtle'?'dragon':'aegisFire',id:u.id,dir:Math.sign(B.x-A.x)||1,t0:t,life:SHIP_FIRE_TICKS});
+        if(specialFire(u.type))this.fx.push({kind:FIRE_KIND[u.type],id:u.id,dir:Math.sign(B.x-A.x)||1,t0:t,life:shipFireTicks(u.type)});
         // 용머리의 열린 입을 가리지 않도록 거북선 포연만 머리 위로 띄운다.
-        this.fx.push({ kind: 'smoke', x: A.x, y: A.y - (u.type === 'turtle' ? 22 : 0), dir: Math.sign(B.x - A.x) || 1, t0: t, life: 40 * tempo });
+        this.fx.push({ kind: 'smoke', x: A.x, y: A.y - (u.type === 'turtle' ? 22 : u.type === 'panok' ? 12 : 0), dir: Math.sign(B.x - A.x) || 1, t0: t, life: 40 * tempo, strength: u.type === 'panok' ? .75 : 1 });
         for (let i = 0; i < 3; i++) this.fx.push({ kind: 'ball', a: A, b: { x: B.x + (i - 1) * 5, y: B.y + (i === 1 ? 0 : 3) }, t0: t + i * 4 * tempo, flight: land, life: land + 2 * tempo });
         for (let i = 0; i < 3; i++) this.fx.push({ kind: 'splash', x: B.x + [-17, 15, -4][i], y: B.y + [6, 9, 14][i], t0: t + land + i * 3 * tempo, life: 22 * tempo });
-        this.fx.push({ kind: 'boom', x: B.x, y: B.y - 6, size: 8 + 10 * big, t0: t + land, life: 22 * tempo }); this.fx.push({ kind: 'jolt', id: x.id, t0: t + land, life: 14 * tempo });
+        this.fx.push({ kind: 'boom', x: B.x, y: B.y - 6, size: (8 + 10 * big) * (u.type === 'panok' ? .85 : 1), t0: t + land, life: 22 * tempo }); this.fx.push({ kind: 'jolt', id: x.id, t0: t + land, life: 14 * tempo });
         this.fx.push({ kind: 'hit', x: B.x, y: B.y, text: `선체 −${rec.hull}`, t0: t + land - 4 });
         this.sfx('cannon', 0.12); this.sfx('bang', 0.25);
       }
@@ -594,7 +615,7 @@
       if (--this.wait > 0) return;
       const rec = b.aiAct();
       if (!rec) return this.endSide();
-      this.show(rec); this.wait = rec.type === 'fire' && specialFire(this.unit(rec.unit).type) ? SHIP_FIRE_TICKS : STEP + (rec.type === 'fire' ? 16 : rec.type === 'board' ? 8 : 0);   // 그림만 기다린다
+      this.show(rec); this.wait = rec.type === 'fire' && specialFire(this.unit(rec.unit).type) ? shipFireTicks(this.unit(rec.unit).type) : STEP + (rec.type === 'fire' ? 16 : rec.type === 'board' ? 8 : 0);   // 그림만 기다린다
       if (b.ended) this.finish(); else this.refresh();
     }
 
@@ -692,8 +713,8 @@
       const k = this.shake(), t = this.engine.tick;
       if (k > 0.05) { g.save(); g.translate(Math.sin(t * 2.7) * k, Math.cos(t * 3.1) * k * 0.6); super.render(g); g.restore(); } else super.render(g);
       if (this.banner && this.mode === 'fight') this.drawBanner(g);
-      // 마지막 포격도 특수 선박의 90틱 연출을 다 보여 준 다음 결과 카드를 올린다.
-      if (this.mode === 'result' && !this.fx.some(f => ['dragon','aegisFire'].includes(f.kind) && this.engine.tick - f.t0 < f.life)) this.drawCard(g);
+      // 마지막 포격도 선박별 발사 연출(판옥선 45틱, 거북선·이지스함 90틱) 뒤 결과 카드를 올린다.
+      if (this.mode === 'result' && !this.fx.some(f => fireEffect(f) && this.engine.tick - f.t0 < f.life)) this.drawCard(g);
     }
     /** 턴이 바뀔 때 화면 가운데를 지나가는 띠(50틱) */
     drawBanner(g) {
@@ -737,7 +758,7 @@
         if (u === s) { g.beginPath(); grid.trace(g, u.c, u.r); g.strokeStyle = ACCENT; g.lineWidth = 3; g.stroke(); }
         const sp = Math.hypot(Q.x - P.x, Q.y - P.y);
         if (sp > 1) { const dx = (Q.x - P.x) / sp; g.beginPath(); for (const sd of [-1, 1]) { g.moveTo(p.x - dx * 12, p.y + 8); g.lineTo(p.x - dx * 28, p.y + 9 + sd * 4); } g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.6; g.stroke(); }
-        const dragon=this.fx.find(f=>['dragon','aegisFire'].includes(f.kind)&&f.id===u.id&&t>=f.t0&&t-f.t0<f.life);
+        const dragon=this.fx.find(f=>fireEffect(f)&&f.id===u.id&&t>=f.t0&&t-f.t0<f.life);
         if (dragon) g.globalAlpha = 1; // 행동 완료 음영이 용머리와 불꽃을 흐리지 않게 한다.
         drawShip(g, p.x, p.y - 2, 2.1, LOOK[u.side], u.flag, dragon?.dir||face, u.type, this.skin(u), {tick:t,fire:dragon?t-dragon.t0:-1});
         const label = `${u.hull}·${u.crew}`; g.font = `800 10px ${FONT}`; g.lineWidth = 3; g.strokeStyle = 'rgba(251,247,239,.95)'; g.strokeText(label, P.x, P.y + 15); g.fillStyle = u.side === 'me' ? INK : '#8a2416'; g.fillText(label, P.x, P.y + 15);
@@ -770,8 +791,8 @@
             const fy = f.y - 34 - Math.min(1, q * 3) * 8; g.fillStyle = INK; g.fillRect(f.x - 1, fy, 1.6, 16); g.fillStyle = '#fff'; g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.rect(f.x + 0.6, fy, 10, 7); g.fill(); g.stroke(); g.globalAlpha = 1; }
           continue;
         }
-        if (f.kind === 'smoke') for (let i = 0; i < 4; i++) { const r = 4 + q * (10 + i * 3), x = f.x + f.dir * (10 + i * 5 + q * 14), y = f.y - 8 - i * 2 - q * 8;
-          g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = `rgba(236,232,224,${(0.75 * a * (1 - i * 0.15)).toFixed(3)})`; g.fill(); }
+        if (f.kind === 'smoke') for (let i = 0; i < 4; i++) { const strength=f.strength||1, r = (4 + q * (10 + i * 3))*strength, x = f.x + f.dir * (10 + i * 5 + q * 14), y = f.y - 8 - i * 2 - q * 8;
+          g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = `rgba(236,232,224,${(0.75 * a * (1 - i * 0.15)*strength).toFixed(3)})`; g.fill(); }
         else if (f.kind === 'ball' && age <= (f.flight || 14)) { const k = age / (f.flight || 14), x = f.a.x + (f.b.x - f.a.x) * k, y = f.a.y + (f.b.y - f.a.y) * k - Math.sin(k * Math.PI) * 18 - 6;
           if (age < 3) { g.beginPath(); g.arc(f.a.x + Math.sign(f.b.x - f.a.x) * 12, f.a.y - 8, 6 - age * 1.5, 0, Math.PI * 2); g.fillStyle = '#ffd34d'; g.fill(); }
           g.beginPath(); g.arc(x, y, 2.6, 0, Math.PI * 2); g.fillStyle = INK; g.fill(); }
