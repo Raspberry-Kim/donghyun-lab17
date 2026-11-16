@@ -23,9 +23,10 @@ for(const k of [.5,1,2.6,4.5])for(const paint of shapes){
   n++;
 }
 console.log(`ok ${n} 그림/배율 조합: 곡선 호출 없음 · 빈 그림 없음 · 정수 픽셀 경계`);
+const HULL_NO='#fbfcfe';   // 이지스함 함번: 배를 뒤집어도 왼쪽에서 오른쪽으로 읽히므로 반전 비교에서 뺀다(aegis-tests.cjs에서 따로 검사)
 for(const paint of shapes){
   const a=recorder(),b=recorder();paint(a,2.5,1);paint(b,2.5,-1);
-  const pixels=g=>{const p=[];for(const [x,y,w,h,c] of g.rects)for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++)p.push([i,j,c].join(':'));return p.sort();};
+  const pixels=g=>{const p=[];for(const [x,y,w,h,c] of g.rects)if(c!==HULL_NO)for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++)p.push([i,j,c].join(':'));return p.sort();};
   const mirrored={rects:a.rects.map(([x,y,w,h,c])=>[200-x-w,y,w,h,c])};
   assert.deepStrictEqual(pixels(b),pixels(mirrored));
 }
@@ -68,41 +69,42 @@ console.log('ok 회전/침몰 효과의 기존 변환 유지 · 유효한 사각
   for(const k of [1,3])for(const side of ['me','foe']){
     const g=recorder();H.drawShip(g,100,100,k,H.LOOK[side],true,1,'aegis',null,{tick:0});
     const colors=new Set(g.rects.map(r=>r[4]));
-    for(const color of ['#674c34','#e0b97a','#bf8b4f','#926039','#78523a'])assert.ok(colors.has(color),'지도·해전의 꿀빛 목재 명암·외곽선·포문');
-    for(const gray of ['#b9c7c9','#49636b','#6c868e'])assert.ok(!colors.has(gray),'회색 선체 팔레트 제거');
-    assert.ok(colors.has('#f6e7c8'),'크림색 원판 레이더');
-    for(const c of ['#d56b52','#ad4c3e'])assert.ok(colors.has(c),'크고 작은 대포 모두 붉은 명암');
-    for(const c of ['#ead3a5','#729ca4'])assert.ok(colors.has(c),'중앙 함교의 밝은 목재와 넓은 창');
+    for(const color of ['#141d4a','#959cbd','#acb1cd','#cfd2e3','#22397c'])assert.ok(colors.has(color),'지도·해전의 남색 테두리·회색 명암·창');
+    for(const wood of ['#674c34','#e0b97a','#bf8b4f','#926039','#d56b52'])assert.ok(!colors.has(wood),'목재 선체·붉은 함포 팔레트 제거');
+    for(const c of ['#e8473f','#2a68d8','#f7f8fc'])assert.ok(colors.has(c),'기함의 태극기');
+    assert.equal(colors.has(HULL_NO),k>=1.6,'함번은 큰 그림에만');
     const b=recorder();H.drawShip(b,100,100,k,H.LOOK[side],true,1,'aegis',null,{tick:22});
-    assert.notDeepEqual(g.rects,b.rects,'지도·해전 모두 레이더 회전');
+    assert.notDeepEqual(g.rects,b.rects,'지도·해전 모두 레이더 막대·회전날개가 움직임');
   }
-  console.log('ok 목재 이지스함: 두 크기·양 진영의 나무 명암·포문·레이더 보존');
+  console.log('ok 회색 이지스함: 두 크기·양 진영의 회색 명암·태극기·움직이는 레이더와 회전날개');
 }
 {
+  const BARREL=['#adb2ce','#d0d3e4'];
   for(const k of [1,3])for(const face of [-1,1])for(const fire of [-1,0,40,89,90]){
     const g=recorder();H.drawShip(g,100,100,k,H.LOOK.me,true,face,'aegis',null,{tick:0,fire});
-    const red=g.rects.filter(r=>['#d56b52','#ad4c3e','#efad78'].includes(r[4]));
-    const top=Math.min(...red.map(r=>r[1])),bottom=Math.max(...red.map(r=>r[1]));
-    const center=y=>{const a=red.filter(r=>r[1]===y);return a.reduce((s,r)=>s+r[0]+r[2]/2,0)/a.length;};
+    const barrel=g.rects.filter(r=>BARREL.includes(r[4]));
+    const top=Math.min(...barrel.map(r=>r[1])),bottom=Math.max(...barrel.map(r=>r[1]));
+    const center=y=>{const a=barrel.filter(r=>r[1]===y);return a.reduce((s,r)=>s+r[0]+r[2]/2,0)/a.length;};
     assert.ok((center(top)-center(bottom))*face>0,'포구의 전방 45도 기울기는 항해·전투의 진행 방향과 일치');
   }
-  console.log('ok 큰/작은 붉은 대포의 진행 방향 일치 · 배 전체 좌우 반전 보존');
+  console.log('ok 큰/작은 포신의 진행 방향 일치 · 배 전체 좌우 반전 보존');
 }
 {
   for(const k of [1,3]) {
     const a=recorder();H.drawShip(a,100,100,k,H.LOOK.me,true,1,'aegis',null,{fire:-1});
-    const bands=['#efad78','#d56b52','#ad4c3e'].map(c=>a.rects.filter(r=>r[4]===c));
-    assert.ok(bands.every(b=>b.length>0),'포구·붉은 포신·어두운 옆면');
+    const bands=['#d0d3e4','#adb2ce'].map(c=>a.rects.filter(r=>r[4]===c));
+    assert.ok(bands.every(b=>b.length>0),'밝은 포구·회색 포신');
     const mean=b=>b.reduce((s,r)=>s+r[1],0)/b.length;
-    assert.ok(mean(bands[0])<mean(bands[2]),'포구보다 낮은 위치의 차분한 명암');
+    assert.ok(mean(bands[0])<mean(bands[1]),'포구가 포신 뿌리보다 높음');
     for(const type of ['aegis','turtle']) {
       const left=recorder(),right=recorder();
       H.drawShip(left,100,100,k,H.LOOK.me,true,-1,type,null,{tick:0,fire:40});
       H.drawShip(right,100,100,k,H.LOOK.me,true,1,type,null,{tick:0,fire:40});
-      assert.deepEqual(left.rects,right.rects.map(([x,y,w,h,c])=>[200-x-w,y,w,h,c]),'발사 중 양 방향 대칭');
+      const body=g=>g.rects.filter(r=>r[4]!==HULL_NO);
+      assert.deepEqual(body(left),body(right).map(([x,y,w,h,c])=>[200-x-w,y,w,h,c]),'발사 중 양 방향 대칭');
     }
   }
-  console.log('ok 통통한 이지스함 포신 명암 · 두 선박의 큰/작은 발사 그림 좌우 반전');
+  console.log('ok 회색 이지스함 포신 명암 · 두 선박의 큰/작은 발사 그림 좌우 반전');
 }
 {
   const mouth=fire=>{
