@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 title: "Donghyunhang (동현항): a single-player sailing and trading simulation game on a world map with hex sea battles, with starting values and rule numbers set through the esoteric language Donghyun-lang"
 type: software
-version: "1.21"
+version: "1.22"
 doi: "10.5281/zenodo.24106054"
 date-released: "2026-11-16"
 authors:
@@ -14,6 +14,9 @@ license: MIT
 repository-code: "https://github.com/Raspberry-Kim/donghyun-lab17"
 url: "https://raspberry-kim.github.io/donghyun-lab17/"
 abstract: >-
+  Version 1.22 adds a shorter 45-tick panokseon firing animation with
+  smaller flames and removes hue filters from all port portraits,
+  preserving combat rules, portrait artwork and save compatibility.
   Version 1.21 aligns the Aegis ship's bow and cannon with its travel
   direction during sailing, battle setup and firing.
   Version 1.20 refines wooden Aegis and panokseon sprites, extends

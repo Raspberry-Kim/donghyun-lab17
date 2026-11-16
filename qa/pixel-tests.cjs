@@ -116,4 +116,20 @@ console.log('ok 회전/침몰 효과의 기존 변환 유지 · 유효한 사각
   assert.equal(mouth(90).length,0);
   console.log('ok 거북선: 열린 입·위아래 턱·확대 연동·닫힘 복귀');
 }
-console.log('PASS 10 pixel test groups');
+{
+  const draw=(type,fire,k=3,face=1)=>{const g=recorder();H.drawShip(g,100,100,k,H.LOOK.me,true,face,type,null,{tick:0,fire});return g.rects;};
+  const flame=rs=>rs.filter(r=>['#cf4a22','#f8bd43'].includes(r[4]));
+  const area=rs=>rs.reduce((s,r)=>s+r[2]*r[3],0);
+  for(const k of [1,3]){
+    assert.deepEqual(draw('panok',-1,k),draw('panok',45,k),'45틱 뒤 원래 판옥선');
+    assert.notDeepEqual(draw('panok',-1,k),draw('panok',22.5,k),'포격 때 포구·불꽃 표시');
+    assert.ok(area(flame(draw('panok',22.5,k)))<area(flame(draw('turtle',45,k))),'같은 발사 단계에서 거북선보다 작은 불꽃');
+    for(const fire of [0,4,12,22.5,39,44,45]){
+      const a=draw('panok',fire,k),b=draw('panok',fire,k,-1);
+      assert.ok(a.every(r=>r.slice(0,4).every(Number.isInteger)));
+      assert.deepEqual(b,a.map(([x,y,w,h,c])=>[200-x-w,y,w,h,c]),'발사 양 방향 대칭');
+    }
+  }
+  console.log('ok 판옥선: 45틱 복귀·더 작은 화염·큰/작은 그림·양 방향·정수 픽셀');
+}
+console.log('PASS 11 pixel test groups');
