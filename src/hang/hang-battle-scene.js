@@ -136,36 +136,6 @@
     const bow = r.slice(13).replace(/[kDGr]/g, 'L').replace(/d/g, 'H');
     return (i === 7 ? '..' + 'o'.repeat(11) : '..o' + (i === 11 ? 'H'.repeat(9) : 'LLLHLLLHL') + 'o') + bow;
   });
-  const AEGIS_SMALL = [
-    '........m........','........mFFF.....','.......mmfff.....','.......oLLo......',
-    '......oHgyHo.....','......oLLLLo.....','.....oHgygyHo....','.....oLLLLLLo....',
-    '.....oHHHHHHo....','.....oLLLLLLLo...',
-    '.oLLmLLmLLLHHo.gg','oLLLLLLLLLLLLoHHo','oHHgHHHgHHHgHHHHo',
-    '.oHHHHHHHHHHHHHo.','..ohhhhhhhhhhho..','...ooooooooooo...','...ww....ww......'
-  ].map((r,i) => [...r].map((ch,x) => i>=3 && i<=9 && x>=5 && x<=12 ? ({L:'A',H:'B',h:'C',y:'Y'}[ch] || ch) : ch).join(''));
-  // 정조대왕함의 긴 후미 갑판·각진 함교·선수 함포를 목재 배의 픽셀 문법으로 옮긴다.
-  // 거북선·범선과 같은 나무 명암·포문·테두리를 쓰며, 실제 목조 구축함의 고증은 아니다.
-  // 둥근 회전 안테나는 게임용 과장이다. 실제 이지스 주 레이더 재현이 아니다.
-  const AEGIS_BIG = [
-    '...........................', '...........................', '...........................',
-    '...........................', '.............m.............', '.............mFFF..........',
-    '............mmfff..........', '............ooo............', '...........oLLLo...........',
-    '..........oHgygHo..........', '..........oLLLLLo..........', '.........oHHHHHHHo.........',
-    '.........oHgygygHo.........', '.........oLLLLLLLo.........', '.........hHHHHHHHho........',
-    '..oooLLoLLLLLLLLLLLo.......', '.oLLLLLLmLLmLLmLLmLHo......',
-    'oLHLLHLLHLLHLLHHHHHHo.oooo.', 'oLLLLLLLLLLLLLLLLLLLooLHggg',
-    'oLLLLLLLLLLLLLLLLLLLLLLLLLo', 'oHHHgHHHgHHHgHHHgHHHgHHHHHo',
-    '.oHHHHHHHHHHHHHHHHHHHHHHHo.', '..ohhhhhhhhhhhhhhhhhhhho...',
-    '...oohhhhhhhhhhhhhhhhoo....', '....wwwoooowwwoooowwwoo....'
-  ].map((r,i) => [...r].map((ch,x) => i>=7 && i<=18 && x>=9 && x<=20 ? ({L:'A',H:'B',h:'C',y:'Y'}[ch] || ch) : ch).join(''));
-  // 큰 붉은 대포. 아래 원형을 그릴 때 좌우 반전해 직전 시안과 반대(왼쪽 위 45도)로 향하게 한다.
-  const AEGIS_CANNON = {
-    big: ['.......oo..','......oRTo.','.....oRrro.','....oRrro..','...oRrro...','..oRrro....','.oRrro.....','oRRrro.....','oRrrro.....','.oooo......','..HH.......'],
-    small: ['....oo.','...oRo.','..oRro.','.oRro..','oRro...','oRro...','.oo....'],
-    colors: {o:'#43261f',R:'#c44332',r:'#8e3029',T:'#e87653',H:'#5e3b22'},
-    middle: {R:'#b13e30',r:'#7f3028'},
-    base: {R:'#993b30',r:'#703029'}
-  };
   const SHIP_FIRE_TICKS = 90; // 기존 용머리 36틱의 2.5배. 전투 계산과 무관한 표시 시간.
   const PANOK_FIRE_TICKS = SHIP_FIRE_TICKS / 2;
   const FIRE_KIND = { turtle:'dragon', aegis:'aegisFire', panok:'panokFire' };
@@ -173,8 +143,7 @@
   const shipFireTicks = type => type === 'panok' ? PANOK_FIRE_TICKS : SHIP_FIRE_TICKS;
   const fireEffect = f => Object.values(FIRE_KIND).includes(f.kind);
   const SPRITE = sprite(SHIP_BIG, SHIP_SMALL), SPRITES = {
-    turtle: sprite(TURTLE_BIG, TURTLE_SMALL), panok: sprite(PANOK_BIG, PANOK_SMALL),
-    aegis: sprite(AEGIS_BIG, AEGIS_SMALL)
+    turtle: sprite(TURTLE_BIG, TURTLE_SMALL), panok: sprite(PANOK_BIG, PANOK_SMALL)
   };      // 배 종류 id → 그림. 없는 종류는 범선 그림을 쓴다
 
   /** 배 한 척(픽셀 그림). (x,y)가 가운데, k가 배율(물보라 줄 아래 끝이 y+5k). flag면 돛대 끝에 노란 깃발을 단다.
@@ -182,9 +151,7 @@
    *  칸 경계를 기기 픽셀에 맞춰 반올림하므로 어떤 배율에서도 칸 사이에 틈이나 번짐이 없다. */
   function drawShip(g, x, y, k, look = LOOK.me, flag = false, face = 1, type = null, skin = null, anim = {}) {
     if (skin != null) return drawFancyShip(g, x, y, k, skin, face);
-    // 이지스함 원화의 포구는 왼쪽이다. 공통 face=1(오른쪽 진행)과 여기서 맞춘다.
-    // 항해·전투 대기·발사 모두 같은 방향 규약을 쓰며 선체와 포구를 함께 돌린다.
-    if (type === 'aegis') face = -face;
+    if (type === 'aegis') return DH.Hang.drawAegis(g,x,y,k,flag,face,anim);
     const m = g.getTransform(), set = SPRITES[type] || SPRITE, tiny = k < 1.6, sp = tiny ? set.small : set.big;
     const c = tiny ? k : k * sp.cell, pal = look.px || PX.me;
     const left = x - sp.w * c / 2, top = y + 5 * k - (sp.base + 1) * c;
@@ -196,43 +163,6 @@
       g.fillStyle = pal[ch] || INK; g.fillRect(Math.min(a, b), y0, Math.abs(b - a), y1 - y0);
     }
     const rect = (j,i,w,h,color) => { const a=DX(j),b=DX(j+w),u=DY(i),v=DY(i+h); g.fillStyle=color;g.fillRect(Math.min(a,b),u,Math.abs(b-a),v-u); };
-    if (type === 'aegis') {
-      const cannon = tiny ? AEGIS_CANNON.small : AEGIS_CANNON.big, base = tiny ? 3 : 7;
-      const firing = anim.fire >= 0 && anim.fire < SHIP_FIRE_TICKS, q = firing ? anim.fire / SHIP_FIRE_TICKS : 0;
-      // 부착점은 고정하고 포신만 빠르게 부풀린 뒤 천천히 복귀한다.
-      const pulse = firing ? Math.sin(Math.PI * Math.min(1, q / .22)) * .18 + Math.sin(Math.PI * q) : 0;
-      const swell = 1 + .65 * pulse, ax = tiny ? 5 : 8, ay = base + (tiny ? 6 : 9);
-      const recoil = firing ? .8 * Math.sin(Math.PI * Math.min(1, q / .3)) : 0;
-      const cxAt = j => ax + (j - ax) * swell + recoil;
-      const cyAt = i => ay + (i - ay) * swell + recoil;
-      cannon.forEach((row,i) => [...row].forEach((ch,j) => {
-        const shade = i >= cannon.length * .6 ? AEGIS_CANNON.base : i >= cannon.length * .3 ? AEGIS_CANNON.middle : {};
-        if (ch !== '.') rect(cxAt(cannon[0].length-1-j),cyAt(base+i),swell,swell,shade[ch] || AEGIS_CANNON.colors[ch]);
-      }));
-      if (firing && q > .06 && q < .92) {
-        const strength = Math.sin(Math.PI * (q - .06) / .86), reach = (tiny ? 5 : 8) + (tiny ? 8 : 15) * strength;
-        const mx = cxAt(tiny ? 1 : 2), my = cyAt(base + .5);
-        // 포구의 왼쪽 위 45도 축을 따른 픽셀 불꽃. 배 전체 반전에도 포구와 함께 움직인다.
-        for (const [scale,length,color] of [[1,1,'#ce4523'],[.62,.83,'#ffc34a'],[.28,.5,'#fff2b1']])
-          for (let j = 0; j < reach*length; j++) {
-            const taper = Math.sin(Math.PI * Math.min(1,(j+2)/(reach*length+2)));
-            const h = Math.max(.5, (tiny ? 2 : 3.2)*strength*scale*taper + .3*Math.sin(j*.9+anim.fire*.35));
-            const x = mx-j*.72, y = my-j*.72;
-            rect(x-h,y-h,h*2+1,h*2+1,color);
-          }
-        for (let j=0;j<5;j++) {
-          const d=(q*25+j*3)%(reach+5), spread=Math.sin(j*2.4)*d*.35;
-          rect(mx-d*.8+spread,my-d*.8-spread,1,1,j%2?'#ffc34a':'#fff2b1');
-        }
-      }
-      const phase=(anim.tick||0)/14, cx=tiny?8:13, cy=tiny?0:4, rx=.7+2.5*Math.abs(Math.cos(phase));
-      // 원판의 폭과 밝은 면이 변한다. 작은 지도에서도 각진 픽셀 원형을 유지한다.
-      for(let j=-3;j<=3;j++)for(let i=-2;i<=2;i++){
-        const d=j*j/(rx*rx)+i*i/5;
-        if(d<=1.3)rect(cx+j,cy+i-3,1,1,d>.5?'#354c56':Math.cos(phase)>0?'#dfebd8':'#86a7aa');
-      }
-      rect(cx,cy-1,1,3,'#354c56');
-    }
     if (type === 'panok' && anim.fire >= 0 && anim.fire < PANOK_FIRE_TICKS) {
       const q=anim.fire/PANOK_FIRE_TICKS, pulse=Math.sin(Math.PI*q);
       const x0=tiny?15:27, y0=tiny?10:14, swell=1+.35*pulse;

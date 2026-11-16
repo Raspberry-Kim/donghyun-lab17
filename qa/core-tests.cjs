@@ -1,7 +1,7 @@
 // 동현항 핵심 시험(공통 엔진 · 자료 · 규칙 · 동현랭). 브라우저 없이 node로 돈다: node qa/core-tests.cjs
 const assert = require('assert'), fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
-for (const f of ['src/engine/dh-core.js', 'src/engine/dh-loop.js', 'src/engine/dh-clock.js', 'src/engine/dh-grid.js', 'src/engine/dh-tilemap.js', 'src/engine/dh-layout.js', 'src/engine/dh-engine.js', 'src/engine/dh-lang.js', 'src/hang/hang-parser.js', 'src/hang/hang-rules.js', 'src/hang/hang-battle.js', 'src/hang/hang-lang.js', 'src/hang/hang-battle-scene.js', 'src/hang/hang-scene.js']) require(path.join(root, f));
+for (const f of ['src/engine/dh-core.js', 'src/engine/dh-loop.js', 'src/engine/dh-clock.js', 'src/engine/dh-grid.js', 'src/engine/dh-tilemap.js', 'src/engine/dh-layout.js', 'src/engine/dh-engine.js', 'src/engine/dh-lang.js', 'src/hang/hang-parser.js', 'src/hang/hang-rules.js', 'src/hang/hang-battle.js', 'src/hang/hang-lang.js', 'src/hang/hang-aegis.js', 'src/hang/hang-battle-scene.js', 'src/hang/hang-scene.js']) require(path.join(root, f));
 const DH = globalThis.DH;
 // 고정 v0.26 자료로 기존 항해·가격·해전 규칙을 회귀 검사한다. 실행 코드는 현재 src다.
 // v1.00 실제 자료·성장·기본 함대는 growth-tests.cjs에서 별도로 검사한다.
