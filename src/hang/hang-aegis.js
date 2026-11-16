@@ -1,5 +1,6 @@
 // 회색 이지스함: 남색 테두리의 짙은 무채색 회색 선체, 함번 997, 뒤 갑판의 헬기와 깃대, 둥근 포탑.
-// 큰 그림(해전)은 32×22칸, 작은 그림(지도)은 19×12칸이다. 기준 그림은 뱃머리가 오른쪽을 본다.
+// 큰 그림(해전)은 32×22칸, 작은 그림(지도)은 21×15칸이다. 작은 그림은 큰 그림의 가로세로 비율을 따른다.
+// 기준 그림은 뱃머리가 오른쪽을 본다.
 // 그림만 다룬다. 전투 계산·저장 데이터와 무관하다.
 (function(root){
   'use strict';
@@ -44,24 +45,27 @@
     },
     small:{
       rows:[
-        '.......o...o.......',
-        '.......o..oWo......',
-        '.......o.ooooo.....',
-        '.......o..olo......',
-        '.......o.oooooo....',
-        '.......o.oMlnlo.o..',
-        'oMlno..o.oMlllooMo.',
-        'ooooooooooooooooooo',
-        'ollllllllmmmmmmmmo.',
-        '.ommmmmmmmWmWmWmo..',
-        '..oooooooooooooo...',
-        '...ww...ww...ww....'
+        '.......o...o.........',
+        '.......o..oWo........',
+        '.......o...o.........',
+        '.......o.ooooo.......',
+        '.......o..olo........',
+        '.......o.oooooo......',
+        'o..o...oooMnlnooo....',
+        'ooolno.onoMMlloMloooo',
+        '..ollo.oooMMlloooodmo',
+        'oooooooollMMmmmmmmmmo',
+        'ollllllmmmmmmWmWmWmo.',
+        '.ommmmmmmmmmmmmmmmmo.',
+        '.oddddddddddddddddo..',
+        '..oooooooooooooooo...',
+        '...ww....www....ww...'
       ],
       cell:1,
-      base:11,
-      flag:{r:0,c:3,rows:['oooo','oWrW','oWbW','oooo']},
-      rotor:{row:5,full:[0,4],short:[1,3]},
-      cannon:{x:17,y:5.8,length:2,width:1,edge:0.5}
+      base:14,
+      flag:{r:0,c:2,rows:['ooooo','oWrrW','oWbbW','ooooo']},
+      rotor:{row:5,full:[1,5],short:[2,4]},
+      cannon:{x:17,y:5.5,length:2,width:1,edge:0.5}
     }
   };
   const FONT={'9':['###','#.#','###','..#','###'],'7':['###','..#','..#','..#','..#']};
