@@ -1,11 +1,11 @@
-// 회색 이지스함: 남색 테두리의 회색 선체, 함번 997, 뒤 갑판의 헬기와 깃대, 둥근 포탑.
+// 회색 이지스함: 남색 테두리의 짙은 무채색 회색 선체, 함번 997, 뒤 갑판의 헬기와 깃대, 둥근 포탑.
 // 큰 그림(해전)은 32×22칸, 작은 그림(지도)은 19×12칸이다. 기준 그림은 뱃머리가 오른쪽을 본다.
 // 그림만 다룬다. 전투 계산·저장 데이터와 무관하다.
 (function(root){
   'use strict';
   const DH=root.DH=root.DH||{};
   // o 테두리 · n 창 · d m M l 회색 네 단계 · W 흰색 · r b 태극 · w 물보라 · N 함번 · g G 포신
-  const PALETTE={o:'#141d4a',n:'#22397c',d:'#7a82a8',m:'#959cbd',M:'#acb1cd',l:'#cfd2e3',W:'#f7f8fc',r:'#e8473f',b:'#2a68d8',w:'#eaf5f6',N:'#fbfcfe',g:'#adb2ce',G:'#d0d3e4'};
+  const PALETTE={o:'#141d4a',n:'#22397c',d:'#66676e',m:'#808187',M:'#9b9ca2',l:'#cbccd0',W:'#f7f8fc',r:'#e8473f',b:'#2a68d8',w:'#eaf5f6',N:'#fbfcfe',g:'#9c9da3',G:'#cccdd1'};
   // cell: 한 칸의 크기(k 단위) · base: 물에 닿는 줄 · bar: 마스트 가로 막대(레이더) · flag: 태극기
   // rotor: 헬기 회전날개 · digits: 함번 · cannon: 포신 뿌리와 길이
   const SPEC={

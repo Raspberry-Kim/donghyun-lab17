@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 title: "Donghyunhang (동현항): a single-player sailing and trading simulation game on a world map with hex sea battles, with starting values and rule numbers set through the esoteric language Donghyun-lang"
 type: software
-version: "1.24"
+version: "1.25"
 doi: "10.5281/zenodo.24106054"
 date-released: "2026-11-16"
 authors:
@@ -14,6 +14,11 @@ license: MIT
 repository-code: "https://github.com/Raspberry-Kim/donghyun-lab17"
 url: "https://raspberry-kim.github.io/donghyun-lab17/"
 abstract: >-
+  Version 1.25 repaints the Aegis ship's hull, superstructure and barrel
+  in a darker neutral gray so that the hull separates from the sea colors
+  (hull-to-sea luminance contrast 1.9-2.5, previously 1.3-1.8). Sprite
+  layout, animation, combat statistics and save compatibility remain
+  unchanged.
   Version 1.24 redraws the Aegis ship as a gray warship with a navy
   outline, hull number 997, a stern helicopter and flagstaff, and a round
   turret. The hull number reads left to right in both directions and the

@@ -1,4 +1,4 @@
-// 회색 이지스함: 배치·함번·깃대와 태극기·움직이는 곳·발사 회귀.
+// 회색 이지스함: 배치·함번·깃대와 태극기·움직이는 곳·발사 회귀·선체 색.
 const assert=require('node:assert/strict');
 require('../src/hang/hang-aegis.js');
 const {drawAegis:draw,AEGIS:{SPEC,PALETTE:P,FONT}}=globalThis.DH.Hang;
@@ -78,4 +78,24 @@ for(const k of [.5,1,1.2,2.1,7.5]){
   assert(flame.every(r=>r[0]>=X(s.cannon.x)&&r[1]+r[3]<=Y(s.cannon.y)+1),'화염은 포신 뿌리의 앞쪽 위로만 뻗는다');
 }
 console.log('PASS 발사: 90틱 복귀 · 정수 픽셀 · 양방향 · 화염 방향');
-console.log('PASS 5 aegis geometry groups');
+
+// 6. 선체 색: 푸른 기가 없는 짙은 회색이고, 해전·지도의 바다색과 밝기가 갈린다.
+{
+  const fs=require('node:fs'),path=require('node:path');
+  const src=f=>fs.readFileSync(path.join(__dirname,'../src/hang',f),'utf8');
+  const SEA=['#9fc4d9','#a6c9dc','#b5d6e2','#93bcd4'];           // 해전 WATER·WATER2, 지도 shallow·sea(=WATER)·deep
+  for(const c of SEA.slice(0,2))assert(src('hang-battle-scene.js').includes(c),'해전 바다색 '+c);
+  for(const c of ['#b5d6e2','#9fc4d9','#93bcd4'])assert(src('hang-scene.js').includes(c),'지도 바다색 '+c);
+  const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+  const lum=h=>{const [r,g,b]=rgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4;});return .2126*r+.7152*g+.0722*b;};
+  const ratio=(a,b)=>{const [x,y]=[lum(a),lum(b)].sort((p,q)=>q-p);return (x+.05)/(y+.05);};
+  for(const key of ['d','m','M','l','g','G']){const c=rgb(P[key]);assert(Math.max(...c)-Math.min(...c)<=8,key+' 무채색에 가까운 회색');}
+  assert(lum(P.d)<lum(P.m)&&lum(P.m)<lum(P.M)&&lum(P.M)<lum(P.l),'회색 네 단계의 밝기 순서');
+  for(const sea of SEA){
+    assert(ratio(P.m,sea)>=1.9,'선체 면과 바다 '+sea+' 대비 1.9 이상');
+    assert(ratio(P.o,sea)>=7.9,'남색 테두리와 바다 '+sea+' 대비 7.9 이상');
+  }
+  assert(ratio(P.N,P.m)>=3.5,'함번과 선체 면 대비 3.5 이상');
+}
+console.log('PASS 선체 색: 무채색 회색 · 바다색 대비 · 함번 대비');
+console.log('PASS 6 aegis groups');
