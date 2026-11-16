@@ -108,13 +108,21 @@
   // 전투·항해 RNG를 쓰지 않는다. 기존 저장의 quoteIndex만으로 중복 없는 한 바퀴를 이어 간다.
   H.quoteAt = index => QUOTES[((Math.max(1, index) - 1) % QUOTES.length + QUOTES.length) % QUOTES.length];
   H.quoteLine = (address, q) => `${address}, 쇼펜하우어는 '${q.text}'라고 합니다.`;
-  // 동행 0번, 주요 항구 1~10번. 나머지 항구도 원본 얼굴색 그대로 쓴다.
-  const FEATURED = ['lisbon', 'seville', 'amsterdam', 'alexandria', 'istanbul', 'aden', 'calicut', 'macau', 'hakata', 'london'];
-  H.portrait = (world, pid) => {
+  // 초상 아틀라스는 가로 8칸 × 세로 6칸. 0번은 동행 책사, 1~11번은 처음부터 있던 얼굴, 12번부터 v1.27의 새 얼굴이다.
+  // 항구마다 협력자가 한 명씩 따로 있다.
+  const FACES = { lisbon: 1, seville: 2, amsterdam: 3, valencia: 4, marseille: 5, pisa: 6, copenhagen: 7, genoa: 8, venice: 9, london: 10, naples: 11, jemulpo: 12,
+    dongnae: 13, hakata: 14, nagasaki: 15, canton: 16, hongkong: 17, goa: 18, calicut: 19, ceylon: 20, oslo: 21, athens: 22, hamburg: 23, malacca: 24,
+    java: 25, ternate: 26, ambon: 27, butuan: 28, cebu: 29, sulu: 30, santodomingo: 31, veracruz: 32, pernambuco: 33, guatemala: 34, istanbul: 36,
+    alexandria: 37, tripoli: 38, aden: 39, hormuz: 40, mecca: 41, elmina: 42, sofala: 43, mombasa: 44, mozambique: 45, capetown: 46 };
+  // 제물포와 나가사키에는 협력자가 둘이다. 그 항구의 입항 횟수가 홀수면 첫째, 짝수면 둘째가 맞는다.
+  const SECOND = { jemulpo: 35, nagasaki: 47 };
+  H.PORTRAITS = { cols: 8, rows: 6, faces: FACES, second: SECOND };
+  /** @param visit 그 항구에 입항한 횟수(저장에 든 방문 기록). 없으면 첫 입항으로 본다 */
+  H.portrait = (world, pid, visit = 1) => {
     if (!pid) return { index: 0, role: '동행 책사 · 시녀 · 파트너' };
-    const i = FEATURED.indexOf(pid), n = [...world.ports.keys()].indexOf(pid);
-    return { index: i >= 0 ? i + 1 : 1 + n % 11,
-      role: ['항구 협력자', '교역 안내인', '상관 연락관'][Math.max(0, n) % 3] };
+    const n = Math.max(0, [...world.ports.keys()].indexOf(pid));
+    return { index: ((visit || 1) % 2 === 0 && SECOND[pid]) || FACES[pid] || 1 + n % 11,
+      role: ['항구 협력자', '교역 안내인', '상관 연락관'][n % 3] };
   };
   Object.assign(H.Voyage.prototype, {
     nextQuote() {
@@ -182,10 +190,10 @@
       card.setAttribute('aria-label', '동행 조언');
       const faces = create('div', 'hang-faces');
       for (const pid of [null, ...(v.port ? [v.port] : [])]) {
-        const p = H.portrait(this.world, pid), face = create('figure', 'hang-face');
+        const p = H.portrait(this.world, pid, pid ? v.visits.get(pid) : 1), face = create('figure', 'hang-face');
         const art = create('div', 'hang-portrait'); art.setAttribute('role', 'img');
         art.setAttribute('aria-label', p.role + ' 얼굴 초상');
-        art.style.backgroundPosition = `${p.index % 4 * 100/3}% ${Math.floor(p.index / 4) * 50}%`;
+        art.style.backgroundPosition = `${p.index % 8 * 100/7}% ${Math.floor(p.index / 8) * 20}%`;
         // 항구 협력자만 동행 책사 쪽을 바라본다. 이름·본문과 아틀라스 선택 좌표는 뒤집지 않는다.
         if (pid) art.style.transform = 'scaleX(-1)';
         face.append(art, create('figcaption', '', pid ? v.here.name + ' 협력자' : '동행 책사'));
