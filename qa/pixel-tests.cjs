@@ -69,8 +69,9 @@ console.log('ok 회전/침몰 효과의 기존 변환 유지 · 유효한 사각
   for(const k of [1,3])for(const side of ['me','foe']){
     const g=recorder();H.drawShip(g,100,100,k,H.LOOK[side],true,1,'aegis',null,{tick:0});
     const colors=new Set(g.rects.map(r=>r[4]));
-    for(const color of ['#141d4a','#959cbd','#acb1cd','#cfd2e3','#22397c'])assert.ok(colors.has(color),'지도·해전의 남색 테두리·회색 명암·창');
+    for(const color of ['#141d4a','#808187','#9b9ca2','#cbccd0','#22397c'])assert.ok(colors.has(color),'지도·해전의 남색 테두리·회색 명암·창');
     for(const wood of ['#674c34','#e0b97a','#bf8b4f','#926039','#d56b52'])assert.ok(!colors.has(wood),'목재 선체·붉은 함포 팔레트 제거');
+    for(const blue of ['#7a82a8','#959cbd','#acb1cd','#cfd2e3','#adb2ce','#d0d3e4'])assert.ok(!colors.has(blue),'v1.24의 푸른 회색 제거');
     for(const c of ['#e8473f','#2a68d8','#f7f8fc'])assert.ok(colors.has(c),'기함의 태극기');
     assert.equal(colors.has(HULL_NO),k>=1.6,'함번은 큰 그림에만');
     const b=recorder();H.drawShip(b,100,100,k,H.LOOK[side],true,1,'aegis',null,{tick:22});
@@ -79,7 +80,7 @@ console.log('ok 회전/침몰 효과의 기존 변환 유지 · 유효한 사각
   console.log('ok 회색 이지스함: 두 크기·양 진영의 회색 명암·태극기·움직이는 레이더와 회전날개');
 }
 {
-  const BARREL=['#adb2ce','#d0d3e4'];
+  const BARREL=['#9c9da3','#cccdd1'];
   for(const k of [1,3])for(const face of [-1,1])for(const fire of [-1,0,40,89,90]){
     const g=recorder();H.drawShip(g,100,100,k,H.LOOK.me,true,face,'aegis',null,{tick:0,fire});
     const barrel=g.rects.filter(r=>BARREL.includes(r[4]));
@@ -92,7 +93,7 @@ console.log('ok 회전/침몰 효과의 기존 변환 유지 · 유효한 사각
 {
   for(const k of [1,3]) {
     const a=recorder();H.drawShip(a,100,100,k,H.LOOK.me,true,1,'aegis',null,{fire:-1});
-    const bands=['#d0d3e4','#adb2ce'].map(c=>a.rects.filter(r=>r[4]===c));
+    const bands=['#cccdd1','#9c9da3'].map(c=>a.rects.filter(r=>r[4]===c));
     assert.ok(bands.every(b=>b.length>0),'밝은 포구·회색 포신');
     const mean=b=>b.reduce((s,r)=>s+r[1],0)/b.length;
     assert.ok(mean(bands[0])<mean(bands[1]),'포구가 포신 뿌리보다 높음');
