@@ -1,4 +1,4 @@
-// 회색 이지스함: 배치·함번·깃대와 태극기·움직이는 곳·발사 회귀·선체 색.
+// 회색 이지스함: 배치·함번·깃대와 태극기·움직이는 곳·발사 회귀·선체 색·지도 그림 비율.
 const assert=require('node:assert/strict');
 require('../src/hang/hang-aegis.js');
 const {drawAegis:draw,AEGIS:{SPEC,PALETTE:P,FONT}}=globalThis.DH.Hang;
@@ -15,7 +15,7 @@ const grid=k=>{const s=spec(k),c=k*s.cell,w=s.rows[0].length;return {s,X:j=>Math
 const HULL=[P.m,P.d,P.l];
 
 // 1. 배치: 그림 자료의 줄 폭, 선체 중심, 물에 닿는 줄.
-assert.deepEqual([SPEC.big.rows[0].length,SPEC.big.rows.length,SPEC.small.rows[0].length,SPEC.small.rows.length],[32,22,19,12]);
+assert.deepEqual([SPEC.big.rows[0].length,SPEC.big.rows.length,SPEC.small.rows[0].length,SPEC.small.rows.length],[32,22,21,15]);
 for(const s of [SPEC.big,SPEC.small])assert.equal(new Set(s.rows.map(r=>r.length)).size,1,'모든 줄의 폭이 같다');
 for(const k of [1,2.1,10]){
   const hull=record(k).filter(r=>HULL.includes(r[4]));
@@ -24,7 +24,7 @@ for(const k of [1,2.1,10]){
   const water=record(k).filter(r=>r[4]===P.w);
   assert.equal(Math.max(...water.map(r=>r[1]+r[3])),Math.round(100+5*k),'물보라 아래 끝이 다른 배와 같은 기준선');
 }
-console.log('PASS 배치: 32×22·19×12칸, 선체 중심, 물 기준선');
+console.log('PASS 배치: 32×22·21×15칸, 선체 중심, 물 기준선');
 
 // 2. 함번 997: 큰 그림에만 있고, 어느 쪽을 보든 왼쪽에서 오른쪽으로 읽힌다.
 const want=[0,1,2,3,4].map(j=>[...SPEC.big.digits.text].map(ch=>FONT[ch][j]).join('.'));
@@ -43,10 +43,12 @@ for(const k of [2.1,3,10])for(const face of [1,-1]){
 for(const k of [.5,1,1.2])assert(!record(k).some(r=>r[4]===P.N),'작은 그림에는 함번이 없다');
 console.log('PASS 함번 997: 양 방향에서 바로 읽힘, 작은 그림에는 없음');
 
-// 3. 깃대와 태극기: 깃대는 늘 받침(큰 그림은 뒤 구조물 지붕, 작은 그림은 갑판)까지 이어지고, 태극기는 기함일 때만 건다.
-assert.deepEqual([SPEC.big,SPEC.small].map(s=>{const pole=s.rows[0].indexOf('o');return s.rows.findIndex(r=>r[pole-1]==='o'&&r[pole]==='o'&&r[pole+1]==='o');}),[10,7]);
+// 3. 깃대와 태극기: 깃대는 늘 받침(큰 그림은 뒤 구조물 지붕, 작은 그림은 낮춘 뒤 갑판)까지 이어지고, 태극기는 기함일 때만 건다.
+// 받침: 깃대 칸의 왼쪽이 테두리이고 오른쪽이 빈칸이 아닌 첫 줄.
+const footOf=s=>{const pole=s.rows[0].indexOf('o');return s.rows.findIndex(r=>r[pole-1]==='o'&&r[pole]==='o'&&r[pole+1]!=='.');};
+assert.deepEqual([SPEC.big,SPEC.small].map(footOf),[10,9]);
 for(const k of [1,2.1,10])for(const fire of [-1,22,45,89]){
-  const {s,X,Y}=grid(k),pole=s.rows[0].indexOf('o'),foot=s.rows.findIndex(r=>r[pole-1]==='o'&&r[pole]==='o'&&r[pole+1]==='o');
+  const {s,X,Y}=grid(k),pole=s.rows[0].indexOf('o'),foot=footOf(s);
   for(const flag of [true,false]){
     const pixels=raster(record(k,{fire,flag}));
     for(let y=Y(0);y<Y(foot+1);y++)assert.equal(pixels.get(X(pole)+':'+y),P.o,'깃대가 꼭대기부터 받침까지 이어진다');
@@ -98,4 +100,32 @@ console.log('PASS 발사: 90틱 복귀 · 정수 픽셀 · 양방향 · 화염 �
   assert(ratio(P.N,P.m)>=3.5,'함번과 선체 면 대비 3.5 이상');
 }
 console.log('PASS 선체 색: 무채색 회색 · 바다색 대비 · 함번 대비');
-console.log('PASS 6 aegis groups');
+
+// 7. 지도 그림: 해전 그림과 같은 가로세로 비율, 한 단 낮춘 뒤 갑판의 헬기.
+{
+  const box=k=>{const rs=record(k),x0=Math.min(...rs.map(r=>r[0])),x1=Math.max(...rs.map(r=>r[0]+r[2])),y0=Math.min(...rs.map(r=>r[1])),y1=Math.max(...rs.map(r=>r[1]+r[3]));return [x1-x0,y1-y0];};
+  const big=box(2.1),small=box(1);
+  assert.deepEqual([big,small],[[44,31],[21,15]],'포신까지 잰 화면 크기');
+  assert(Math.abs(big[0]/big[1]-small[0]/small[1])<=.03,'지도 그림과 해전 그림의 가로세로 비율 차 0.03 이하');
+  // 지도는 확대율 z에서 k=1/z로 그린다. 확대율이 달라도 한 칸이 화면 한 픽셀이다.
+  for(const z of [1,2,2.5])for(const face of [1,-1]){
+    const g={rects:[],getTransform:()=>({a:z,d:z,e:0,f:0}),save(){},restore(){},setTransform(){},fillRect(x,y,w,h){if(w&&h)this.rects.push([x,y,w,h]);}};
+    draw(g,100,100,1/z,true,face,{tick:0});
+    const xs=g.rects.flatMap(r=>[r[0],r[0]+r[2]]),ys=g.rects.flatMap(r=>[r[1],r[1]+r[3]]);
+    assert.deepEqual([Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys)],[21,15],'지도 확대율 '+z);
+  }
+  // 헬기: 날개 → 기둥 → 창 달린 밝은 동체 두 줄 → 갑판. 꼬리는 동체 윗줄에서 뒤로 뻗고 끝이 올라간다.
+  const s=SPEC.small,R=s.rows,r=s.rotor.row,mid=(s.rotor.full[0]+s.rotor.full[1])/2;
+  assert.equal(s.rotor.full[1]-s.rotor.full[0],4);assert.equal(s.rotor.short[1]-s.rotor.short[0],2);
+  assert.equal(R[r+1][mid],'o','날개 가운데 아래 기둥');
+  assert.deepEqual([R[r+2].slice(0,6),R[r+3].slice(0,6)],['ooolno','..ollo'],'꼬리·동체·창');
+  assert.equal(R[r+1][0],'o','치켜든 꼬리 끝');
+  assert.equal(R[r+4].slice(0,8),'oooooooo','헬기 아래 뒤 갑판');
+  assert(R[r+4].indexOf('l')>7&&R[r+4].indexOf('m')>7,'뒤 갑판은 앞 갑판보다 한 줄 낮다');
+  // 태극기와 날개 사이에 빈 줄이 하나 있어 서로 붙지 않는다.
+  assert.equal(s.flag.r+s.flag.rows.length+1,r);assert.equal(R[r-1].slice(0,7),'.......');
+  const flag=raster(record(1)),{X,Y}=grid(1);
+  assert.deepEqual([2,3].map(i=>[flag.get(X(s.flag.c+i)+':'+Y(1)),flag.get(X(s.flag.c+i)+':'+Y(2))]),[[P.r,P.b],[P.r,P.b]],'태극기의 붉은색·푸른색 두 칸씩');
+}
+console.log('PASS 지도 그림: 해전 그림과 같은 비율 · 낮춘 뒤 갑판의 헬기 · 태극기');
+console.log('PASS 7 aegis groups');
