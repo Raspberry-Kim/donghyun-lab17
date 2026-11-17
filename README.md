@@ -1,4 +1,4 @@
-# 동현항 v1.27
+# 동현항 v1.28
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24106054.svg)](https://doi.org/10.5281/zenodo.24106054)
 
@@ -432,7 +432,7 @@ v0.26에 47번 수정(보석·귀금속 · 기준 값 100)을 더해 아덴이 �
 | 리스본 포도주 · 올리브유 | 중세 리스본 상인이 포르투갈의 올리브유 · 포도주를 지중해 · 북아프리카의 물건과 바꿨다. 1522년 무렵의 양은 따로 확인하지 못했다 | [History of Lisbon (Wikipedia)](https://en.wikipedia.org/wiki/History_of_Lisbon) |
 | 제노바 포도주 | 16세기 기록이 제노바 공화국 땅 친퀘테레의 포도주를 ‘임금의 식탁에 오를 만하다’고 적었다. 제노바 항구 곁의 산물은 아니다 | [리오마조레 시](https://www.comune.riomaggiore.sp.it/media/VDA_Speciale06ENG_WEB.pdf) |
 | 함부르크 가공육(v0.23) | 1483년 무렵 홀슈타인의 돼지 · 소가 팔려 나가 함부르크의 고기값이 올랐고, 함부르크는 뒤에 훈제 소금 소고기로 이름났다. 이름난 때는 적혀 있지 않다 | [culina vetus](https://www.culina-vetus.de/page/9/) |
-| 코펜하겐 치즈(v0.23) | 덴마크에서는 1232년 기록부터 치즈로 세금을 냈다. 16세기 코펜하겐이 치즈를 실어 냈다는 출처는 찾지 못했다 | [Ylva Ardö, Cheese in Denmark (UMSL)](https://umsl.edu/~naumannj/Geography%20PowerPoint%20Slides/northern%20europe/denmark%20-%20cheese.pdf) |
+| 코펜하겐 치즈(v0.23) | 덴마크에서는 1232년 기록부터 치즈로 세금을 냈다. 16세기 코펜하겐이 치즈를 실어 냈다는 출처는 찾지 못했다 | [Ylva Ardö, Cheese in Denmark (UMSL, 2023-12-26 보관본)](https://web.archive.org/web/20231226161517/https://www.umsl.edu/~naumannj/Geography%20PowerPoint%20Slides/northern%20europe/denmark%20-%20cheese.pdf) |
 | 마르세유 포도주 · 올리브유(v0.23) | 17세기 초 프로방스는 밀 · 포도주 · 올리브를 기르는 시골이었다. 1522년 마르세유가 실어 냈다는 기록은 찾지 못했다 | [Provence (Wikipedia)](https://en.wikipedia.org/wiki/Provence) |
 | 피사 올리브유(v0.23) | 피사 곁 칼치는 올리브 산지이고 16세기부터 물레방앗간이 늘었다. 1522년에 올리브유를 실어 냈다는 기록은 찾지 못했다 | [Terre di Pisa](https://www.terredipisa.it/en/territory/calci/) |
 | 피사 미술품 | 1469년 무렵 캄포산토 벽화 일을 두고 화가들이 겨뤘고, 일은 베노초 고촐리(1497년 죽음)가 맡았다. 다만 피사는 1509년 피렌체에 다시 정복된 뒤 토스카나의 지방 도시로 기울었다. 미술품을 실어 냈다는 기록은 찾지 못했다 | [Finestre sull'Arte](https://www.finestresullarte.info/en/museums/pisa-new-permanent-collection-displays-open-at-palazzo-blu) · [Britannica](https://www.britannica.com/print/article/461669) |
@@ -769,7 +769,7 @@ donghyun-lab17/
       hang-battle-scene.js 해전 장면: 배 고르기 · 이동 범위 · 포격 · 올라타기 · 일기토 신청과 답 · 결과 카드
       hang-scene.js        지도 장면: 항구 메뉴(조합 · 짐칸) · 항구 표식 · 해적 출현 카드 · 빼앗은 배 카드 · 뱃길 · 키 잡기 · 날짜 흐름 · 저장과 불러오기
   tools/make_data.py   JSON을 만드는 생성기 (표 + Natural Earth 육지 자료)
-  qa/                  core-tests.cjs · design-tests.cjs (node) · ui.cjs · design-ui.cjs (Playwright)
+  qa/                  core-tests.cjs · design-tests.cjs · link-tests.cjs (node) · ui-v1.cjs · design-ui.cjs (Playwright)
 ```
 
 - `src/engine/`은 동현삼(donghyun-lab16)과 동현항(donghyun-lab17)에 같은 파일로 들어 있다. 한쪽에서 고치면 다른 쪽에도 그대로 옮긴다.
@@ -781,16 +781,17 @@ donghyun-lab17/
 python3 tools/make_data.py     # JSON을 다시 만든다 (Pillow가 있어야 한다)
 node qa/core-tests.cjs         # 핵심 시험 58개 (엔진 · 파서 · 동현랭 어댑터 · 항해 · 교역 · 조합과 짐칸 · 해적과의 만남 · 해전 · 수련과 배 · 무적 모드 · 저장과 불러오기)
 node build.cjs                 # index.html 한 장
-node qa/growth-tests.cjs       # 실제 v1.27 자료·성장·예제·엔딩·옛 저장·항구별 협력자 얼굴
+node qa/growth-tests.cjs       # 실제 v1.28 자료·성장·예제·엔딩·옛 저장·항구별 협력자 얼굴
 node qa/aegis-tests.cjs        # 배치·함번 997·깃대와 태극기·레이더 막대와 회전날개·90틱 복귀·선체 색 대비·지도 그림 비율
-node qa/ui-v1.cjs              # 로컬 서버 3170, v1.27 실제 입력·저장·해전·전체화면·휴대폰 (QA_URL로 주소 지정)
+node qa/link-tests.cjs         # 설명 탭의 출처 주소가 끝까지 들어갔는지(괄호가 든 주소 포함)
+node qa/ui-v1.cjs              # 로컬 서버 3170, v1.28 실제 입력·저장·해전·전체화면·휴대폰 (QA_URL로 주소 지정)
 node qa/design-tests.cjs       # 방문 · 보급 · 독립 난수 · 원형 표식 클릭 · 민간 배 경로/확대 8개
 node qa/pixel-tests.cjs        # 기존 픽셀 배와 새 선박 · 반전 · 레이더 막대 · 용머리 불꽃
 node qa/design-ui.cjs          # 로컬 서버 3017에서 지도 · 인사 · 해적선 · 375/390/1280px 확인 9개(QA_URL로 주소 지정)
 node qa/presentation-ui.cjs    # 로컬 서버 3170, 45항구의 양 테마 초상과 서로 다른 얼굴·제물포와 나가사키 교대·판옥선 양방향 포격·45틱 종료·결과 카드
 ```
 
-v1.27 검사 범위와 한계는 [QA.md](QA.md)에 적었다. `qa/core-tests.cjs`는 v0.26 공개 자료로 기존 규칙을 회귀 검사하고, 성장·현재 자료는 `qa/growth-tests.cjs`와 `qa/ui-v1.cjs`에서 검사한다. `qa/ui.cjs`는 옛 기대값을 남긴 이전 판용 검사이며 현행 통과 수에 넣지 않는다.
+v1.28 검사 범위와 한계는 [QA.md](QA.md)에 적었다. `qa/core-tests.cjs`는 v0.26 공개 자료로 기존 규칙을 회귀 검사하고, 성장·현재 자료는 `qa/growth-tests.cjs`와 `qa/ui-v1.cjs`에서 검사한다.
 
 ## 자료 출처
 
