@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 title: "Donghyunhang (동현항): a single-player sailing and trading simulation game on a world map with hex sea battles, with starting values and rule numbers set through the esoteric language Donghyun-lang"
 type: software
-version: "1.28"
+version: "1.29"
 doi: "10.5281/zenodo.24106054"
 date-released: "2026-11-17"
 authors:
@@ -14,6 +14,13 @@ license: MIT
 repository-code: "https://github.com/Raspberry-Kim/donghyun-lab17"
 url: "https://raspberry-kim.github.io/donghyun-lab17/"
 abstract: >-
+  Version 1.29 adds a victory celebration: on winning by either ending, a
+  synthesized fanfare of about ten seconds plays the first line of the
+  trio tune of Elgar's Pomp and Circumstance March No. 1 (public domain;
+  no recording is used) while pixel flower petals fall over the map,
+  leaving the result card clear. It also fixes the duchy ending, which
+  played the defeat sound although the game was won. Rules, data,
+  examples and saves remain unchanged.
   Version 1.28 fixes three source links on the page that were cut at a
   parenthesis inside the address (Wikipedia articles on Butuan, the
   capture of Algiers and James Taylor), replaces one source that is no
