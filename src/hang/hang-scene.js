@@ -71,7 +71,7 @@
     restart() {
       const s = this.world.meta.start, c = this.engine.clock;
       Object.assign(c, { year: s.year, month: s.month || 1, day: s.day || 1, serial: 0, _acc: 0, running: false });
-      this.voyage = this.newVoyage(); this.from = [this.voyage.x, this.voyage.y];
+      this.voyage = this.newVoyage(); this.from = [this.voyage.x, this.voyage.y]; this._told = false;
       this.selected = null; this.spot = null; this.tab = null; this.route = null; this.follow = true; this.leg = 0; this.meet = null; this.dockShip = null; this.keep = null;
       this.civil = []; this.civilKey = null; this.civilCard = null;
       this.centerOnFleet(); this.hello(); this.refresh();
@@ -137,7 +137,7 @@
         this.follow = true; this.centerOnFleet(); this.settled();
       } }));
     }
-    settled() { const v = this.voyage; if (v.over && !this._told) { this._told = true; this.engine.clock.running = false; this.layout.log(this.overTitle()); this.sfx(v.overWhy === 'gold' ? 'win' : 'lose', 0.6); } if (!v.over) this._told = false; this.refresh(); }
+    settled() { const v = this.voyage; if (v.over && !this._told) { this._told = true; this.engine.clock.running = false; this.layout.log(this.overTitle()); this.sfx(v.over === 'won' ? 'pomp' : 'lose', 0.6); } if (!v.over) this._told = false; this.refresh(); }
     overTitle() { const v = this.voyage; return v.overWhy === 'duchy' ? '대공에 올라 공국을 세웠다' : v.overWhy === 'gold' ? '목표한 자금을 모았다' : v.overWhy === 'time' ? '기한이 다 되었다' : '선원을 모두 잃었다'; }
     update() { if (this.follow && this.engine.clock.running) this.centerOnFleet(); if (!this.civilCard) this.updateCivil(); if (this.engine.tick % 6 === 0) this.refreshInfo(); }
     pirateSeed(rival) { return DH.Hang.artHash(`${rival.id}:${this.voyage.day}:${this.voyage.x}:${this.voyage.y}`); }
@@ -283,7 +283,7 @@
       if (q.x < m || q.x > e.width - m || q.y < m || q.y > e.height - m) { this.cam.centerOn(P.x, P.y); this.cam.clampTo(this.grid); this.follow = false; }
     }
     /** 한 일을 기록에 남긴다. 되었으면 그 소리(ok), 안 되었으면 막히는 소리 */
-    say(r, ok) { this.layout.log(r.ok ? r.text : r.why); if (!r.ok) this.sfx('buzz'); else if (ok) this.sfx(ok); }
+    say(r, ok) { this.layout.log(r.ok ? r.text : r.why); if (!r.ok) this.sfx('buzz'); else if (ok && !(ok === 'win' && this.voyage.over)) this.sfx(ok); }   // 판을 끝낸 승작 · 납품에는 딩동댕 대신 팡파르만 낸다
     command(id) {
       const v = this.voyage, c = this.engine.clock, [key, arg] = id.split(':');
       if(this.civilCard){if(id==='civil-close')this.closeCivil();return;}
@@ -625,8 +625,10 @@
       g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = INK; g.font = `800 20px ${FONT}`; g.fillText(`해적 배 ${n}척을 빼앗았다`, W / 2, y + 27);
       g.font = `500 12px ${FONT}`; g.fillStyle = '#6e6356'; g.fillText('함대에 넣거나 판다 · 아래 버튼에서 고른다', W / 2, y + 126, w - 24);
     }
+    /** 끝 화면 카드의 자리(판 좌표). 꽃비가 이 자리를 비켜 간다 */
+    cardRect() { const w = 300, h = 96; return { x: (this.engine.width - w) / 2, y: (this.engine.height - h) / 2, w, h }; }
     drawCard(g) {
-      const W = this.engine.width, H = this.engine.height, v = this.voyage, won = v.over === 'won', w = 300, h = 96, x = (W - w) / 2, y = (H - h) / 2;
+      const W = this.engine.width, H = this.engine.height, v = this.voyage, won = v.over === 'won', { x, y, w, h } = this.cardRect();
       g.fillStyle = 'rgba(38,33,28,.4)'; g.fillRect(0, 0, W, H);
       g.beginPath(); g.roundRect(x, y, w, h, 10); g.fillStyle = '#fbf7ef'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
       g.fillStyle = won ? ACCENT : '#8d8477'; g.fillRect(x + 1, y + 1, w - 2, 6);

@@ -2,10 +2,10 @@
 // 설명 탭의 글은 README.md에서 가져온다. README를 고치고 다시 묶으면 페이지의 설명도 같이 바뀐다.
 const fs = require('fs'), path = require('path');
 const { copyIcons } = require('./icon-files.cjs');
-const LAB = { name: '동현항', version: '1.28', data: 'hang/donghyun_hang_data.json',
+const LAB = { name: '동현항', version: '1.29', data: 'hang/donghyun_hang_data.json',
   game: ['hang/hang-parser.js', 'hang/hang-rules.js', 'hang/hang-growth.js', 'hang/hang-battle.js', 'hang/hang-lang.js', 'hang/hang-aegis.js', 'hang/hang-battle-scene.js', 'hang/hang-scene.js', 'hang/hang-council.js'] };
 const ENGINE = ['dh-core.js', 'dh-loop.js', 'dh-clock.js', 'dh-grid.js', 'dh-tilemap.js', 'dh-layout.js', 'dh-engine.js', 'dh-lang.js'].map(f => 'engine/' + f);
-const JS = ['lang/donghyun.js', ...ENGINE, ...LAB.game, 'sfx.js', 'app.js'];
+const JS = ['lang/donghyun.js', ...ENGINE, ...LAB.game, 'sfx.js', 'petals.js', 'app.js'];
 const root = __dirname, out = path.join(root, 'dist'), src = n => fs.readFileSync(path.join(root, 'src', n), 'utf8');
 require('./src/hang/hang-rules.js');
 const RULES = globalThis.DH.Hang.RULES;
