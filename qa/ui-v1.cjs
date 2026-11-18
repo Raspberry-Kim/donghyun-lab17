@@ -135,7 +135,7 @@ const out=process.env.QA_SHOTS||'/tmp/hang-v1-shots';fs.mkdirSync(out,{recursive
       assert.ok(!/__[_A-Z]+__/.test(await p.locator('#tab-'+tab).innerText()),tab+' 치환 누락');
     }
     await p.locator('[data-tab="math"]').click();
-    assert.ok((await p.locator('#tab-math').innerText()).includes('v1.29'));
+    assert.ok((await p.locator('#tab-math').innerText()).includes('v1.30'));
     assert.ok((await p.locator('#tab-math').innerText()).includes('45틱(0.75초)'));
     const table=p.locator('#tab-math table').filter({hasText:'이지스함'});
     assert.equal(await table.locator('tbody tr').count(),5);
