@@ -1,4 +1,4 @@
-# 동현항 v1.30
+# 동현항 v1.31
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24106054.svg)](https://doi.org/10.5281/zenodo.24106054)
 
@@ -782,10 +782,10 @@ donghyun-lab17/
 python3 tools/make_data.py     # JSON을 다시 만든다 (Pillow가 있어야 한다)
 node qa/core-tests.cjs         # 핵심 시험 58개 (엔진 · 파서 · 동현랭 어댑터 · 항해 · 교역 · 조합과 짐칸 · 해적과의 만남 · 해전 · 수련과 배 · 무적 모드 · 저장과 불러오기)
 node build.cjs                 # index.html 한 장
-node qa/growth-tests.cjs       # 실제 v1.30 자료·성장·예제·엔딩·옛 저장·항구별 협력자 얼굴
+node qa/growth-tests.cjs       # 실제 v1.31 자료·성장·예제·엔딩·옛 저장·항구별 협력자 얼굴
 node qa/aegis-tests.cjs        # 배치·함번 997·깃대와 태극기·레이더 막대와 회전날개·90틱 복귀·선체 색 대비·지도 그림 비율
 node qa/link-tests.cjs         # 설명 탭의 출처 주소가 끝까지 들어갔는지(괄호가 든 주소 포함)
-node qa/ui-v1.cjs              # 로컬 서버 3170, v1.30 실제 입력·저장·해전·전체화면·휴대폰 (QA_URL로 주소 지정)
+node qa/ui-v1.cjs              # 로컬 서버 3170, v1.31 실제 입력·저장·해전·전체화면·휴대폰 (QA_URL로 주소 지정)
 node qa/design-tests.cjs       # 방문 · 보급 · 독립 난수 · 원형 표식 클릭 · 민간 배 경로/확대 8개
 node qa/pixel-tests.cjs        # 기존 픽셀 배와 새 선박 · 반전 · 레이더 막대 · 용머리 불꽃
 node qa/design-ui.cjs          # 로컬 서버 3017에서 지도 · 인사 · 해적선 · 375/390/1280px 확인 9개(QA_URL로 주소 지정)
@@ -794,7 +794,7 @@ node qa/victory.cjs            # 승리 화면 6묶음(자금·공국 엔딩의 
 node qa/note-blink.cjs         # 데스크톱 권장 안내 상자의 살구색 테두리(처음 열 번만 점멸) 7묶음. 뒤에 chromium·firefox·webkit을 붙여 고름
 ```
 
-v1.30 검사 범위와 한계는 [QA.md](QA.md)에 적었다. `qa/core-tests.cjs`는 v0.26 공개 자료로 기존 규칙을 회귀 검사하고, 성장·현재 자료는 `qa/growth-tests.cjs`와 `qa/ui-v1.cjs`에서 검사한다.
+v1.31 검사 범위와 한계는 [QA.md](QA.md)에 적었다. `qa/core-tests.cjs`는 v0.26 공개 자료로 기존 규칙을 회귀 검사하고, 성장·현재 자료는 `qa/growth-tests.cjs`와 `qa/ui-v1.cjs`에서 검사한다.
 
 ## 자료 출처
 
