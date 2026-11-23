@@ -42,11 +42,11 @@
     7: { key: 'start.war', label: '선장 무력', min: 1, max: 100, path: 'start.war', hint: '일기토와 백병전에 쓴다', def: '자료 값' },
     8: { key: 'cargo', label: '시작 짐', multi: true, hint: '교역품 번호는 자료에 적힌 순서 · 적으면 그 교역품의 처음 짐을 바꾼다', def: '자료 값',
       args: [{ label: '교역품 번호', min: 1, max: 99 }, { label: '수량', min: 0, max: 9999 }],
-      check: ([g], { world }) => (world && !nth(world.goods, g) ? `교역품은 ${world.goods.size}가지뿐이다` : null),
+      check: ([g], { world }) => (world && !nth(world.goods, g) ? `교역품은 ${world.goods.size}가지다` : null),
       show: ([g, q], { world }) => `${nth(world && world.goods, g) ? nth(world.goods, g).name : g + '번'} ${fmt(q)}`,
       set: (st, [g, q], { world }) => st.cargo.push([nth(world.goods, g).id, q]) },
     9: { key: 'start.ship', label: '시작 기함', min: 1, max: 9, hint: '배 종류 번호는 자료에 적힌 순서(1 캐러벨 · 2 캐럭 · 3 거북선)', def: '자료 값',
-      check: ([n], { world }) => (world && !nth(world.shipTypes, n) ? `배 종류는 ${world.shipTypes.size}가지뿐이다` : null),
+      check: ([n], { world }) => (world && !nth(world.shipTypes, n) ? `배 종류는 ${world.shipTypes.size}가지다` : null),
       show: ([n], { world }) => (nth(world && world.shipTypes, n) ? nth(world.shipTypes, n).name : n + '번 배'),
       set: (st, [n], { world }) => { st.start.ship = nth(world.shipTypes, n).id; } },
     10: { key: 'lot', label: '교역 단위', min: 1, max: 100, path: 'rules.lot', hint: '한 번에 사고파는 수량' },
@@ -66,7 +66,7 @@
     25: { key: 'stage.ending', label: '엔딩 갈래', min: 1, max: 3, path: 'stage.ending', hint: '1 자금 단독 · 2 기한부 자금 · 3 공국 건국. 대공 승작은 어느 판에서도 승리' },
     30: { key: 'rivals', label: '해적 선장 무력', multi: true, hint: '해적 번호는 자료에 적힌 순서', def: '자료 값',
       args: [{ label: '해적 번호', min: 1, max: 99 }, { label: '무력', min: 1, max: 100 }],
-      check: ([n], { world }) => (world && !nth(world.rivals, n) ? `해적은 ${world.rivals.size}무리뿐이다` : null),
+      check: ([n], { world }) => (world && !nth(world.rivals, n) ? `해적은 ${world.rivals.size}무리다` : null),
       show: ([n, v], { world }) => `${nth(world && world.rivals, n) ? nth(world.rivals, n).captain.name : n + '번 해적'} ${v}`,
       set: (st, [n, v], { world }) => st.rivals.push([nth(world.rivals, n).id, v]) }
   },
@@ -88,7 +88,7 @@
   const applyDonghyunLang = (scriptText, state, ctx) => lang.applyDonghyunLang(scriptText, state, ctx);
 
   /* 손으로 쓴 예제(변수 · 반복문)를 짓는 도우미. 수는 어댑터의 식 적기(expression)로 적는다.
-   * script(줄들): 줄을 잇는다. '@' 한 글자뿐인 줄은 되돌아올 자리(빈 문장)이고, 다른 줄의 {@}는 그 문장 번호를 적은 식으로 바뀐다.
+   * script(줄들): 줄을 잇는다. '@' 한 글자인 줄은 되돌아올 자리(빈 문장)이고, 다른 줄의 {@}는 그 문장 번호를 적은 식으로 바뀐다.
    * 문장 번호는 동현랭 명세대로 센다: 줄바꿈과 ~로 나눈 조각마다 하나, 주석만 있는 줄도 하나. */
   const A = DH.DonghyunLangAdapter, lit = n => A.expression(n), say = e => `뿡뿡 ${e}~뿡뿡뿡`;
   function script(lines) {

@@ -2,9 +2,9 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 title: "Donghyunhang (동현항): a single-player sailing and trading simulation game on a world map with hex sea battles, with starting values and rule numbers set through the esoteric language Donghyun-lang"
 type: software
-version: "1.31"
+version: "1.32"
 doi: "10.5281/zenodo.24106054"
-date-released: "2026-11-20"
+date-released: "2026-11-23"
 authors:
   - family-names: Kim
     given-names: Dong Hyun
@@ -14,6 +14,9 @@ license: MIT
 repository-code: "https://github.com/Raspberry-Kim/donghyun-lab17"
 url: "https://raspberry-kim.github.io/donghyun-lab17/"
 abstract: >-
+  Version 1.32 rewords messages, seven Korean renderings of the
+  adviser's quotations, pages and notes as plain statements. Rules, data,
+  examples and saves remain unchanged.
   Version 1.31 moves the Donghyunte link, which stood apart at the end
   of the footer, into the same list as the other series links. Rules,
   data, examples and saves remain unchanged.
