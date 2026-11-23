@@ -142,8 +142,8 @@ ok('어댑터: 오류가 하나라도 있으면 하나도 덮어쓰지 않는다
   const st = { gold: 500, list: [] }, same = JSON.stringify(st);
   const E = (src, re) => { const r = t.applyDonghyunLang(src, st); assert.strictEqual(r.ok, false, src); assert.ok(re.test(r.errors[0]), r.errors[0]); assert.deepStrictEqual(r.applied, []); assert.strictEqual(JSON.stringify(st), same, '상태가 바뀌었다'); };
   E(put(3, 1000, 4, 1), /3번째 정수 4은 시험 설정 번호가 아니다\. 쓸 수 있는 번호: 3 · 30/); E(put(3, 20000), /금 값 20,000은 쓸 수 없다\. 0~9,999, 100 단위만 된다/); E(put(3, 250), /100 단위만/);
-  E(put(3, 1000, 30, 7), /설정 30\(장수\) 뒤에 값이 2개 있어야 하는데 1개뿐이다/); E(put(3, 1000, 30, 7, 101), /장수의 값 값 101은 쓸 수 없다\. 1~100만 된다/); E(put(3, 1000, 30, 13, 50), /설정 30\(장수\): 13번은 없다/);
-  E(HEAD + '뿡뿡뿡 ' + A.expression(65) + TAIL, /1번째 출력 'A'는 정수가 아니다/); E(put(3) + '', /값이 1개 있어야 하는데 0개뿐/); E(HEAD + A.print(3) + '\n포동이 ' + A.expression(1500) + TAIL, /설정 3\(금\)의 값 '1\.500'는 정수가 아니다/); E('뿡뿡 도옹', /^동현랭 오류/); E(HEAD + '동현아 도옹\n몰라요' + TAIL, /^동현랭 오류 \(3번 문장\)/);
+  E(put(3, 1000, 30, 7), /설정 30\(장수\) 뒤에 값이 2개 있어야 하는데 1개다/); E(put(3, 1000, 30, 7, 101), /장수의 값 값 101은 쓸 수 없다\. 1~100만 된다/); E(put(3, 1000, 30, 13, 50), /설정 30\(장수\): 13번은 없다/);
+  E(HEAD + '뿡뿡뿡 ' + A.expression(65) + TAIL, /1번째 출력 'A'는 정수가 아니다/); E(put(3) + '', /값이 1개 있어야 하는데 0개다/); E(HEAD + A.print(3) + '\n포동이 ' + A.expression(1500) + TAIL, /설정 3\(금\)의 값 '1\.500'는 정수가 아니다/); E('뿡뿡 도옹', /^동현랭 오류/); E(HEAD + '동현아 도옹\n몰라요' + TAIL, /^동현랭 오류 \(3번 문장\)/);
   assert.throws(() => new A({ commands: { 1: { key: 'x', label: 'x', min: 5, max: 1, path: 'x' } } }), /범위/); assert.throws(() => new A({ commands: { 1: { key: 'x', label: 'x', min: 0, max: 1 } } }), /path/);
   const none = new A({ name: '시험', runtime: { run: () => { throw new Error('없다'); } }, commands: {} }); assert.strictEqual(none.parse(put(1)).ok, false);
 });
@@ -321,7 +321,7 @@ ok('동현항 백병전과 선장 무력: 피해 = 선원의 40%(되받기 30%) 
 });
 ok('동현항 일기토 신청: 해전마다 쪽마다 한 번 · 적은 15까지 뒤져도 받고 더 뒤지면 물리친다 · 물리치면 그 배는 이어서 움직인다 · 적은 10 넘게 앞설 때 신청한다 · 우리가 받을지 고른다', () => {
   const st = H.newState(); st.start.war = 100; let e = fight('redsail', { state: st }); assert.deepStrictEqual(e.b.duelTargets(e.me[0]), [], '떨어져 있으면 신청하지 못한다'); e.foe[0].c = 2; e.foe[0].r = 4;
-  let r = e.b.challenge(e.me[0], e.foe[0]); assert.deepStrictEqual([r, e.b.ended, e.me[0].done, e.b.duelTargets(e.me[0]), e.b.challenge(e.me[0], e.foe[0])], [{ type: 'refuse', unit: 'me0', target: 'foe0', text: '붉은수염이 포동이의 일기토 신청을 물리쳤다' }, false, false, [], null], '무력 55는 100 − 15보다 낮다 · 한 번뿐이다');
+  let r = e.b.challenge(e.me[0], e.foe[0]); assert.deepStrictEqual([r, e.b.ended, e.me[0].done, e.b.duelTargets(e.me[0]), e.b.challenge(e.me[0], e.foe[0])], [{ type: 'refuse', unit: 'me0', target: 'foe0', text: '붉은수염이 포동이의 일기토 신청을 물리쳤다' }, false, false, [], null], '무력 55는 100 − 15보다 낮다 · 한 번이다');
   assert.strictEqual(e.b.board(e.me[0], e.foe[0]).type, 'board', '물리친 뒤에도 올라탈 수 있다');
   st.start.war = 70; assert.deepStrictEqual(['redsail', 'blackreef', 'storm'].map(id => { const q = fight(id); return [q.b.accepts('foe'), q.b.accepts('me')]; }), [[true, true], [true, false], [true, false]], '적은 55 ≥ 70 − 15라 받는다 · 맡겨 둔 우리 쪽은 무력이 같거나 높을 때만 받는다');
   const dare = () => { const q = fight('storm'); for (const u of q.me) q.b.wait(u); q.b.endSide(); q.foe[0].c = 3; q.foe[0].r = 4; return q; };
@@ -393,8 +393,8 @@ ok('동현항 스테이지: 자금을 모으면 이긴다 · 기한(바다에서
 ok('동현항 설정: 틀린 번호와 값은 까닭을 말하고 globalState를 그대로 둔다 · 시작 짐이 적재량을 넘으면 막는다 · 예제 열이 모두 읽힌다', () => {
   const w = hw(), st = H.newState(), same = JSON.stringify(st), L = H.lang;
   const E = (list, re) => { const r = H.applyDonghyunLang(L.compose(list, '', { world: w }), st, { world: w }); assert.strictEqual(r.ok, false); assert.ok(re.test(r.errors[0]), r.errors[0]); assert.strictEqual(JSON.stringify(st), same); };
-  E([[3, 500], [8, 48, 10]], /설정 8\(시작 짐\): 교역품은 47가지뿐이다/); E([[6, 41]], /설정 6\(시작 선원\): 선원 41명은 배의 10~40명 밖이다/); E([[6, 9]], /10~40명 밖/); E([[4, 121]], /시작 식량\(일\) 값 121은 쓸 수 없다\. 0~120만 된다/);
-  E([[8, 1, 160], [8, 2, 41]], /시작 짐 201개는 배에 다 실리지 않는다\. 적재량은 200이다\./); E([[8, 3, 141]], /시작 짐 201개는/); E([[30, 9, 50]], /설정 30\(해적 선장 무력\): 해적은 8무리뿐이다/); E([[30, 1, 101]], /무력 값 101은 쓸 수 없다\. 1~100만 된다/);
+  E([[3, 500], [8, 48, 10]], /설정 8\(시작 짐\): 교역품은 47가지다/); E([[6, 41]], /설정 6\(시작 선원\): 선원 41명은 배의 10~40명 밖이다/); E([[6, 9]], /10~40명 밖/); E([[4, 121]], /시작 식량\(일\) 값 121은 쓸 수 없다\. 0~120만 된다/);
+  E([[8, 1, 160], [8, 2, 41]], /시작 짐 201개는 배에 다 실리지 않는다\. 적재량은 200이다\./); E([[8, 3, 141]], /시작 짐 201개는/); E([[30, 9, 50]], /설정 30\(해적 선장 무력\): 해적은 8무리다/); E([[30, 1, 101]], /무력 값 101은 쓸 수 없다\. 1~100만 된다/);
   E([[23, 7]], /배 이동력 값 7은 쓸 수 없다\. 1~6만 된다/); E([[14, 101]], /0~100만 된다/);
   const r = H.applyDonghyunLang(put(1, 1), st, { world: w }); assert.ok(/1번째 정수 1은 동현항 설정 번호가 아니다/.test(r.errors[0]), r.errors[0]);
   assert.ok(H.applyDonghyunLang(L.compose([[8, 1, 100], [8, 2, 100]], '', { world: w }), H.newState(), { world: w }).ok, '적재량에 꼭 맞으면 된다');
@@ -440,7 +440,7 @@ ok('동현항 설정 9 · 15~18: 시작 기함 · 무적 모드 · 통행료 · 
   ({ st, r } = run([[17, 0], [18, 150]])); assert.ok(r.ok); const q = new H.Voyage(hw(), { rng: new DH.RNG(3), state: st }); assert.deepStrictEqual([q.train().text, q.addGuns('s1').text, q.gold], ['포동이가 수련했다 · 금 −0 · 무력 70 → 71', '꼬리바람호에 포 2문을 더 달았다 · 금 −150 · 포 10문', 850]);
   const E = (list, re) => { const x = run(list); assert.strictEqual(x.r.ok, false, JSON.stringify(list)); assert.ok(re.test(x.r.errors[0]), x.r.errors[0]); assert.deepStrictEqual(x.st, H.newState()); };
   ({ st, r } = run([[9, 3]])); assert.ok(r.ok, r.errors.join()); assert.deepStrictEqual([st.start.ship, st.rules.invincible, new H.Voyage(hw(), { rng: new DH.RNG(3), state: st }).ships[0].type], ['turtle', 0, 'turtle'], '무적 모드 없이 거북선으로 떠난다');
-  { const cw = cheatW(), st2 = H.newState(), r2 = H.applyDonghyunLang(L.compose([[9, 3]], '', { world: cw }), st2, { world: cw }); assert.strictEqual(r2.ok, false); assert.ok(/^거북선은 무적 모드에서만 탄다\. 설정 15\(무적 모드\)를 1로 함께 적는다\.$/.test(r2.errors[0]), r2.errors[0]); assert.deepStrictEqual(st2, H.newState()); } E([[9, 4]], /설정 9\(시작 기함\): 배 종류는 3가지뿐이다/);
+  { const cw = cheatW(), st2 = H.newState(), r2 = H.applyDonghyunLang(L.compose([[9, 3]], '', { world: cw }), st2, { world: cw }); assert.strictEqual(r2.ok, false); assert.ok(/^거북선은 무적 모드에서만 탄다\. 설정 15\(무적 모드\)를 1로 함께 적는다\.$/.test(r2.errors[0]), r2.errors[0]); assert.deepStrictEqual(st2, H.newState()); } E([[9, 4]], /설정 9\(시작 기함\): 배 종류는 3가지다/);
   E([[9, 2], [6, 29]], /설정 6\(시작 선원\): 선원 29명은 배의 30~120명 밖이다/); E([[9, 2], [8, 1, 461]], /시작 짐 481개는 배에 다 실리지 않는다\. 적재량은 480이다\./); E([[15, 2]], /무적 모드 값 2는 쓸 수 없다\. 0~1만 된다/); E([[16, 0]], /통행료\(자금의 %\) 값 0은 쓸 수 없다/);
   assert.ok(run([[9, 3], [15, 1]]).r.ok && run([[15, 1], [9, 3]]).r.ok, '적는 차례는 상관없다');
   const rows = L.describe(H.newState()); assert.deepStrictEqual(rows.map(x => x.n), [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 30]);

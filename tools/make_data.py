@@ -220,7 +220,7 @@ PORTS=[('lisbon','리스본',-9.14,38.72,['iberia'],BIG,'PT'),('seville','세비
 ('hormuz','호르무즈',56.45,27.10,['arabia'],MID,'IR'),('goa','고아',73.83,15.50,['india'],MID,'IN'),('calicut','캘리컷',75.78,11.25,['india'],MID,'IN'),
 ('malacca','말라카',102.25,2.20,['sea','malacca'],MID,'MY'),('canton','광저우',113.26,23.13,['eastasia','canton'],BIG,'CN'),('hakata','하카타',130.40,33.60,['eastasia'],MID,'JP'),
 ('santodomingo','산토도밍고',-69.90,18.47,['america','santodomingo'],SMALL,'DO'),('veracruz','베라크루스',-96.13,19.20,['america','veracruz'],SMALL,'MX'),
-# 새로 넣은 25곳. 꼬리표는 제 항구 id 하나뿐이라 처음 열두 교역품의 산지는 그대로다(금·후추·정향만 ORIGIN에 따로 적었다).
+# 새로 넣은 25곳. 꼬리표는 제 항구 id 하나라 처음 열두 교역품의 산지는 그대로다(금·후추·정향만 ORIGIN에 따로 적었다).
 ('nagasaki','나가사키',129.87,32.75,[],MID,'JP'),('ceylon','실론',79.86,6.93,[],MID,'LK'),('jemulpo','제물포',126.62,37.47,[],SMALL,'KR'),('dongnae','동래',129.04,35.10,[],SMALL,'KR'),
 ('naples','나폴리',14.27,40.85,[],MID,'IT'),('athens','아테네',23.64,37.94,[],SMALL,'GR'),('pisa','피사',10.40,43.72,[],SMALL,'IT'),('oslo','오슬로',10.75,59.91,[],SMALL,'NO'),
 ('hamburg','함부르크',9.99,53.55,[],MID,'DE'),('tripoli','트리폴리',13.19,32.89,[],MID,'LY'),('mozambique','모잠비크',40.74,-15.03,[],SMALL,'MZ'),('java','자바',106.83,-6.12,[],MID,'ID'),
